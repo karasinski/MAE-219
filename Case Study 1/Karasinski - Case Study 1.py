@@ -1,55 +1,68 @@
-def Homework1():
-    import numpy as np
-    import matplotlib.pyplot as plt
+from numpy import *
+import matplotlib.pyplot as plt
 
-    t = 0  # s
-    dt = .1  # s
-    t_f = 10  # s
+# Problem Parameters
+L = 1.            # Domain lenghth       [n.d.]
+T0 = 0.           # Initial temperature  [n.d.]
+T1 = 1.           # Boundary temperature [n.d.]
+t_start = 0.
+t_end = 0.1
+s = 1. / 6.
+N = 21
 
-    length = 1  # m
-    number_of_points = 10
-    dx = length / number_of_points  # m
-    x = np.linspace(0, length, number_of_points)
+# Set-up Mesh
+x = linspace(0, L, N)
+dx = x[1] - x[0]
 
-    alpha = 2E-2  # m^2/s
-    C = (alpha * dt / dx ** 2)  # better to calculate once than every timestep
+# Calculate time-step
+dt = s * dx ** 2.0
+time = 0.
 
-    # set up our Temperature list with initial conditions
-    Tn_ = np.zeros(number_of_points)
-    Tn_[0] = 1
-    Tn_[-1] = 1
+# Initial Condition
+Tnew = [T0] * N
 
-    history = Tn_
-    history = np.vstack((history, Tn_))
-    # print(t)
+# Boundary conditions
+Tnew[0] = T1
+Tnew[N - 1] = T1
 
-    while t < t_f - dt:
-        # make a copy
-        Tn = Tn_
+Told = Tnew
 
-        # update all the interior nodes
-        for i in range(1, number_of_points - 1):
-            Tn[i] = Tn_[i] + C * (Tn_[i + 1] - 2 * Tn_[i] + Tn_[i - 1])
+plt.axis([0, L, T0, T1])
+plt.xlabel('Length [nd]')
+plt.ylabel('Temperature [nd]')
 
-        # update our array and our current time
-        Tn_ = Tn
-        t += dt
+while time <= t_end:
+    for i in range(1, N - 1):
+        Tnew[i] = s * Told[i + 1] + (1 - 2.0 * s) * Told[i] + s * Told[i - 1]
 
-        # append to our history every second (made hellish by floating point)
-        if (abs(int(t) - t) < dt):
-            history = np.vstack((history, Tn))
-            # print(t)
-    history = np.vstack((history, Tn))
-    # print(t)
+    plt.plot(x, Tnew, linewidth=1)
+    time = time + dt
+    Told = Tnew
 
-    # plot the rod every second
-    plt.figure()
-    plt.hold(True)
-    for i, T in enumerate(history):
-        if i == 0:
-            continue
-        plt.plot(x, history[i], '-', label=str(i - 1) + ' seconds')
-    plt.legend(loc='best')
-    plt.show()
+plt.show()
+print('\n Done.\n')
 
-Homework1()
+
+def TDMAsolver(a, b, c, d):
+    '''
+    Tridiagonal Matrix Algorithm (a.k.a Thomas algorithm).
+
+    a b c d can be NumPy array type or Python list type.
+    '''
+
+    nf = len(a)     # number of equations
+    ac, bc, cc, dc = map(np.array, (a, b, c, d))     # copy the array
+    for it in xrange(1, nf):
+        mc = ac[it] / bc[it - 1]
+        bc[it] = bc[it] - mc * cc[it - 1]
+        dc[it] = dc[it] - mc * dc[it - 1]
+
+    xc = ac
+    xc[-1] = dc[-1] / bc[-1]
+
+    for il in xrange(nf - 2, -1, -1):
+        xc[il] = (dc[il] - cc[il] * xc[il + 1]) / bc[il]
+
+    del bc, cc, dc  # delete variables from memory
+
+    return xc
