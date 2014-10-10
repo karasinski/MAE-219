@@ -1,4 +1,4 @@
-from numpy import *
+import numpy as np
 import matplotlib.pyplot as plt
 
 # Problem Parameters
@@ -11,7 +11,7 @@ s = 1. / 6.
 N = 21
 
 # Set-up Mesh
-x = linspace(0, L, N)
+x = np.linspace(0, L, N)
 dx = x[1] - x[0]
 
 # Calculate time-step
@@ -40,7 +40,6 @@ while time <= t_end:
     Told = Tnew
 
 plt.show()
-print('\n Done.\n')
 
 
 def TDMAsolver(a, b, c, d):
@@ -52,7 +51,8 @@ def TDMAsolver(a, b, c, d):
 
     nf = len(a)     # number of equations
     ac, bc, cc, dc = map(np.array, (a, b, c, d))     # copy the array
-    for it in xrange(1, nf):
+
+    for it in range(1, nf):
         mc = ac[it] / bc[it - 1]
         bc[it] = bc[it] - mc * cc[it - 1]
         dc[it] = dc[it] - mc * dc[it - 1]
@@ -60,9 +60,30 @@ def TDMAsolver(a, b, c, d):
     xc = ac
     xc[-1] = dc[-1] / bc[-1]
 
-    for il in xrange(nf - 2, -1, -1):
+    for il in range(nf - 2, -1, -1):
         xc[il] = (dc[il] - cc[il] * xc[il + 1]) / bc[il]
 
     del bc, cc, dc  # delete variables from memory
 
     return xc
+
+a = [0.0,  2.0, 1.0]  # first number must be zero
+b = [1.0,  1.0, 1.0]
+c = [2.0,  1.0, 0.0]  # last number must be zero
+d = [0.0,  1.0, 0.0]
+
+A = np.array([[b[0], c[0],   0],
+              [a[1], b[1], c[1]],
+              [  0,  a[2], b[2]]])
+
+# Python's linalg solver
+x = np.linalg.solve(A, d)
+
+# My solver
+solved = TDMAsolver(a, b, c, d)
+
+# Does my solution solve the problem?
+print(np.allclose(np.dot(A, solved), d))
+
+# Does my solution match the linalg solver?
+print(np.allclose(x, solved))
