@@ -2,13 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def Explicit():
+def Explicit(s, t_end, show_plot=False):
     # Problem Parameters
     L = 1.            # Domain lenghth       [n.d.]
     T0 = 0.           # Initial temperature  [n.d.]
     T1 = 1.           # Boundary temperature [n.d.]
-    t_end = 0.3
-    s = 1. / 6.
     N = 21
 
     # Set-up Mesh
@@ -32,25 +30,41 @@ def Explicit():
     plt.xlabel('Length [nd]')
     plt.ylabel('Temperature [nd]')
 
-    # Numerical Solution
+    # Explicit Numerical Solution
     while time <= t_end:
         for i in range(1, N - 1):
             Tnew[i] = s * Told[i + 1] +  (1 - 2.0 * s) * Told[i] + s * Told[i - 1]
 
         time += dt
         Told = Tnew
+    T_explicit = Told
 
     # Analytical Solution
-    Tanalytical = Tnew
-    for i in range(1, N - 1):
-        Tanalytical[i] = Analytic(x[i], time)
+    T_analytic = [0] * N
+    for i in range(0, N):
+        T_analytic[i] = Analytic(x[i], time)
+
+    # Find the RMS
+    RMS = 0.
+    for i in range(0, N):
+        term = (T_explicit[i] - T_analytic[i])**2.
+        RMS += term ** (1./2.)
+    RMS /= N
 
     # Plot Numerical Solution
-    plt.title('Solution at time, t = ' + str(time)[:3])
-    plt.plot(x, Tnew, linewidth=1, label='Numerical Solution')
-    plt.plot(x, Tanalytical, linewidth=1, label='Analytic Solution')
+    num = '{:.2e}'.format(RMS)
+    plt.title('s = ' + str(s)[:5] + ', t = ' + str(time)[:3] + ', RMS = ' + num)
+    plt.plot(x, T_explicit, 'xr', linewidth=1, label='Numerical Solution')
+    plt.plot(x, T_analytic, 'ob', mfc='none', linewidth=1, label='Analytic Solution')
     plt.legend(loc='best')
-    plt.show()
+
+    save_name = 'proj_1_s_' + str(s)[:5] + '_t_' + str(t_end) + '.png'
+    plt.savefig(save_name, bbox_inches='tight')
+    if show_plot:
+        plt.show()
+    plt.clf()
+
+    return RMS
 
 
 def TDMAsolver(a, b, c, d):
@@ -87,9 +101,9 @@ def Analytic(x, t):
     large_number = 1E6
 
     for k in range(1, int(large_number) + 1):
-        term = (4. / ((2. * k - 1.) * np.pi)) * \
-                np.sin((2. * k - 1.) * np.pi * x) * \
-                np.exp(-(2. * k - 1.) ** 2. * np.pi ** 2. * t)
+        term = ((4. / ((2. * k - 1.) * np.pi)) *
+                np.sin((2. * k - 1.) * np.pi * x) *
+                np.exp(-(2. * k - 1.) ** 2. * np.pi ** 2. * t))
 
         # If subtracting the term from the result doesn't change the result
         # then we've hit the point at which subtracting more terms doesn't
@@ -100,4 +114,49 @@ def Analytic(x, t):
         else:
             result -= term
 
-Explicit()
+def main():
+    # Loop over requested values for s and t
+    s = [1. / 6., .25, .5, .75]
+    t = [0.3, 0.6, 0.9]
+    RMS = []
+    for i, s_ in enumerate(s):
+        sRMS = [0] * len(t)
+        for j, t_ in enumerate(t):
+            sRMS[j] = Explicit(s_, t_, False)
+            # print i, j, sRMS[j]
+        RMS.append(sRMS)
+
+    plt.figure()
+    plt.plot(t, RMS[0], '.', label='s = 1/6')
+    plt.plot(t, RMS[1], '.', label='s = .25')
+    plt.plot(t, RMS[2], '.', label='s = .50')
+    plt.plot(t, RMS[3], '.', label='s = .75')
+    plt.xlabel('t')
+    plt.ylabel('RMS')
+    plt.title('RMS vs t')
+    plt.legend(loc='best')
+
+    save_name = 'proj_1_rms_vs_t.png'
+    plt.savefig(save_name, bbox_inches='tight')
+    # plt.show()
+    plt.clf()
+
+    # Convert to np array to make this easier...
+    RMS = np.array(RMS)
+
+    plt.figure()
+    plt.plot(s, RMS[:, 0], '.r', label='t = 0.3')
+    plt.plot(s, RMS[:, 1], '.g', label='t = 0.6')
+    plt.plot(s, RMS[:, 2], '.b', label='t = 0.9')
+    plt.xlabel('s')
+    plt.ylabel('RMS')
+    plt.title('RMS vs s')
+    plt.legend(loc='best')
+
+    save_name = 'proj_1_rms_vs_s.png'
+    plt.savefig(save_name, bbox_inches='tight')
+    # plt.show()
+    plt.clf()
+
+if __name__ == "__main__":
+    main()
