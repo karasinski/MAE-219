@@ -25,6 +25,7 @@ def Explicit(s, t_end, show_plot=False):
     Tnew[N - 1] = T1
 
     Told = Tnew
+    T_initial = Tnew
 
     # plt.axis([0, L, T0, T1])
     plt.xlabel('Length [nd]')
@@ -38,6 +39,17 @@ def Explicit(s, t_end, show_plot=False):
         time += dt
         Told = Tnew
     T_explicit = Told
+
+    # Implicit Numerical Solution
+    # time = 0.
+    # Told = T_initial
+    # Tnew = T_initial
+    # while time <= t_end:
+    #     d = Told
+    #     Tnew = TDMAsolver(a, b, c, d)
+
+    #     time += dt
+    #     Told = Tnew
 
     # Analytical Solution
     T_analytic = [0] * N
@@ -127,10 +139,10 @@ def main():
         RMS.append(sRMS)
 
     plt.figure()
-    plt.plot(t, RMS[0], '.', label='s = 1/6')
-    plt.plot(t, RMS[1], '.', label='s = .25')
-    plt.plot(t, RMS[2], '.', label='s = .50')
-    plt.plot(t, RMS[3], '.', label='s = .75')
+    plt.plot(t, RMS[0], '.r', label='s = 1/6')
+    plt.plot(t, RMS[1], '.g', label='s = .25')
+    plt.plot(t, RMS[2], '.b', label='s = .50')
+    plt.plot(t, RMS[3], '.k', label='s = .75')
     plt.xlabel('t')
     plt.ylabel('RMS')
     plt.title('RMS vs t')
