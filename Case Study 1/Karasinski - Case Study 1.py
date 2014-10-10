@@ -1,45 +1,47 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Problem Parameters
-L = 1.            # Domain lenghth       [n.d.]
-T0 = 0.           # Initial temperature  [n.d.]
-T1 = 1.           # Boundary temperature [n.d.]
-t_start = 0.
-t_end = 0.1
-s = 1. / 6.
-N = 21
 
-# Set-up Mesh
-x = np.linspace(0, L, N)
-dx = x[1] - x[0]
+def Explicit():
+    # Problem Parameters
+    L = 1.            # Domain lenghth       [n.d.]
+    T0 = 0.           # Initial temperature  [n.d.]
+    T1 = 1.           # Boundary temperature [n.d.]
+    t_end = 0.1
+    s = 1. / 6.
+    N = 21
 
-# Calculate time-step
-dt = s * dx ** 2.0
-time = 0.
+    # Set-up Mesh
+    x = np.linspace(0, L, N)
+    dx = x[1] - x[0]
 
-# Initial Condition
-Tnew = [T0] * N
+    # Calculate time-step
+    dt = s * dx ** 2.0
+    time = 0.
 
-# Boundary conditions
-Tnew[0] = T1
-Tnew[N - 1] = T1
+    # Initial Condition
+    Tnew = [T0] * N
 
-Told = Tnew
+    # Boundary conditions
+    Tnew[0] = T1
+    Tnew[N - 1] = T1
 
-plt.axis([0, L, T0, T1])
-plt.xlabel('Length [nd]')
-plt.ylabel('Temperature [nd]')
-
-while time <= t_end:
-    for i in range(1, N - 1):
-        Tnew[i] = s * Told[i + 1] + (1 - 2.0 * s) * Told[i] + s * Told[i - 1]
-
-    plt.plot(x, Tnew, linewidth=1)
-    time = time + dt
     Told = Tnew
 
-plt.show()
+    plt.axis([0, L, T0, T1])
+    plt.xlabel('Length [nd]')
+    plt.ylabel('Temperature [nd]')
+
+    while time <= t_end:
+        for i in range(1, N - 1):
+            Tnew[i] = s * Told[i + 1] + \
+                (1 - 2.0 * s) * Told[i] + s * Told[i - 1]
+
+        plt.plot(x, Tnew, linewidth=1)
+        time += dt
+        Told = Tnew
+
+    plt.show()
 
 
 def TDMAsolver(a, b, c, d):
@@ -67,23 +69,27 @@ def TDMAsolver(a, b, c, d):
 
     return xc
 
-a = [0.0,  2.0, 1.0]  # first number must be zero
-b = [1.0,  1.0, 1.0]
-c = [2.0,  1.0, 0.0]  # last number must be zero
-d = [0.0,  1.0, 0.0]
+# print(np.spacing(1))
 
-A = np.array([[b[0], c[0],   0],
-              [a[1], b[1], c[1]],
-              [  0,  a[2], b[2]]])
+def Analytic(x, t):
+    result = 1
 
-# Python's linalg solver
-x = np.linalg.solve(A, d)
+    large_number = 100000
+    for k in range(1, large_number + 1):
+        term = (4. / ((2. * k - 1.) * np.pi)) * \
+                np.sin((2. * k - 1.) * np.pi * x) * \
+                np.exp(-(2. * k - 1.) ** 2. * np.pi ** 2. * t)
 
-# My solver
-solved = TDMAsolver(a, b, c, d)
+        if result - term == result:
+            print 'done on term:', k, 'result is:', result
+            break
 
-# Does my solution solve the problem?
-print(np.allclose(np.dot(A, solved), d))
+        result -= term
+        print '{0} {1}, {2}'.format(k, term, result)
 
-# Does my solution match the linalg solver?
-print(np.allclose(x, solved))
+Analytic(1, 1)
+Analytic(0, 1)
+Analytic(0, 0)
+Analytic(1, 0)
+
+Explicit()
