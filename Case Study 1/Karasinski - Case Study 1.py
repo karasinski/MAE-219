@@ -7,7 +7,7 @@ def Explicit():
     L = 1.            # Domain lenghth       [n.d.]
     T0 = 0.           # Initial temperature  [n.d.]
     T1 = 1.           # Boundary temperature [n.d.]
-    t_end = 0.1
+    t_end = 0.3
     s = 1. / 6.
     N = 21
 
@@ -28,19 +28,28 @@ def Explicit():
 
     Told = Tnew
 
-    plt.axis([0, L, T0, T1])
+    # plt.axis([0, L, T0, T1])
     plt.xlabel('Length [nd]')
     plt.ylabel('Temperature [nd]')
 
+    # Numerical Solution
     while time <= t_end:
         for i in range(1, N - 1):
-            Tnew[i] = s * Told[i + 1] + \
-                (1 - 2.0 * s) * Told[i] + s * Told[i - 1]
+            Tnew[i] = s * Told[i + 1] +  (1 - 2.0 * s) * Told[i] + s * Told[i - 1]
 
-        plt.plot(x, Tnew, linewidth=1)
         time += dt
         Told = Tnew
 
+    # Analytical Solution
+    Tanalytical = Tnew
+    for i in range(1, N - 1):
+        Tanalytical[i] = Analytic(x[i], time)
+
+    # Plot Numerical Solution
+    plt.title('Solution at time, t = ' + str(time)[:3])
+    plt.plot(x, Tnew, linewidth=1, label='Numerical Solution')
+    plt.plot(x, Tanalytical, linewidth=1, label='Analytic Solution')
+    plt.legend(loc='best')
     plt.show()
 
 
@@ -69,27 +78,26 @@ def TDMAsolver(a, b, c, d):
 
     return xc
 
-# print(np.spacing(1))
 
 def Analytic(x, t):
-    result = 1
+    # The analytic answer is 1 - Sum(terms). Though there are an infinite
+    # number of terms, only the first few matter when we compute the answer.
 
-    large_number = 100000
-    for k in range(1, large_number + 1):
+    result = 1
+    large_number = 1E6
+
+    for k in range(1, int(large_number) + 1):
         term = (4. / ((2. * k - 1.) * np.pi)) * \
                 np.sin((2. * k - 1.) * np.pi * x) * \
                 np.exp(-(2. * k - 1.) ** 2. * np.pi ** 2. * t)
 
+        # If subtracting the term from the result doesn't change the result
+        # then we've hit the point at which subtracting more terms doesn't
+        # matter. Else we subtract and continue.
+        # print '{0} {1}, {2:.15f}'.format(k, term, result)
         if result - term == result:
-            print 'done on term:', k, 'result is:', result
-            break
-
-        result -= term
-        print '{0} {1}, {2}'.format(k, term, result)
-
-Analytic(1, 1)
-Analytic(0, 1)
-Analytic(0, 0)
-Analytic(1, 0)
+            return result
+        else:
+            result -= term
 
 Explicit()
