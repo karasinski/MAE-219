@@ -24,6 +24,9 @@ def Solver(s, t_end, show_plot=False):
     # Explicit Numerical Solution
     T_explicit = Explicit(T_initial, t_end, dt, s)
 
+    T_initial = [T0] * N
+    T_initial[0] = T1
+    T_initial[N - 1] = T1
     # Implicit Numerical Solution
     T_implicit = Implicit(T_initial, t_end, dt, s)
 
@@ -36,11 +39,11 @@ def Solver(s, t_end, show_plot=False):
     RMS = RootMeanSquare(T_implicit, T_analytic)
 
     # Format our plots
-    # plt.axis([0, L, T0, T1])
+    plt.axis([0, L, T0, T1])
     plt.xlabel('Length [nd]')
     plt.ylabel('Temperature [nd]')
     num = '{:.2e}'.format(RMS)
-    plt.title('s = ' + str(s)[:5] + ', t = ' + str(t_end)[:3] + ', RMS = ' + num)
+    plt.title('s = ' + str(s)[:5] + ', t = ' + str(t_end)[:4] + ', RMS = ' + num)
 
     # ...and finally plot
     plt.plot(x, T_explicit, 'xr', linewidth=1, label='Explicit Solution')
@@ -71,8 +74,8 @@ def Explicit(Told, t_end, dt, s):
         for i in range(1, N - 1):
             Tnew[i] = s * Told[i + 1] + (1 - 2.0 * s) * Told[i] + s * Told[i - 1]
 
-        time += dt
         Told = Tnew
+        time += dt
 
     return Told
 
@@ -95,8 +98,8 @@ def Implicit(Told, t_end, dt, s):
     while time <= t_end:
         Tnew = TDMAsolver(a, b, c, Told)
 
-        time += dt
         Told = Tnew
+        time += dt
 
     return Told
 
@@ -121,24 +124,29 @@ def RootMeanSquare(a, b):
 def TDMAsolver(a, b, c, d):
     """
     Tridiagonal Matrix Algorithm (a.k.a Thomas algorithm).
-
-    a b c d can be NumPy array type or Python list type.
     """
-    N = len(a)     # number of equations
-    ac, bc, cc, dc = map(np.array, (a, b, c, d))     # copy the array
+    N = len(a)
+    Tnew = d
 
-    for i in range(1, N):
-        mc = ac[i] / bc[i - 1]
-        bc[i] = bc[i] - mc * cc[i - 1]
-        dc[i] = dc[i] - mc * dc[i - 1]
+    # initialize arrays
+    gamma = np.zeros(N)
+    xi = np.zeros(N)
 
-    xc = ac
-    xc[-1] = dc[-1] / bc[-1]
+    # Step 1
+    gamma[0] = c[0]/b[0]
+    xi[0] = d[0]/b[0]
 
-    for i in range(N - 2, -1, -1):
-        xc[i] = (dc[i] - cc[i] * xc[i + 1]) / bc[i]
+    for i in range(1,N):
+        gamma[i] = c[i]/(b[i] - a[i]*gamma[i-1])
+        xi[i] = (d[i] - a[i]*xi[i-1])/(b[i] - a[i]*gamma[i-1])
 
-    return xc
+    # Step 2
+    Tnew[N-1] = xi[N-1]
+
+    for i in range(N-2,-1,-1):
+        Tnew[i] = xi[i] - gamma[i]*Tnew[i+1]
+
+    return Tnew
 
 
 def Analytic(x, t):
@@ -170,7 +178,11 @@ def main():
     """
     # Loop over requested values for s and t
     s = [1. / 6., .25, .5, .75]
-    t = [0.3, 0.6, 0.9]
+    t = [0.03, 0.06, 0.09]
+
+    # s = [1. / 6.]
+    # t = [0.09]
+
     RMS = []
     for i, s_ in enumerate(s):
         sRMS = [0] * len(t)
