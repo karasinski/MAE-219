@@ -33,7 +33,7 @@ def Solver(s, t_end, show_plot=False):
         T_analytic[i] = Analytic(x[i], t_end)
 
     # Find the RMS
-    RMS = RootMeanSquare(T_explicit, T_analytic)
+    RMS = RootMeanSquare(T_implicit, T_analytic)
 
     # Format our plots
     # plt.axis([0, L, T0, T1])
@@ -59,6 +59,10 @@ def Solver(s, t_end, show_plot=False):
 
 
 def Explicit(Told, t_end, dt, s):
+    """
+    This function computes the Forward-Time, Centered-Space (FTCS) explicit
+    scheme for the 1D unsteady heat diffusion problem.
+    """
     N = len(Told)
     time = 0.
     Tnew = Told
@@ -74,16 +78,18 @@ def Explicit(Told, t_end, dt, s):
 
 
 def Implicit(Told, t_end, dt, s):
+    """
+    This function computes the Forward-Time, Centered-Space (FTCS) implicit
+    scheme for the 1D unsteady heat diffusion problem.
+    """
     N = len(Told)
     time = 0.
 
     # Build our 'A' matrix
     a = [-s] * N
-    a[0] = 0
-    a[-1] = 0
+    a[0], a[-1] = 0, 0
     b = [1 + 2*s] * N
-    b[0] = 1            # hold boundary
-    b[-1] = 1           # hold boundary
+    b[0], b[-1] = 1, 1        # hold boundary
     c = a
 
     while time <= t_end:
@@ -96,6 +102,10 @@ def Implicit(Told, t_end, dt, s):
 
 
 def RootMeanSquare(a, b):
+    """
+    This function will return the RMS between two lists (but does no checking
+    to confirm that the lists are the same length).
+    """
     N = len(a)
 
     RMS = 0.
@@ -109,35 +119,33 @@ def RootMeanSquare(a, b):
 
 
 def TDMAsolver(a, b, c, d):
-    '''
+    """
     Tridiagonal Matrix Algorithm (a.k.a Thomas algorithm).
 
     a b c d can be NumPy array type or Python list type.
-    '''
-
-    nf = len(a)     # number of equations
+    """
+    N = len(a)     # number of equations
     ac, bc, cc, dc = map(np.array, (a, b, c, d))     # copy the array
 
-    for it in range(1, nf):
-        mc = ac[it] / bc[it - 1]
-        bc[it] = bc[it] - mc * cc[it - 1]
-        dc[it] = dc[it] - mc * dc[it - 1]
+    for i in range(1, N):
+        mc = ac[i] / bc[i - 1]
+        bc[i] = bc[i] - mc * cc[i - 1]
+        dc[i] = dc[i] - mc * dc[i - 1]
 
     xc = ac
     xc[-1] = dc[-1] / bc[-1]
 
-    for il in range(nf - 2, -1, -1):
-        xc[il] = (dc[il] - cc[il] * xc[il + 1]) / bc[il]
-
-    del bc, cc, dc  # delete variables from memory
+    for i in range(N - 2, -1, -1):
+        xc[i] = (dc[i] - cc[i] * xc[i + 1]) / bc[i]
 
     return xc
 
 
 def Analytic(x, t):
-    # The analytic answer is 1 - Sum(terms). Though there are an infinite
-    # number of terms, only the first few matter when we compute the answer.
-
+    """
+    The analytic answer is 1 - Sum(terms). Though there are an infinite
+    number of terms, only the first few matter when we compute the answer.
+    """
     result = 1
     large_number = 1E6
 
@@ -147,8 +155,7 @@ def Analytic(x, t):
                 np.exp(-(2. * k - 1.) ** 2. * np.pi ** 2. * t))
 
         # If subtracting the term from the result doesn't change the result
-        # then we've hit the point at which subtracting more terms doesn't
-        # matter. Else we subtract and continue.
+        # then we've hit the computational limit, else we continue.
         # print '{0} {1}, {2:.15f}'.format(k, term, result)
         if result - term == result:
             return result
@@ -157,6 +164,10 @@ def Analytic(x, t):
 
 
 def main():
+    """
+    Main function to call solver over assigned values and create some plots to
+    look at the trends in RMS compared to s and t.
+    """
     # Loop over requested values for s and t
     s = [1. / 6., .25, .5, .75]
     t = [0.3, 0.6, 0.9]
@@ -168,6 +179,7 @@ def main():
             # print i, j, sRMS[j]
         RMS.append(sRMS)
 
+    # Check for trends in RMS vs t
     plt.figure()
     plt.plot(t, RMS[0], '.r', label='s = 1/6')
     plt.plot(t, RMS[1], '.g', label='s = .25')
@@ -180,9 +192,9 @@ def main():
 
     save_name = 'proj_1_rms_vs_t.png'
     plt.savefig(save_name, bbox_inches='tight')
-    # plt.show()
     plt.clf()
 
+    # Check for trends in RMS vs s
     # Convert to np array to make this easier...
     RMS = np.array(RMS)
 
@@ -197,7 +209,6 @@ def main():
 
     save_name = 'proj_1_rms_vs_s.png'
     plt.savefig(save_name, bbox_inches='tight')
-    # plt.show()
     plt.clf()
 
 if __name__ == "__main__":
