@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def Solver(s, time, show_plot=False):
+def Solver(s, t_end, show_plot=False):
     # Problem Parameters
     L = 1.            # Domain lenghth       [n.d.]
     T0 = 0.           # Initial temperature  [n.d.]
@@ -22,32 +22,34 @@ def Solver(s, time, show_plot=False):
     T_initial[N - 1] = T1
 
     # Explicit Numerical Solution
-    T_explicit = Explicit(T_initial, time, dt, s)
+    T_explicit = Explicit(T_initial, t_end, dt, s)
 
     # Implicit Numerical Solution
-    T_implicit = Implicit(T_initial, time, dt, s)
+    T_implicit = Implicit(T_initial, t_end, dt, s)
 
     # Analytical Solution
     T_analytic = [0] * N
     for i in range(0, N):
-        T_analytic[i] = Analytic(x[i], time)
+        T_analytic[i] = Analytic(x[i], t_end)
 
     # Find the RMS
     RMS = RootMeanSquare(T_explicit, T_analytic)
 
+    # Format our plots
     # plt.axis([0, L, T0, T1])
     plt.xlabel('Length [nd]')
     plt.ylabel('Temperature [nd]')
-
-    # Plot Numerical Solution
     num = '{:.2e}'.format(RMS)
-    plt.title('s = ' + str(s)[:5] + ', t = ' + str(time)[:3] + ', RMS = ' + num)
+    plt.title('s = ' + str(s)[:5] + ', t = ' + str(t_end)[:3] + ', RMS = ' + num)
+
+    # ...and finally plot
     plt.plot(x, T_explicit, 'xr', linewidth=1, label='Explicit Solution')
     plt.plot(x, T_implicit, '+g', linewidth=1, label='Implicit Solution')
     plt.plot(x, T_analytic, 'ob', mfc='none', linewidth=1, label='Analytic Solution')
-    plt.legend(loc='best')
+    plt.legend(loc='lower right')
 
-    save_name = 'proj_1_s_' + str(s)[:5] + '_t_' + str(time) + '.png'
+    # Save plots
+    save_name = 'proj_1_s_' + str(s)[:5] + '_t_' + str(t_end) + '.png'
     plt.savefig(save_name, bbox_inches='tight')
     if show_plot:
         plt.show()
