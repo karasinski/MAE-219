@@ -34,7 +34,7 @@ def Explicit(s, t_end, show_plot=False):
     # Explicit Numerical Solution
     while time <= t_end:
         for i in range(1, N - 1):
-            Tnew[i] = s * Told[i + 1] +  (1 - 2.0 * s) * Told[i] + s * Told[i - 1]
+            Tnew[i] = s * Told[i + 1] + (1 - 2.0 * s) * Told[i] + s * Told[i - 1]
 
         time += dt
         Told = Tnew
@@ -125,6 +125,7 @@ def Analytic(x, t):
             return result
         else:
             result -= term
+
 
 def main():
     # Loop over requested values for s and t
