@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def Explicit(s, t_end, show_plot=False):
+def Solver(s, time, show_plot=False):
     # Problem Parameters
     L = 1.            # Domain lenghth       [n.d.]
     T0 = 0.           # Initial temperature  [n.d.]
@@ -15,41 +15,17 @@ def Explicit(s, t_end, show_plot=False):
 
     # Calculate time-step
     dt = s * dx ** 2.0
-    time = 0.
 
-    # Initial Condition
-    Tnew = [T0] * N
-
-    # Boundary conditions
-    Tnew[0] = T1
-    Tnew[N - 1] = T1
-
-    Told = Tnew
-    T_initial = Tnew
-
-    # plt.axis([0, L, T0, T1])
-    plt.xlabel('Length [nd]')
-    plt.ylabel('Temperature [nd]')
+    # Initial Condition with boundary conditions
+    T_initial = [T0] * N
+    T_initial[0] = T1
+    T_initial[N - 1] = T1
 
     # Explicit Numerical Solution
-    while time <= t_end:
-        for i in range(1, N - 1):
-            Tnew[i] = s * Told[i + 1] + (1 - 2.0 * s) * Told[i] + s * Told[i - 1]
-
-        time += dt
-        Told = Tnew
-    T_explicit = Told
+    T_explicit = Explicit(T_initial, time, dt, s)
 
     # Implicit Numerical Solution
-    # time = 0.
-    # Told = T_initial
-    # Tnew = T_initial
-    # while time <= t_end:
-    #     d = Told
-    #     Tnew = TDMAsolver(a, b, c, d)
-
-    #     time += dt
-    #     Told = Tnew
+    T_implicit = Implicit(T_initial, time, dt, s)
 
     # Analytical Solution
     T_analytic = [0] * N
@@ -57,24 +33,75 @@ def Explicit(s, t_end, show_plot=False):
         T_analytic[i] = Analytic(x[i], time)
 
     # Find the RMS
-    RMS = 0.
-    for i in range(0, N):
-        term = (T_explicit[i] - T_analytic[i])**2.
-        RMS += term ** (1./2.)
-    RMS /= N
+    RMS = RootMeanSquare(T_explicit, T_analytic)
+
+    # plt.axis([0, L, T0, T1])
+    plt.xlabel('Length [nd]')
+    plt.ylabel('Temperature [nd]')
 
     # Plot Numerical Solution
     num = '{:.2e}'.format(RMS)
     plt.title('s = ' + str(s)[:5] + ', t = ' + str(time)[:3] + ', RMS = ' + num)
-    plt.plot(x, T_explicit, 'xr', linewidth=1, label='Numerical Solution')
+    plt.plot(x, T_explicit, 'xr', linewidth=1, label='Explicit Solution')
+    plt.plot(x, T_implicit, '+g', linewidth=1, label='Implicit Solution')
     plt.plot(x, T_analytic, 'ob', mfc='none', linewidth=1, label='Analytic Solution')
     plt.legend(loc='best')
 
-    save_name = 'proj_1_s_' + str(s)[:5] + '_t_' + str(t_end) + '.png'
+    save_name = 'proj_1_s_' + str(s)[:5] + '_t_' + str(time) + '.png'
     plt.savefig(save_name, bbox_inches='tight')
     if show_plot:
         plt.show()
     plt.clf()
+
+    return RMS
+
+
+def Explicit(Told, t_end, dt, s):
+    N = len(Told)
+    time = 0.
+    Tnew = Told
+
+    while time <= t_end:
+        for i in range(1, N - 1):
+            Tnew[i] = s * Told[i + 1] + (1 - 2.0 * s) * Told[i] + s * Told[i - 1]
+
+        time += dt
+        Told = Tnew
+
+    return Told
+
+
+def Implicit(Told, t_end, dt, s):
+    N = len(Told)
+    time = 0.
+
+    # Build our 'A' matrix
+    a = [-s] * N
+    a[0] = 0
+    a[-1] = 0
+    b = [1 + 2*s] * N
+    b[0] = 1            # hold boundary
+    b[-1] = 1           # hold boundary
+    c = a
+
+    while time <= t_end:
+        Tnew = TDMAsolver(a, b, c, Told)
+
+        time += dt
+        Told = Tnew
+
+    return Told
+
+
+def RootMeanSquare(a, b):
+    N = len(a)
+
+    RMS = 0.
+    for i in range(0, N):
+        RMS += (a[i] - b[i])**2.
+
+    RMS = RMS ** (1./2.)
+    RMS /= N
 
     return RMS
 
@@ -135,7 +162,7 @@ def main():
     for i, s_ in enumerate(s):
         sRMS = [0] * len(t)
         for j, t_ in enumerate(t):
-            sRMS[j] = Explicit(s_, t_, False)
+            sRMS[j] = Solver(s_, t_, False)
             # print i, j, sRMS[j]
         RMS.append(sRMS)
 
