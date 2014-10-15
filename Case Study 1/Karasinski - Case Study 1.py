@@ -91,7 +91,7 @@ def Implicit(Told, t_end, dt, s):
     # Build our 'A' matrix
     a = [-s] * N
     a[0], a[-1] = 0, 0
-    b = [1 + 2*s] * N
+    b = [1 + 2 * s] * N
     b[0], b[-1] = 1, 1        # hold boundary
     c = a
 
@@ -113,9 +113,9 @@ def RootMeanSquare(a, b):
 
     RMS = 0.
     for i in range(0, N):
-        RMS += (a[i] - b[i])**2.
+        RMS += (a[i] - b[i]) ** 2.
 
-    RMS = RMS ** (1./2.)
+    RMS = RMS ** (1. / 2.)
     RMS /= N
 
     return RMS
@@ -128,23 +128,23 @@ def TDMAsolver(a, b, c, d):
     N = len(a)
     Tnew = d
 
-    # initialize arrays
+    # Initialize arrays
     gamma = np.zeros(N)
     xi = np.zeros(N)
 
     # Step 1
-    gamma[0] = c[0]/b[0]
-    xi[0] = d[0]/b[0]
+    gamma[0] = c[0] / b[0]
+    xi[0] = d[0] / b[0]
 
-    for i in range(1,N):
-        gamma[i] = c[i]/(b[i] - a[i]*gamma[i-1])
-        xi[i] = (d[i] - a[i]*xi[i-1])/(b[i] - a[i]*gamma[i-1])
+    for i in range(1, N):
+        gamma[i] = c[i] / (b[i] - a[i] * gamma[i - 1])
+        xi[i] = (d[i] - a[i] * xi[i - 1]) / (b[i] - a[i] * gamma[i - 1])
 
     # Step 2
-    Tnew[N-1] = xi[N-1]
+    Tnew[N - 1] = xi[N - 1]
 
-    for i in range(N-2,-1,-1):
-        Tnew[i] = xi[i] - gamma[i]*Tnew[i+1]
+    for i in range(N - 2, -1, -1):
+        Tnew[i] = xi[i] - gamma[i] * Tnew[i + 1]
 
     return Tnew
 
@@ -211,9 +211,9 @@ def main():
     RMS = np.array(RMS)
 
     plt.figure()
-    plt.plot(s, RMS[:, 0], '.r', label='t = 0.3')
-    plt.plot(s, RMS[:, 1], '.g', label='t = 0.6')
-    plt.plot(s, RMS[:, 2], '.b', label='t = 0.9')
+    plt.plot(s, RMS[:, 0], '.r', label='t = 0.03')
+    plt.plot(s, RMS[:, 1], '.g', label='t = 0.06')
+    plt.plot(s, RMS[:, 2], '.b', label='t = 0.09')
     plt.xlabel('s')
     plt.ylabel('RMS')
     plt.title('RMS vs s')
