@@ -22,16 +22,13 @@ def Solver(s, t_end, show_plot=False):
     T_initial[N - 1] = T1
 
     # Explicit Numerical Solution
-    T_explicit = Explicit(T_initial, t_end, dt, s)
+    T_explicit = Explicit(np.array(T_initial).copy(), t_end, dt, s)
 
-    T_initial = [T0] * N
-    T_initial[0] = T1
-    T_initial[N - 1] = T1
     # Implicit Numerical Solution
-    T_implicit = Implicit(T_initial, t_end, dt, s)
+    T_implicit = Implicit(np.array(T_initial).copy(), t_end, dt, s)
 
     # Analytical Solution
-    T_analytic = [0] * N
+    T_analytic = np.array(T_initial).copy()
     for i in range(0, N):
         T_analytic[i] = Analytic(x[i], t_end)
 
@@ -179,9 +176,6 @@ def main():
     # Loop over requested values for s and t
     s = [1. / 6., .25, .5, .75]
     t = [0.03, 0.06, 0.09]
-
-    # s = [1. / 6.]
-    # t = [0.09]
 
     RMS = []
     for i, s_ in enumerate(s):
