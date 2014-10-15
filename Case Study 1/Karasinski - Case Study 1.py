@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 
 def Solver(s, t_end, show_plot=False):
@@ -50,7 +51,12 @@ def Solver(s, t_end, show_plot=False):
 
     # Save plots
     save_name = 'proj_1_s_' + str(s)[:5] + '_t_' + str(t_end) + '.png'
-    plt.savefig(save_name, bbox_inches='tight')
+    try:
+        os.mkdir('figures')
+    except Exception:
+        pass
+
+    plt.savefig('figures/' + save_name, bbox_inches='tight')
     if show_plot:
         plt.show()
     plt.clf()
@@ -197,7 +203,7 @@ def main():
     plt.legend(loc='best')
 
     save_name = 'proj_1_rms_vs_t.png'
-    plt.savefig(save_name, bbox_inches='tight')
+    plt.savefig('figures/' + save_name, bbox_inches='tight')
     plt.clf()
 
     # Check for trends in RMS vs s
@@ -214,7 +220,7 @@ def main():
     plt.legend(loc='best')
 
     save_name = 'proj_1_rms_vs_s.png'
-    plt.savefig(save_name, bbox_inches='tight')
+    plt.savefig('figures/' + save_name, bbox_inches='tight')
     plt.clf()
 
 if __name__ == "__main__":

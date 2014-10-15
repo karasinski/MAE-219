@@ -1,0 +1,189 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%% asme2ej.tex %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Template for producing ASME-format journal articles using LaTeX    %
+% Written by   Harry H. Cheng, Professor and Director                %
+%              Integration Engineering Laboratory                    %
+%              Department of Mechanical and Aeronautical Engineering %
+%              University of California                              %
+%              Davis, CA 95616                                       %
+%              Tel: (530) 752-5020 (office)                          %
+%                   (530) 752-1028 (lab)                             %
+%              Fax: (530) 752-4158                                   %
+%              Email: hhcheng@ucdavis.edu                            %
+%              WWW:   http://iel.ucdavis.edu/people/cheng.html       %
+%              May 7, 1994                                           %
+% Modified: February 16, 2001 by Harry H. Cheng                      %
+% Modified: January  01, 2003 by Geoffrey R. Shiflett                %
+% Butchered: October 15, 2014 by John Karasinski                %
+% Use at your own risk, send complaints to /dev/null                 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% use twocolumn and 10pt options with the asme2ej format
+\documentclass[twocolumn,10pt]{asme2ej}
+
+\usepackage{epsfig} %% for loading postscript figures
+
+%% The class has several options
+%  onecolumn/twocolumn - format for one or two columns per page
+%  10pt/11pt/12pt - use 10, 11, or 12 point font
+%  oneside/twoside - format for oneside/twosided printing
+%  final/draft - format for final/draft copy
+%  cleanfoot - take out copyright info in footer leave page number
+%  cleanhead - take out the conference banner on the title page
+%  titlepage/notitlepage - put in titlepage or leave out titlepage
+%  
+%% The default is oneside, onecolumn, 10pt, final
+
+
+\title{An ASME Journal Article Created Using 
+\LaTeX2\raisebox{-.3ex}{$\epsilon$}
+in ASME Format for Testing Your Figures}
+
+%%% first author
+\author{John Karasinski
+    \affiliation{
+	Graduate Student Researcher\\
+	Center for Human/Robotics/Vehicle Integration and Performance\\
+	Department of Mechanical Engineering\\
+	University of California\\
+	Davis, California 95616\\
+    Email: karasinski@ucdavis.edu
+    }	
+}
+
+\begin{document}
+
+\maketitle    
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{abstract}
+%{\it This is the abstract.
+%This article illustrates preparation of ASME paper using 
+%\LaTeX2\raisebox{-.3ex}{$\epsilon$}.
+%An abstract for an ASME paper should be less than 150 words and is normally in italics.
+%%%% 
+%Please use this template to test how your figures will look on the printed journal page of the Journal of Mechanical Design.  The Journal will no longer publish papers that contain errors in figure resolution.  These usually consist of unreadable or fuzzy text, and pixilation or rasterization of lines.  This template identifies the specifications used by JMD some of which may not be easily duplicated; for example, ASME actually uses Helvetica Condensed Bold, but this is not generally available so for the purpose of this exercise Helvetica is adequate.  However, reproduction of the journal page is not the goal, instead this exercise is to verify the quality of your figures. Notice that this abstract is to be set in 9pt Times Italic, single spaced and right justified.  
+%}
+%\end{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{nomenclature}
+%\entry{A}{You may include nomenclature here.}
+%\entry{$\alpha$}{There are two arguments for each entry of the nomenclature environment, the symbol and the definition.}
+%\end{nomenclature}
+%
+%The primary text heading is  boldface and flushed left with the left margin.  The spacing between the  text and the heading is two line spaces.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Problem Description}
+
+Bacon ipsum dolor sit amet hamburger pancetta boudin flank landjaeger andouille drumstick prosciutto kevin capicola. Tri-tip beef salami frankfurter chicken, beef ribs landjaeger fatback. Venison ham hock turkey shankle shoulder leberkas porchetta short ribs meatloaf turducken. Ball tip hamburger brisket shank jowl venison bresaola shankle corned beef. Porchetta hamburger bacon turducken corned beef boudin kielbasa rump venison t-bone beef ball tip ground round drumstick meatloaf. Corned beef rump landjaeger turducken. Tongue chuck pastrami ball tip ham short loin jerky pork chop strip steak kielbasa shankle beef jowl venison leberkas.
+
+Shankle chicken tail, fatback short ribs meatball pancetta ball tip sirloin short loin. Pork tongue pork belly pork loin beef ribs. Shank turkey pork belly pork loin ham hock ball tip leberkas meatloaf chuck ground round filet mignon kielbasa sirloin turducken tri-tip. Pancetta brisket sirloin beef ribs spare ribs, swine bacon ham hock. Ham kielbasa corned beef turkey turducken. Kevin biltong pork, tenderloin chuck pig ball tip filet mignon.
+
+Tail jowl flank ball tip, biltong porchetta turducken tongue ground round. Corned beef bacon short loin tri-tip. Fatback turducken rump, pork belly beef pork ham ground round swine tenderloin shank capicola short ribs boudin. Meatloaf tail tenderloin shank ball tip venison short ribs sausage salami ribeye shankle doner landjaeger pig. An example is shown in Eqn.~(\ref{eq_ASME}). The number of a referenced equation in the text should be preceded by Eqn.\ unless the reference starts a sentence in which case Eqn.\ should be expanded to Equation.
+
+\begin{equation}
+f(t) = \int_{0_+}^t F(t) dt + \frac{d g(t)}{d t}
+\label{eq_ASME}
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Solution Algorithms}
+
+Bacon ipsum dolor sit amet hamburger pancetta boudin flank landjaeger andouille drumstick prosciutto kevin capicola. Tri-tip beef salami frankfurter chicken, beef ribs landjaeger fatback. Venison ham hock turkey shankle shoulder leberkas porchetta short ribs meatloaf turducken. Ball tip hamburger brisket shank jowl venison bresaola shankle corned beef. Porchetta hamburger bacon turducken corned beef boudin kielbasa rump venison t-bone beef ball tip ground round drumstick meatloaf. Corned beef rump landjaeger turducken. Tongue chuck pastrami ball tip ham short loin jerky pork chop strip steak kielbasa shankle beef jowl venison leberkas.
+
+Shankle chicken tail, fatback short ribs meatball pancetta ball tip sirloin short loin. Pork tongue pork belly pork loin beef ribs. Shank turkey pork belly pork loin ham hock ball tip leberkas meatloaf chuck ground round filet mignon kielbasa sirloin turducken tri-tip. Pancetta brisket sirloin beef ribs spare ribs, swine bacon ham hock. Ham kielbasa corned beef turkey turducken. Kevin biltong pork, tenderloin chuck pig ball tip filet mignon.
+
+Tail jowl flank ball tip, biltong porchetta turducken tongue ground round. Corned beef bacon short loin tri-tip. Fatback turducken rump, pork belly beef pork ham ground round swine tenderloin shank capicola short ribs boudin. Meatloaf tail tenderloin shank ball tip venison short ribs sausage salami ribeye shankle doner landjaeger pig.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results}
+
+Bacon ipsum dolor sit amet hamburger pancetta boudin flank landjaeger andouille drumstick prosciutto kevin capicola. Tri-tip beef salami frankfurter chicken, beef ribs landjaeger fatback. Venison ham hock turkey shankle shoulder leberkas porchetta short ribs meatloaf turducken. Ball tip hamburger brisket shank jowl venison bresaola shankle corned beef. Porchetta hamburger bacon turducken corned beef boudin kielbasa rump venison t-bone beef ball tip ground round drumstick meatloaf. Corned beef rump landjaeger turducken. Tongue chuck pastrami ball tip ham short loin jerky pork chop strip steak kielbasa shankle beef jowl venison leberkas.
+
+Shankle chicken tail, fatback short ribs meatball pancetta ball tip sirloin short loin. Pork tongue pork belly pork loin beef ribs. Shank turkey pork belly pork loin ham hock ball tip leberkas meatloaf chuck ground round filet mignon kielbasa sirloin turducken tri-tip. Pancetta brisket sirloin beef ribs spare ribs, swine bacon ham hock. Ham kielbasa corned beef turkey turducken. Kevin biltong pork, tenderloin chuck pig ball tip filet mignon.
+
+Tail jowl flank ball tip, biltong porchetta turducken tongue ground round. Corned beef bacon short loin tri-tip. Fatback turducken rump, pork belly beef pork ham ground round swine tenderloin shank capicola short ribs boudin. Meatloaf tail tenderloin shank ball tip venison short ribs sausage salami ribeye shankle doner landjaeger pig.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%% begin table   %%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[t]
+\caption{Figure and table captions do not end with a period}
+\begin{center}
+\label{table_ASME}
+\begin{tabular}{c l l}
+& & \\ % put some space after the caption
+\hline
+Example & Time & Cost \\
+\hline
+1 & 12.5 & \$1,000 \\
+2 & 24 & \$2,000 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+%%%%%%%%%%%%%%%% end table %%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+All tables should be numbered consecutively  and centered above the table as shown in Table~\ref{table_ASME}. The body of the table should be no smaller than 7 pt.  There should be a minimum two line spaces between tables and text.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Discussions}
+This template is not yet ASME journal paper format compliant at this point.
+More specifically, the following features are not ASME format compliant.
+\begin{enumerate}
+\item
+The format for the title, author, and abstract in the cover page.
+\item
+The font for title should be 24 pt Helvetica bold.
+\end{enumerate}
+
+\noindent
+If you can help to fix these problems, please send us an updated template.
+If you know there is any other non-compliant item, please let us know.
+We will add it to the above list.
+With your help, we shall make this template 
+compliant to the ASME journal paper format.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The bibliography is stored in an external database file
+% in the BibTeX format (file_name.bib).  The bibliography is
+% created by the following command and it will appear in this
+% position in the document. You may, of course, create your
+% own bibliography by using thebibliography environment as in
+%
+% \begin{thebibliography}{12}
+% ...
+% \bibitem{itemreference} D. E. Knudsen.
+% {\em 1966 World Bnus Almanac.}
+% {Permafrost Press, Novosibirsk.}
+% ...
+% \end{thebibliography}
+
+% Here's where you specify the bibliography style file.
+% The full file name for the bibliography style file 
+% used for an ASME paper is asmems4.bst.
+%\bibliographystyle{asmems4}
+
+% Here's where you specify the bibliography database file.
+% The full file name of the bibliography database for this
+% article is asme2e.bib. The name for your database is up
+% to you.
+%\bibliography{asme2e}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix       %%% starting appendix
+\section*{Appendix A: Head of First Appendix}
+Avoid Appendices if possible.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section*{Appendix B: Head of Second Appendix}
+%\subsection*{Subsection head in appendix}
+%The equation counter is not reset in an appendix and the numbers will
+%follow one continual sequence from the beginning of the article to the very end as shown in the following example.
+%\begin{equation}
+%a = b + c.
+%\end{equation}
+
+\end{document}
