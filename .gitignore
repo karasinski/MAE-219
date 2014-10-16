@@ -187,3 +187,5 @@ sympy-plots-for-*.tex/
 
 # Ignore our output figures
 figures/
+
+results.dat

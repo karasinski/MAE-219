@@ -2,6 +2,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
+# Configure figures for production
+WIDTH = 495.0  # the number latex spits out
+FACTOR = 1.0   # the fraction of the width you'd like the figure to occupy
+fig_width_pt  = WIDTH * FACTOR
+
+inches_per_pt = 1.0 / 72.27
+golden_ratio  = (np.sqrt(5) - 1.0) / 2.0  # because it looks good
+
+fig_width_in  = fig_width_pt * inches_per_pt  # figure width in inches
+fig_height_in = fig_width_in * golden_ratio   # figure height in inches
+fig_dims      = [fig_width_in, fig_height_in] # fig dims as a list
+
 
 def Solver(s, t_end, show_plot=False):
     # Problem Parameters
@@ -38,20 +50,20 @@ def Solver(s, t_end, show_plot=False):
     ExplicitRMS = RootMeanSquare(T_explicit, T_analytic)
 
     # Format our plots
+    plt.figure(figsize=fig_dims)
     plt.axis([0, L, T0, T1])
     plt.xlabel('Length [nd]')
     plt.ylabel('Temperature [nd]')
-    num = '{:.2e}'.format(RMS)
-    plt.title('s = ' + str(s)[:5] + ', t = ' + str(t_end)[:4] + ', RMS = ' + num)
+    plt.title('s = ' + str(s)[:5] + ', t = ' + str(t_end)[:4])
 
     # ...and finally plot
-    plt.plot(x, T_explicit, 'xr', linewidth=1, label='Explicit Solution')
-    plt.plot(x, T_implicit, '+g', linewidth=1, label='Implicit Solution')
-    plt.plot(x, T_analytic, 'ob', mfc='none', linewidth=1, label='Analytic Solution')
+    plt.plot(x, T_explicit, 'xr', markersize=9, label='Explicit Solution')
+    plt.plot(x, T_implicit, '+g', markersize=9, label='Implicit Solution')
+    plt.plot(x, T_analytic, 'ob', markersize=9, mfc='none', label='Analytic Solution')
     plt.legend(loc='lower right')
 
     # Save plots
-    save_name = 'proj_1_s_' + str(s)[:5] + '_t_' + str(t_end) + '.png'
+    save_name = 'proj_1_s_' + str(s)[:5] + '_t_' + str(t_end) + '.pdf'
     try:
         os.mkdir('figures')
     except Exception:
@@ -198,7 +210,7 @@ def main():
     RMS = np.array(RMS)
 
     # Check for trends in RMS vs t
-    plt.figure()
+    plt.figure(figsize=fig_dims)
     plt.plot(t, RMS[0], '.r', label='s = 1/6')
     plt.plot(t, RMS[1], '.g', label='s = .25')
     plt.plot(t, RMS[2], '.b', label='s = .50')
@@ -208,12 +220,12 @@ def main():
     plt.title('RMS vs t')
     plt.legend(loc='best')
 
-    save_name = 'proj_1_rms_vs_t.png'
+    save_name = 'proj_1_rms_vs_t.pdf'
     plt.savefig('figures/' + save_name, bbox_inches='tight')
     plt.clf()
 
     # Check for trends in RMS vs s
-    plt.figure()
+    plt.figure(figsize=fig_dims)
     plt.plot(s, RMS[:, 0], '.r', label='t = 0.03')
     plt.plot(s, RMS[:, 1], '.g', label='t = 0.06')
     plt.plot(s, RMS[:, 2], '.b', label='t = 0.09')
@@ -222,7 +234,7 @@ def main():
     plt.title('RMS vs s')
     plt.legend(loc='best')
 
-    save_name = 'proj_1_rms_vs_s.png'
+    save_name = 'proj_1_rms_vs_s.pdf'
     plt.savefig('figures/' + save_name, bbox_inches='tight')
     plt.clf()
 

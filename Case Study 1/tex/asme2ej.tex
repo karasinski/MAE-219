@@ -23,6 +23,8 @@
 \usepackage{epsfig} %% for loading postscript figures
 \usepackage{listings}
 \usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{grffile}
 
 %% The class has several options
 %  onecolumn/twocolumn - format for one or two columns per page
@@ -141,11 +143,9 @@ was obtained for $s(=\Delta t/ \Delta x^2)$ = 1/6, 0.25, 0.5, and 0.75, at $t$ =
 %%%%%%%%%%%%%%% begin table   %%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{table}[t]
 %\caption{Figure and table captions do not end with a period}
-\caption{RMS results from the numerical simulations compared to the analytic solution}
 \begin{center}
 \label{table_ASME}
-\begin{tabular}{c c c c}
-& & \\ % put some space after the caption
+\begin{tabular}{|c c | c c|}
 \hline
 s & t & Implicit RMS & Explicit RMS \\
 \hline
@@ -166,6 +166,7 @@ s & t & Implicit RMS & Explicit RMS \\
 0.75 & 0.09 & 6.22E-4 & 7.38E-2 \\
 \hline
 \end{tabular}
+\caption{RMS results from the numerical simulations compared to the analytic solution}
 \end{center}
 \end{table}
 
@@ -174,6 +175,41 @@ s & t & Implicit RMS & Explicit RMS \\
 
 The RMS between the implicit and analytic solutions and the explicit and analytic solutions are shown in Table~\ref{table_ASME}. The RMS tended to grow as a function of $s$, and shrink as a function of $t$. Additionally, the RMS for the explicit solution tended to be two orders of magnitude larger than the RMS for the implicit solution.
 
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.166_t_0.03.pdf}
+\includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.166_t_0.06.pdf}
+\includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.166_t_0.09.pdf}
+\caption{Results for $s = 1/6$}
+\end{center}
+\end{figure}
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.25_t_0.03.pdf}
+\includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.25_t_0.06.pdf}
+\includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.25_t_0.09.pdf}
+\caption{Results for $s = 0.25$}
+\end{center}
+\end{figure}
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.5_t_0.03.pdf}
+\includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.5_t_0.06.pdf}
+\includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.5_t_0.09.pdf}
+\caption{Results for $s = 0.5$}
+\end{center}
+\end{figure}
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.75_t_0.03.pdf}
+\includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.75_t_0.06.pdf}
+\includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.75_t_0.09.pdf}
+\caption{Results for $s = 0.75$}
+\end{center}
+\end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussions}
 Shankle chicken tail, fatback short ribs meatball pancetta ball tip sirloin short loin. Pork tongue pork belly pork loin beef ribs. Shank turkey pork belly pork loin ham hock ball tip leberkas meatloaf chuck ground round filet mignon kielbasa sirloin turducken tri-tip. Pancetta brisket sirloin beef ribs spare ribs, swine bacon ham hock. Ham kielbasa corned beef turkey turducken. Kevin biltong pork, tenderloin chuck pig ball tip filet mignon.
