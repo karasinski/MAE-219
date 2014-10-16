@@ -21,6 +21,8 @@
 \documentclass[twocolumn,10pt]{asme2ej}
 
 \usepackage{epsfig} %% for loading postscript figures
+\usepackage{listings}
+\usepackage{amsmath}
 
 %% The class has several options
 %  onecolumn/twocolumn - format for one or two columns per page
@@ -33,10 +35,7 @@
 %  
 %% The default is oneside, onecolumn, 10pt, final
 
-
-\title{An ASME Journal Article Created Using 
-\LaTeX2\raisebox{-.3ex}{$\epsilon$}
-in ASME Format for Testing Your Figures}
+\title{Case Study \# 1: 1D Transient Heat Diffusion}
 
 %%% first author
 \author{John Karasinski
@@ -51,59 +50,72 @@ in ASME Format for Testing Your Figures}
 }
 
 \begin{document}
-
 \maketitle    
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\begin{abstract}
-%{\it This is the abstract.
-%This article illustrates preparation of ASME paper using 
-%\LaTeX2\raisebox{-.3ex}{$\epsilon$}.
-%An abstract for an ASME paper should be less than 150 words and is normally in italics.
-%%%% 
-%Please use this template to test how your figures will look on the printed journal page of the Journal of Mechanical Design.  The Journal will no longer publish papers that contain errors in figure resolution.  These usually consist of unreadable or fuzzy text, and pixilation or rasterization of lines.  This template identifies the specifications used by JMD some of which may not be easily duplicated; for example, ASME actually uses Helvetica Condensed Bold, but this is not generally available so for the purpose of this exercise Helvetica is adequate.  However, reproduction of the journal page is not the goal, instead this exercise is to verify the quality of your figures. Notice that this abstract is to be set in 9pt Times Italic, single spaced and right justified.  
-%}
-%\end{abstract}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\begin{nomenclature}
-%\entry{A}{You may include nomenclature here.}
-%\entry{$\alpha$}{There are two arguments for each entry of the nomenclature environment, the symbol and the definition.}
-%\end{nomenclature}
-%
-%The primary text heading is  boldface and flushed left with the left margin.  The spacing between the  text and the heading is two line spaces.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem Description}
 
-Bacon ipsum dolor sit amet hamburger pancetta boudin flank landjaeger andouille drumstick prosciutto kevin capicola. Tri-tip beef salami frankfurter chicken, beef ribs landjaeger fatback. Venison ham hock turkey shankle shoulder leberkas porchetta short ribs meatloaf turducken. Ball tip hamburger brisket shank jowl venison bresaola shankle corned beef. Porchetta hamburger bacon turducken corned beef boudin kielbasa rump venison t-bone beef ball tip ground round drumstick meatloaf. Corned beef rump landjaeger turducken. Tongue chuck pastrami ball tip ham short loin jerky pork chop strip steak kielbasa shankle beef jowl venison leberkas.
-
-Shankle chicken tail, fatback short ribs meatball pancetta ball tip sirloin short loin. Pork tongue pork belly pork loin beef ribs. Shank turkey pork belly pork loin ham hock ball tip leberkas meatloaf chuck ground round filet mignon kielbasa sirloin turducken tri-tip. Pancetta brisket sirloin beef ribs spare ribs, swine bacon ham hock. Ham kielbasa corned beef turkey turducken. Kevin biltong pork, tenderloin chuck pig ball tip filet mignon.
-
-Tail jowl flank ball tip, biltong porchetta turducken tongue ground round. Corned beef bacon short loin tri-tip. Fatback turducken rump, pork belly beef pork ham ground round swine tenderloin shank capicola short ribs boudin. Meatloaf tail tenderloin shank ball tip venison short ribs sausage salami ribeye shankle doner landjaeger pig. An example is shown in Eqn.~(\ref{eq_ASME}). The number of a referenced equation in the text should be preceded by Eqn.\ unless the reference starts a sentence in which case Eqn.\ should be expanded to Equation.
-
+The problem of 1D unsteady heat diffusion in a slab of unit length with a zero initial temperature and both ends maintained at a unit temperature can be described by:
 \begin{equation}
-f(t) = \int_{0_+}^t F(t) dt + \frac{d g(t)}{d t}
-\label{eq_ASME}
+\frac{\partial T}{\partial t} = \frac{\partial^2T}{\partial x^2} \mbox{ subject to } \left\{ \begin{array}{lll}
+        \mbox{$T(x, 0^-)= 0 $} & \mbox{for } &0 \leq x \leq 1 \\
+        \mbox{$T(0, t) = T(1, t) = 1$} & \mbox{for } &t > 0 \end{array} \right.
+\label{eq_DEF}
+\end{equation}
+
+and has a well-known analytical solution:
+\begin{equation}
+\begin{split}
+T^*(x,t) = 1 - \sum\limits_{k=1}^\infty \frac{4}{(2k-1)\pi} & \sin[(2k-1)\pi x] \star \\
+		    &  \exp[-(2k-1)^2\pi^2t].
+\end{split}
 \end{equation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Solution Algorithms}
 
-Bacon ipsum dolor sit amet hamburger pancetta boudin flank landjaeger andouille drumstick prosciutto kevin capicola. Tri-tip beef salami frankfurter chicken, beef ribs landjaeger fatback. Venison ham hock turkey shankle shoulder leberkas porchetta short ribs meatloaf turducken. Ball tip hamburger brisket shank jowl venison bresaola shankle corned beef. Porchetta hamburger bacon turducken corned beef boudin kielbasa rump venison t-bone beef ball tip ground round drumstick meatloaf. Corned beef rump landjaeger turducken. Tongue chuck pastrami ball tip ham short loin jerky pork chop strip steak kielbasa shankle beef jowl venison leberkas.
+The Taylor-series (TS) method can be used on this equation to derive a finite difference approximation to the PDE. 
 
-Shankle chicken tail, fatback short ribs meatball pancetta ball tip sirloin short loin. Pork tongue pork belly pork loin beef ribs. Shank turkey pork belly pork loin ham hock ball tip leberkas meatloaf chuck ground round filet mignon kielbasa sirloin turducken tri-tip. Pancetta brisket sirloin beef ribs spare ribs, swine bacon ham hock. Ham kielbasa corned beef turkey turducken. Kevin biltong pork, tenderloin chuck pig ball tip filet mignon.
+From the definition of the derivative, 
+\begin{equation}
+f'(x) \approx \frac{f(x + \epsilon) - f(x)}{\epsilon}
+\end{equation}
 
-Tail jowl flank ball tip, biltong porchetta turducken tongue ground round. Corned beef bacon short loin tri-tip. Fatback turducken rump, pork belly beef pork ham ground round swine tenderloin shank capicola short ribs boudin. Meatloaf tail tenderloin shank ball tip venison short ribs sausage salami ribeye shankle doner landjaeger pig.
+and applying this to Eqn.~(\ref{eq_DEF}) yields:
+\begin{equation}
+\begin{split}
+\frac{\partial T}{\partial t} = & \frac{T(x, t + \Delta t) - T(x,t)}{\Delta t} \\
+				      = & \frac{T_{i}^{k+1} - T_{i}^{k}}{\Delta t}
+\end{split}
+\end{equation}
 
+From the definition of the Taylor series,
+\begin{equation}
+f(x+\epsilon) = f(x) + \epsilon f'(x) + \frac{\epsilon^2}{2} f''(x) + ...
+\end{equation}
+
+Which, when applied to $T_{i}^{k+1}$  and $T_{i}^{k}$ gives:
+\begin{equation}
+T_{i+1} = T_i + \Delta x \frac{\partial T_i}{\partial x} + \frac{\Delta x^2}{2} \frac{\partial^2 T_i}{\partial x^2} + \mathcal{O}(\Delta x^3)
+\end{equation}
+and
+\begin{equation}
+T_{i-1} = T_i - \Delta x \frac{\partial T_i}{\partial x} + \frac{\Delta x^2}{2} \frac{\partial^2 T_i}{\partial x^2} - \mathcal{O}(\Delta x^3)
+\end{equation}
+which, when combined, yields:
+\begin{equation}
+T_{i+1} + T_{i-1} = 2T_i + \Delta x^2 \frac{\partial^2 T_i}{\partial x^2} + \mathcal{O}(\Delta x^4)
+\end{equation}
+
+This problem can be solved numerically using both Forward-Time, Centered-Space (FTCS) explicit and implicit schemes.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}
 
-Bacon ipsum dolor sit amet hamburger pancetta boudin flank landjaeger andouille drumstick prosciutto kevin capicola. Tri-tip beef salami frankfurter chicken, beef ribs landjaeger fatback. Venison ham hock turkey shankle shoulder leberkas porchetta short ribs meatloaf turducken. Ball tip hamburger brisket shank jowl venison bresaola shankle corned beef. Porchetta hamburger bacon turducken corned beef boudin kielbasa rump venison t-bone beef ball tip ground round drumstick meatloaf. Corned beef rump landjaeger turducken. Tongue chuck pastrami ball tip ham short loin jerky pork chop strip steak kielbasa shankle beef jowl venison leberkas.
-
-Shankle chicken tail, fatback short ribs meatball pancetta ball tip sirloin short loin. Pork tongue pork belly pork loin beef ribs. Shank turkey pork belly pork loin ham hock ball tip leberkas meatloaf chuck ground round filet mignon kielbasa sirloin turducken tri-tip. Pancetta brisket sirloin beef ribs spare ribs, swine bacon ham hock. Ham kielbasa corned beef turkey turducken. Kevin biltong pork, tenderloin chuck pig ball tip filet mignon.
-
-Tail jowl flank ball tip, biltong porchetta turducken tongue ground round. Corned beef bacon short loin tri-tip. Fatback turducken rump, pork belly beef pork ham ground round swine tenderloin shank capicola short ribs boudin. Meatloaf tail tenderloin shank ball tip venison short ribs sausage salami ribeye shankle doner landjaeger pig.
+A Python script was used to obtain results for a 21 point mesh (N=21), and the Root Mean Square error,
+\begin{equation}
+RMS = dicks
+\end{equation}
+was obtained for $s(=\Delta t/ \Delta x^2)$ = 1/6, 0.25, 0.5, and 0.75, at $t$ = 0.03, 0.06, and 0.09.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%% begin table   %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -129,22 +141,7 @@ All tables should be numbered consecutively  and centered above the table as sho
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussions}
-This template is not yet ASME journal paper format compliant at this point.
-More specifically, the following features are not ASME format compliant.
-\begin{enumerate}
-\item
-The format for the title, author, and abstract in the cover page.
-\item
-The font for title should be 24 pt Helvetica bold.
-\end{enumerate}
-
-\noindent
-If you can help to fix these problems, please send us an updated template.
-If you know there is any other non-compliant item, please let us know.
-We will add it to the above list.
-With your help, we shall make this template 
-compliant to the ASME journal paper format.
-
+Shankle chicken tail, fatback short ribs meatball pancetta ball tip sirloin short loin. Pork tongue pork belly pork loin beef ribs. Shank turkey pork belly pork loin ham hock ball tip leberkas meatloaf chuck ground round filet mignon kielbasa sirloin turducken tri-tip. Pancetta brisket sirloin beef ribs spare ribs, swine bacon ham hock. Ham kielbasa corned beef turkey turducken. Kevin biltong pork, tenderloin chuck pig ball tip filet mignon.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The bibliography is stored in an external database file
@@ -173,9 +170,9 @@ compliant to the ASME journal paper format.
 %\bibliography{asme2e}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\appendix       %%% starting appendix
-\section*{Appendix A: Head of First Appendix}
-Avoid Appendices if possible.
+%\appendix       %%% starting appendix
+%\section*{Appendix A: Head of First Appendix}
+%Avoid Appendices if possible.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\section*{Appendix B: Head of Second Appendix}
