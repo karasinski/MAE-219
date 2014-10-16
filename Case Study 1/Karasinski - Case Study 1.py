@@ -191,6 +191,9 @@ def main():
             # print i, j, sRMS[j]
         RMS.append(sRMS)
 
+    # Convert to np array to make this easier...
+    RMS = np.array(RMS)
+
     # Check for trends in RMS vs t
     plt.figure()
     plt.plot(t, RMS[0], '.r', label='s = 1/6')
@@ -207,9 +210,6 @@ def main():
     plt.clf()
 
     # Check for trends in RMS vs s
-    # Convert to np array to make this easier...
-    RMS = np.array(RMS)
-
     plt.figure()
     plt.plot(s, RMS[:, 0], '.r', label='t = 0.03')
     plt.plot(s, RMS[:, 1], '.g', label='t = 0.06')
