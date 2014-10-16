@@ -62,8 +62,7 @@ The problem of 1D unsteady heat diffusion in a slab of unit length with a zero i
         \mbox{$T(0, t) = T(1, t) = 1$} & \mbox{for } &t > 0 \end{array} \right.
 \label{eq_DEF}
 \end{equation}
-
-and has a well-known analytical solution:
+\noindent and has the well known analytical solution:
 \begin{equation}
 \begin{split}
 T^*(x,t) = 1 - \sum\limits_{k=1}^\infty \frac{4}{(2k-1)\pi} & \sin[(2k-1)\pi x] \star \\
@@ -74,14 +73,12 @@ T^*(x,t) = 1 - \sum\limits_{k=1}^\infty \frac{4}{(2k-1)\pi} & \sin[(2k-1)\pi x] 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Solution Algorithms}
 
-The Taylor-series (TS) method can be used on this equation to derive a finite difference approximation to the PDE. 
-
-From the definition of the derivative, 
+The Taylor-series (TS) method can be used on this equation to derive a finite difference approximation to the PDE. Applying the definition of the derivative, 
 \begin{equation}
 f'(x) \approx \frac{f(x + \epsilon) - f(x)}{\epsilon}
 \end{equation}
 
-and applying this to Eqn.~(\ref{eq_DEF}) yields:
+\noindent to Eqn.~(\ref{eq_DEF}) yields:
 \begin{equation}
 \begin{split}
 \frac{\partial T}{\partial t} = & \frac{T(x, t + \Delta t) - T(x,t)}{\Delta t} \\
@@ -93,51 +90,89 @@ From the definition of the Taylor series,
 \begin{equation}
 f(x+\epsilon) = f(x) + \epsilon f'(x) + \frac{\epsilon^2}{2} f''(x) + ...
 \end{equation}
-
-Which, when applied to $T_{i}^{k+1}$  and $T_{i}^{k}$ gives:
+\noindent which, when applied to $T_{i}^{k+1}$  and $T_{i}^{k}$ gives:
 \begin{equation}
 T_{i+1} = T_i + \Delta x \frac{\partial T_i}{\partial x} + \frac{\Delta x^2}{2} \frac{\partial^2 T_i}{\partial x^2} + \mathcal{O}(\Delta x^3)
+\label{eq_ADD1}
 \end{equation}
-and
+\noindent and
 \begin{equation}
 T_{i-1} = T_i - \Delta x \frac{\partial T_i}{\partial x} + \frac{\Delta x^2}{2} \frac{\partial^2 T_i}{\partial x^2} - \mathcal{O}(\Delta x^3)
+\label{eq_ADD2}
 \end{equation}
-which, when combined, yields:
+
+Adding Eqn.~(\ref{eq_ADD1}) and Eqn.~(\ref{eq_ADD2}) yields:
 \begin{equation}
 T_{i+1} + T_{i-1} = 2T_i + \Delta x^2 \frac{\partial^2 T_i}{\partial x^2} + \mathcal{O}(\Delta x^4)
 \end{equation}
+\noindent we can also combine the approximation for the second order term from Eqn.~(\ref{eq_DEF}) to find
+\begin{equation}
+\frac{\partial^2 T}{\partial x^2} = \frac{T_{i+1} + 2T_{i} + T_{i-1}}{\Delta x^2} + \mathcal{O}(\Delta x^4),
+\end{equation}
+\noindent which we can combine withe the above equations to form
+\begin{equation}
+\frac{T_i^{k+1}-T_i^k}{\Delta t} \approx \frac{T_{i+1}^k - 2T_i^k + T_{i-1}^k}{\Delta x^2}
+\end{equation}
 
-This problem can be solved numerically using both Forward-Time, Centered-Space (FTCS) explicit and implicit schemes.
+This result can be arranged to form both Forward-Time, Centered-Space (FTCS) explicit and implicit schemes. Rearranging, the explicit scheme is:
+\begin{equation}
+T_i^{k+1} = sT_{i+1}^k +(1- 2s)T_i^k + sT_{i}^k
+\end{equation}
+\noindent and the implicit scheme is
+\begin{equation}
+T_i^k = -sT_{i+1}^{k+1} +(1+2s)T_i^{k+1} - sT_{i-1}^k
+\end{equation}
+\noindent where
+\begin{equation}
+s = \frac{\alpha \Delta t}{\Delta x^2}
+\end{equation}
+\noindent and $\alpha$ is the thermal diffusivity of the material.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}
 
 A Python script was used to obtain results for a 21 point mesh (N=21), and the Root Mean Square error,
 \begin{equation}
-RMS = dicks
+\mbox{RMS} = \frac{1}{N}\sqrt{\sum\limits_{i=1}^N[T_i^n - T^*(x_i, t_n)]^2}
 \end{equation}
 was obtained for $s(=\Delta t/ \Delta x^2)$ = 1/6, 0.25, 0.5, and 0.75, at $t$ = 0.03, 0.06, and 0.09.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%% begin table   %%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{table}[t]
-\caption{Figure and table captions do not end with a period}
+%\caption{Figure and table captions do not end with a period}
+\caption{RMS results from the numerical simulations compared to the analytic solution}
 \begin{center}
 \label{table_ASME}
-\begin{tabular}{c l l}
+\begin{tabular}{c c c c}
 & & \\ % put some space after the caption
 \hline
-Example & Time & Cost \\
+s & t & Implicit RMS & Explicit RMS \\
 \hline
-1 & 12.5 & \$1,000 \\
-2 & 24 & \$2,000 \\
+1/6 & 0.03 & 7.27E-4 & 9.25E-3\\
+1/6 & 0.06 & 6.99E-5 & 1.19E-2\\
+1/6 & 0.09 & 1.98E-4 & 1.31E-2\\
+\hline
+0.25 & 0.03 & 4.70E-4 & 1.38E-2\\
+0.25 & 0.06 & 1.27E-4 & 1.90E-2\\
+0.25 & 0.09 & 1.96E-4 & 2.02E-2\\
+\hline
+0.5 & 0.03 & 7.92E-4 & 3.66E-2\\
+0.5 & 0.06 & 3.20E-4 & 4.71E-2\\
+0.5 & 0.09 & 4.10E-4 & 4.63E-2\\
+\hline
+0.75 & 0.03 & 1.13E-3 & 8.13E-2 \\
+0.75 & 0.06 & 5.17E-4 & 8.83E-2\\
+0.75 & 0.09 & 6.22E-4 & 7.38E-2 \\
 \hline
 \end{tabular}
 \end{center}
 \end{table}
+
 %%%%%%%%%%%%%%%% end table %%%%%%%%%%%%%%%%%%% 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-All tables should be numbered consecutively  and centered above the table as shown in Table~\ref{table_ASME}. The body of the table should be no smaller than 7 pt.  There should be a minimum two line spaces between tables and text.
+The RMS between the implicit and analytic solutions and the explicit and analytic solutions are shown in Table~\ref{table_ASME}. The RMS tended to grow as a function of $s$, and shrink as a function of $t$. Additionally, the RMS for the explicit solution tended to be two orders of magnitude larger than the RMS for the implicit solution.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussions}

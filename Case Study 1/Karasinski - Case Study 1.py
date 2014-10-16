@@ -35,6 +35,7 @@ def Solver(s, t_end, show_plot=False):
 
     # Find the RMS
     RMS = RootMeanSquare(T_implicit, T_analytic)
+    ExplicitRMS = RootMeanSquare(T_explicit, T_analytic)
 
     # Format our plots
     plt.axis([0, L, T0, T1])
@@ -61,7 +62,7 @@ def Solver(s, t_end, show_plot=False):
         plt.show()
     plt.clf()
 
-    return RMS
+    return RMS, ExplicitRMS
 
 
 def Explicit(Told, t_end, dt, s):
@@ -184,12 +185,14 @@ def main():
     t = [0.03, 0.06, 0.09]
 
     RMS = []
-    for i, s_ in enumerate(s):
-        sRMS = [0] * len(t)
-        for j, t_ in enumerate(t):
-            sRMS[j] = Solver(s_, t_, False)
-            # print i, j, sRMS[j]
-        RMS.append(sRMS)
+    with open('results.dat', 'w+') as f:
+        for i, s_ in enumerate(s):
+            sRMS = [0] * len(t)
+            for j, t_ in enumerate(t):
+                sRMS[j], ExplicitRMS = Solver(s_, t_, False)
+                f.write('{0:.3f} {1:.2f} {2:.2e} {3:.2e} \n'.format(s_, t_, sRMS[j], ExplicitRMS))
+                # print i, j, sRMS[j]
+            RMS.append(sRMS)
 
     # Convert to np array to make this easier...
     RMS = np.array(RMS)
