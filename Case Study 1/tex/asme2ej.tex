@@ -35,7 +35,7 @@
 %  cleanfoot - take out copyright info in footer leave page number
 %  cleanhead - take out the conference banner on the title page
 %  titlepage/notitlepage - put in titlepage or leave out titlepage
-%  
+%
 %% The default is oneside, onecolumn, 10pt, final
 
 \title{Case Study \# 1: 1D Transient Heat Diffusion}
@@ -45,15 +45,15 @@
     \affiliation{
 	Graduate Student Researcher\\
 	Center for Human/Robotics/Vehicle Integration and Performance\\
-	Department of Mechanical Engineering\\
+	Department of Mechanical and Aerospace Engineering\\
 	University of California\\
 	Davis, California 95616\\
     Email: karasinski@ucdavis.edu
-    }	
+    }
 }
 
 \begin{document}
-\maketitle    
+\maketitle
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem Description}
@@ -76,7 +76,7 @@ T^*(x,t) = 1 - \sum\limits_{k=1}^\infty \frac{4}{(2k-1)\pi} & \sin[(2k-1)\pi x] 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Solution Algorithms}
 
-The Taylor-series (TS) method can be used on this equation to derive a finite difference approximation to the PDE. Applying the definition of the derivative, 
+The Taylor-series (TS) method can be used on this equation to derive a finite difference approximation to the PDE. Applying the definition of the derivative,
 \begin{equation}
 f'(x) \approx \frac{f(x + \epsilon) - f(x)}{\epsilon}
 \end{equation}
@@ -146,37 +146,108 @@ was obtained for $s(=\Delta t/ \Delta x^2)$ = 1/6, 0.25, 0.5, and 0.75, at $t$ =
 %\caption{Figure and table captions do not end with a period}
 \begin{center}
 \label{table_ASME}
-\begin{tabular}{|c c | c c|}
+\begin{tabular}{|c | c c|}
 \hline
-s & t & Implicit RMS & Explicit RMS \\
+t & Implicit RMS & Explicit RMS \\
 \hline
-1/6 & 0.03 & 7.27E-4 & 9.25E-3\\
-1/6 & 0.06 & 6.99E-5 & 1.19E-2\\
-1/6 & 0.09 & 1.98E-4 & 1.31E-2\\
-\hline
-0.25 & 0.03 & 4.70E-4 & 1.38E-2\\
-0.25 & 0.06 & 1.27E-4 & 1.90E-2\\
-0.25 & 0.09 & 1.96E-4 & 2.02E-2\\
-\hline
-0.5 & 0.03 & 7.92E-4 & 3.66E-2\\
-0.5 & 0.06 & 3.20E-4 & 4.71E-2\\
-0.5 & 0.09 & 4.10E-4 & 4.63E-2\\
-\hline
-0.75 & 0.03 & 1.13E-3 & 8.13E-2 \\
-0.75 & 0.06 & 5.17E-4 & 8.83E-2\\
-0.75 & 0.09 & 6.22E-4 & 7.38E-2 \\
+0.03 & 7.27E-4 & 9.25E-3\\
+0.06 & 6.99E-5 & 1.19E-2\\
+0.09 & 1.98E-4 & 1.31E-2\\
 \hline
 \end{tabular}
-\caption{RMS results from the numerical simulations compared to the analytic solution}
+\caption{RMS results from the numerical simulations compared to the analytic solution for s = 1/6}
 \end{center}
 \end{table}
 
-%%%%%%%%%%%%%%%% end table %%%%%%%%%%%%%%%%%%% 
+\begin{table}[t]
+%\caption{Figure and table captions do not end with a period}
+\begin{center}
+\label{table_ASME}
+\begin{tabular}{|c | c c|}
+\hline
+t & Implicit RMS & Explicit RMS \\
+\hline
+0.03 & 4.70E-4 & 1.38E-2\\
+0.06 & 1.27E-4 & 1.90E-2\\
+0.09 & 1.96E-4 & 2.02E-2\\
+\hline
+\end{tabular}
+\caption{RMS results from the numerical simulations compared to the analytic solution for s = 0.25}
+\end{center}
+\end{table}
+
+\begin{table}[t]
+%\caption{Figure and table captions do not end with a period}
+\begin{center}
+\label{table_ASME}
+\begin{tabular}{|c | c c|}
+\hline
+t & Implicit RMS & Explicit RMS \\
+\hline
+0.03 & 7.92E-4 & 3.66E-2\\
+0.06 & 3.20E-4 & 4.71E-2\\
+0.09 & 4.10E-4 & 4.63E-2\\
+\hline
+\end{tabular}
+\caption{RMS results from the numerical simulations compared to the analytic solution for s = 0.5}
+\end{center}
+\end{table}
+
+\begin{table}[t]
+%\caption{Figure and table captions do not end with a period}
+\begin{center}
+\label{table_ASME}
+\begin{tabular}{|c | c c|}
+\hline
+t & Implicit RMS & Explicit RMS \\
+\hline
+0.03 & 1.13E-3 & 8.13E-2 \\
+0.06 & 5.17E-4 & 8.83E-2\\
+0.09 & 6.22E-4 & 7.38E-2 \\
+\hline
+\end{tabular}
+\caption{RMS results from the numerical simulations compared to the analytic solution for s = 0.75}
+\end{center}
+\end{table}
+
+%%%%%%%%%%%%%%%% end table %%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The RMS between the implicit and analytic solutions and the explicit and analytic solutions are shown in Table~\ref{table_ASME}. The RMS tended to grow as a function of $s$, and shrink as a function of $t$. Additionally, the RMS for the explicit solution tended to be two orders of magnitude larger than the RMS for the implicit solution.
 
-\begin{figure}[htb]
+\section{Discussions}
+Shankle chicken tail, fatback short ribs meatball pancetta ball tip sirloin short loin. Pork tongue pork belly pork loin beef ribs. Shank turkey pork belly pork loin ham hock ball tip leberkas meatloaf chuck ground round filet mignon kielbasa sirloin turducken tri-tip. Pancetta brisket sirloin beef ribs spare ribs, swine bacon ham hock. Ham kielbasa corned beef turkey turducken. Kevin biltong pork, tenderloin chuck pig ball tip filet mignon.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The bibliography is stored in an external database file
+% in the BibTeX format (file_name.bib).  The bibliography is
+% created by the following command and it will appear in this
+% position in the document. You may, of course, create your
+% own bibliography by using thebibliography environment as in
+%
+% \begin{thebibliography}{12}
+% ...
+% \bibitem{itemreference} D. E. Knudsen.
+% {\em 1966 World Bnus Almanac.}
+% {Permafrost Press, Novosibirsk.}
+% ...
+% \end{thebibliography}
+
+% Here's where you specify the bibliography style file.
+% The full file name for the bibliography style file
+% used for an ASME paper is asmems4.bst.
+%\bibliographystyle{asmems4}
+
+% Here's where you specify the bibliography database file.
+% The full file name of the bibliography database for this
+% article is asme2e.bib. The name for your database is up
+% to you.
+%\bibliography{asme2e}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+\begin{figure}[b]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.166_t_0.03.pdf}
 \includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.166_t_0.06.pdf}
@@ -212,36 +283,7 @@ The RMS between the implicit and analytic solutions and the explicit and analyti
 \end{center}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Discussions}
-Shankle chicken tail, fatback short ribs meatball pancetta ball tip sirloin short loin. Pork tongue pork belly pork loin beef ribs. Shank turkey pork belly pork loin ham hock ball tip leberkas meatloaf chuck ground round filet mignon kielbasa sirloin turducken tri-tip. Pancetta brisket sirloin beef ribs spare ribs, swine bacon ham hock. Ham kielbasa corned beef turkey turducken. Kevin biltong pork, tenderloin chuck pig ball tip filet mignon.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The bibliography is stored in an external database file
-% in the BibTeX format (file_name.bib).  The bibliography is
-% created by the following command and it will appear in this
-% position in the document. You may, of course, create your
-% own bibliography by using thebibliography environment as in
-%
-% \begin{thebibliography}{12}
-% ...
-% \bibitem{itemreference} D. E. Knudsen.
-% {\em 1966 World Bnus Almanac.}
-% {Permafrost Press, Novosibirsk.}
-% ...
-% \end{thebibliography}
-
-% Here's where you specify the bibliography style file.
-% The full file name for the bibliography style file 
-% used for an ASME paper is asmems4.bst.
-%\bibliographystyle{asmems4}
-
-% Here's where you specify the bibliography database file.
-% The full file name of the bibliography database for this
-% article is asme2e.bib. The name for your database is up
-% to you.
-%\bibliography{asme2e}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
 \onecolumn
 \appendix       %%% starting appendix
