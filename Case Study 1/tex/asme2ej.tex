@@ -26,6 +26,7 @@
 \usepackage{graphicx}
 \usepackage{grffile}
 \usepackage{pdfpages}
+\usepackage{algpseudocode}
 
 %% The class has several options
 %  onecolumn/twocolumn - format for one or two columns per page
@@ -73,6 +74,8 @@ T^*(x,t) = 1 - \sum\limits_{k=1}^\infty \frac{4}{(2k-1)\pi} & \sin[(2k-1)\pi x] 
 \end{split}
 \end{equation}
 
+In addition to the analytical solution, several numerical methods can be employed to solve the diffusion equation. Two of these methods are derived in the following section.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Solution Algorithms}
 
@@ -81,11 +84,11 @@ The Taylor-series (TS) method can be used on this equation to derive a finite di
 f'(x) \approx \frac{f(x + \epsilon) - f(x)}{\epsilon}
 \end{equation}
 
-\noindent to Eqn.~(\ref{eq_DEF}) yields:
+\noindent to Eqn.~(\ref{eq_DEF}) yields
 \begin{equation}
 \begin{split}
 \frac{\partial T}{\partial t} = & \frac{T(x, t + \Delta t) - T(x,t)}{\Delta t} \\
-				      = & \frac{T_{i}^{k+1} - T_{i}^{k}}{\Delta t}
+				      = & \frac{T_{i}^{k+1} - T_{i}^{k}}{\Delta t}.
 \end{split}
 \end{equation}
 
@@ -93,43 +96,102 @@ From the definition of the Taylor series,
 \begin{equation}
 f(x+\epsilon) = f(x) + \epsilon f'(x) + \frac{\epsilon^2}{2} f''(x) + ...
 \end{equation}
-\noindent which, when applied to $T_{i}^{k+1}$  and $T_{i}^{k}$ gives:
+\noindent which, when applied to $T_{i}^{k+1}$  and $T_{i}^{k}$ gives
 \begin{equation}
 T_{i+1} = T_i + \Delta x \frac{\partial T_i}{\partial x} + \frac{\Delta x^2}{2} \frac{\partial^2 T_i}{\partial x^2} + \mathcal{O}(\Delta x^3)
 \label{eq_ADD1}
 \end{equation}
 \noindent and
 \begin{equation}
-T_{i-1} = T_i - \Delta x \frac{\partial T_i}{\partial x} + \frac{\Delta x^2}{2} \frac{\partial^2 T_i}{\partial x^2} - \mathcal{O}(\Delta x^3)
+T_{i-1} = T_i - \Delta x \frac{\partial T_i}{\partial x} + \frac{\Delta x^2}{2} \frac{\partial^2 T_i}{\partial x^2} - \mathcal{O}(\Delta x^3).
 \label{eq_ADD2}
 \end{equation}
 
-Adding Eqn.~(\ref{eq_ADD1}) and Eqn.~(\ref{eq_ADD2}) yields:
+Adding Eqn.~(\ref{eq_ADD1}) and Eqn.~(\ref{eq_ADD2}) yields
 \begin{equation}
 T_{i+1} + T_{i-1} = 2T_i + \Delta x^2 \frac{\partial^2 T_i}{\partial x^2} + \mathcal{O}(\Delta x^4)
 \end{equation}
-\noindent we can also combine the approximation for the second order term from Eqn.~(\ref{eq_DEF}) to find
+\noindent which can be rearranged as the approximation for the second order term from Eqn.~(\ref{eq_DEF}),
 \begin{equation}
 \frac{\partial^2 T}{\partial x^2} = \frac{T_{i+1} + 2T_{i} + T_{i-1}}{\Delta x^2} + \mathcal{O}(\Delta x^4),
 \end{equation}
-\noindent which we can combine withe the above equations to form
+\noindent and can also be combined with the the above equations to form
 \begin{equation}
-\frac{T_i^{k+1}-T_i^k}{\Delta t} \approx \frac{T_{i+1}^k - 2T_i^k + T_{i-1}^k}{\Delta x^2}
+\frac{T_i^{k+1}-T_i^k}{\Delta t} \approx \frac{T_{i+1}^k - 2T_i^k + T_{i-1}^k}{\Delta x^2}.
+\label{eq_SEMIFINAL}
 \end{equation}
 
-This result can be arranged to form both Forward-Time, Centered-Space (FTCS) explicit and implicit schemes. Rearranging, the explicit scheme is:
+This result can be arranged to form both Forward-Time, Centered-Space (FTCS) explicit and implicit schemes.
+
+\subsection{Explicit}
+Eqn.~(\ref{eq_SEMIFINAL}) can be rearranged to form the explicit scheme, which is
 \begin{equation}
 T_i^{k+1} = sT_{i+1}^k +(1- 2s)T_i^k + sT_{i}^k
-\end{equation}
-\noindent and the implicit scheme is
-\begin{equation}
-T_i^k = -sT_{i+1}^{k+1} +(1+2s)T_i^{k+1} - sT_{i-1}^k
 \end{equation}
 \noindent where
 \begin{equation}
 s = \frac{\alpha \Delta t}{\Delta x^2}
 \end{equation}
 \noindent and $\alpha$ is the thermal diffusivity of the material.
+
+This scheme can be implemented to solve the problem computationally. In pseudocode, looks like
+\begin{algorithmic}
+\While {$t \leq t_{end}$}
+    \State {i $\gets$ 1}
+    \For{$i$ in $N-1$}
+        \State {$T_{k+1}[i] = sT_k[i+1] + (1-2s)T_k[i] + sT_k[i-1]$}
+        \State {i $\gets$ i + 1}
+    \EndFor
+    \State {$T_k = T_{k+1}$}
+    \State {t $\gets$ t + dt}
+\EndWhile
+\end{algorithmic}
+\noindent where N is the number of elements in your mesh. Each element in the interior is looped over (the boundary conditions remain constant), and the time marches forward until the designated end time has been reached.
+
+\subsection{Implicit}
+Eqn.~(\ref{eq_SEMIFINAL}) can also be rearranged to form the implicit scheme, which is
+\begin{equation}
+T_i^k = -sT_{i+1}^{k+1} +(1+2s)T_i^{k+1} - sT_{i-1}^k
+\end{equation}
+\noindent where again,
+\begin{equation}
+s = \frac{\alpha \Delta t}{\Delta x^2}
+\end{equation}
+\noindent and $\alpha$ is the thermal diffusivity of the material.
+
+This scheme can also be implemented to solve the problem computationally. In pseudocode, this is
+\begin{algorithmic}
+\If {$i\geq maxval$}
+    \State $i\gets 0$
+\Else
+    \If {$i+k\leq maxval$}
+        \State $i\gets i+k$
+    \EndIf
+\EndIf
+\end{algorithmic}
+
+% def Implicit(Told, t_end, dt, s):
+%     """
+%     This function computes the Forward-Time, Centered-Space (FTCS) implicit
+%     scheme for the 1D unsteady heat diffusion problem.
+%     """
+%     N = len(Told)
+%     time = 0.
+
+%     # Build our 'A' matrix
+%     a = [-s] * N
+%     a[0], a[-1] = 0, 0
+%     b = [1 + 2 * s] * N
+%     b[0], b[-1] = 1, 1        # hold boundary
+%     c = a
+
+%     while time <= t_end:
+%         Tnew = TDMAsolver(a, b, c, Told)
+
+%         Told = Tnew
+%         time += dt
+
+%     return Told
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}
@@ -142,7 +204,7 @@ was obtained for $s(=\Delta t/ \Delta x^2)$ = 1/6, 0.25, 0.5, and 0.75, at $t$ =
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%% begin table   %%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{table}[t]
+\begin{table}[h]
 %\caption{Figure and table captions do not end with a period}
 \begin{center}
 \label{table_ASME}
@@ -159,7 +221,7 @@ t & Implicit RMS & Explicit RMS \\
 \end{center}
 \end{table}
 
-\begin{table}[t]
+\begin{table}[h]
 %\caption{Figure and table captions do not end with a period}
 \begin{center}
 \label{table_ASME}
@@ -176,7 +238,7 @@ t & Implicit RMS & Explicit RMS \\
 \end{center}
 \end{table}
 
-\begin{table}[t]
+\begin{table}[h]
 %\caption{Figure and table captions do not end with a period}
 \begin{center}
 \label{table_ASME}
@@ -193,7 +255,7 @@ t & Implicit RMS & Explicit RMS \\
 \end{center}
 \end{table}
 
-\begin{table}[t]
+\begin{table}[h]
 %\caption{Figure and table captions do not end with a period}
 \begin{center}
 \label{table_ASME}
