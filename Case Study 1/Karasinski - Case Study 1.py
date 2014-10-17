@@ -132,7 +132,7 @@ def RootMeanSquare(a, b):
         RMS += (a[i] - b[i]) ** 2.
 
     RMS = RMS ** (1. / 2.)
-    RMS /= N
+    RMS /= N**2.
 
     return RMS
 
