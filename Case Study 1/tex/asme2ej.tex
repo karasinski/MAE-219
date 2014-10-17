@@ -159,16 +159,76 @@ s = \frac{\alpha \Delta t}{\Delta x^2}
 \end{equation}
 \noindent and $\alpha$ is the thermal diffusivity of the material.
 
-This scheme can also be implemented to solve the problem computationally. In pseudocode, this is
-\begin{algorithmic}
-\If {$i\geq maxval$}
-    \State $i\gets 0$
-\Else
-    \If {$i+k\leq maxval$}
-        \State $i\gets i+k$
-    \EndIf
-\EndIf
-\end{algorithmic}
+A tridiagonal system for $n$ unknowns may be written as $a_i x_{i - 1}  + b_i x_i  + c_i x_{i + 1}  = d_i , \,\!$ where $ a_1  = 0\, $ and $ c_n = 0\, $.
+
+\begin{equation}
+\begin{bmatrix}
+   {b_1} & {c_1} & {   } & {   } & { 0 } \\
+   {a_2} & {b_2} & {c_2} & {   } & {   } \\
+   {   } & {a_3} & {b_3} & \ddots & {   } \\
+   {   } & {   } & \ddots & \ddots & {c_{n-1}}\\
+   { 0 } & {   } & {   } & {a_n} & {b_n}\\
+\end{bmatrix}
+\begin{bmatrix}
+   {x_1 }  \\
+   {x_2 }  \\
+   {x_3 }  \\
+   \vdots   \\
+   {x_n }  \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+   {d_1 }  \\
+   {d_2 }  \\
+   {d_3 }  \\
+   \vdots   \\
+   {d_n }  \\
+\end{bmatrix}
+\end{equation}
+
+The forward sweep consists of modifying the coefficients as follows, denoting the new modified coefficients with primes:
+
+\begin{equation}
+c'_i =
+\begin{cases}
+\begin{array}{lcl}
+  \cfrac{c_i}{b_i}                  & ; & i = 1 \\
+  \cfrac{c_i}{b_i - a_i c'_{i - 1}} & ; & i = 2, 3, \dots, n-1 \\
+\end{array}
+\end{cases}
+\,\end{equation}
+
+and
+
+\begin{equation}
+d'_i =
+\begin{cases}
+\begin{array}{lcl}
+  \cfrac{d_i}{b_i}                  & ; & i = 1 \\
+  \cfrac{d_i - a_i d'_{i - 1}}{b_i - a_i c'_{i - 1}} & ; & i = 2, 3, \dots, n. \\
+\end{array}
+\end{cases}
+\,\end{equation}
+
+The solution is then obtained by back substitution:
+
+\begin{multline}
+\begin{split}
+x_n & = d'_n\, \\
+x_i & = d'_i - c'_i x_{i + 1} \qquad ; \ i = n - 1, n - 2, \ldots, 1.
+\end{split}
+\end{multline}
+
+% This scheme can also be implemented to solve the problem computationally. In pseudocode, this is
+% \begin{algorithmic}
+% \If {$i\geq maxval$}
+%     \State $i\gets 0$
+% \Else
+%     \If {$i+k\leq maxval$}
+%         \State $i\gets i+k$
+%     \EndIf
+% \EndIf
+% \end{algorithmic}
 
 % def Implicit(Told, t_end, dt, s):
 %     """
