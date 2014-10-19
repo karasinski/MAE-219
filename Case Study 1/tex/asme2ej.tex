@@ -74,7 +74,11 @@ T^*(x,t) = 1 - \sum\limits_{k=1}^\infty \frac{4}{(2k-1)\pi} & \sin[(2k-1)\pi x] 
 \end{split}
 \end{equation}
 
-In addition to the analytical solution, several numerical methods can be employed to solve the diffusion equation. Two of these methods are derived in the following section.
+In addition to the analytical solution, several numerical methods can be employed to solve the diffusion equation. Two of these methods, both an explicit and an implicit scheme, are derived in the following section. A Python script was then used to obtain results for a 21 point mesh (N=21) along the slab, and the Root Mean Square error,
+\begin{equation}
+\mbox{RMS} = \frac{1}{N^\frac{1}{2}}\sqrt{\sum\limits_{i=1}^N[T_i^n - T^*(x_i, t_n)]^2}
+\end{equation}
+was obtained for $s(=\Delta t/ \Delta x^2)$ = 1/6, 0.25, 0.5, and 0.75, at $t$ = 0.03, 0.06, and 0.09 using both the explicit and the implicit methods.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Solution Algorithms}
@@ -126,15 +130,15 @@ This result can be arranged to form both Forward-Time, Centered-Space (FTCS) exp
 \subsection{Explicit}
 Eqn.~(\ref{eq_SEMIFINAL}) can be rearranged to form the explicit scheme, which is
 \begin{equation}
-T_i^{k+1} = sT_{i+1}^k +(1- 2s)T_i^k + sT_{i}^k
+T_i^{k+1} = sT_{i+1}^k +(1- 2s)T_i^k + sT_{i}^k,
 \end{equation}
 \noindent where
 \begin{equation}
-s = \frac{\alpha \Delta t}{\Delta x^2}
+s = \frac{\alpha \Delta t}{\Delta x^2},
 \end{equation}
 \noindent and $\alpha$ is the thermal diffusivity of the material.
 
-This scheme can be implemented to solve the problem computationally. In pseudocode, looks like
+This scheme can be implemented to solve the problem computationally. In pseudocode, looks like: \\
 \begin{algorithmic}
 \While {$t \leq t_{end}$}
     \State {i $\gets$ 1}
@@ -144,37 +148,38 @@ This scheme can be implemented to solve the problem computationally. In pseudoco
     \EndFor
     \State {$T_k = T_{k+1}$}
     \State {t $\gets$ t + dt}
-\EndWhile
+\EndWhile \\
 \end{algorithmic}
 \noindent where N is the number of elements in your mesh. Each element in the interior is looped over (the boundary conditions remain constant), and the time marches forward until the designated end time has been reached.
 
 \subsection{Implicit}
 Eqn.~(\ref{eq_SEMIFINAL}) can also be rearranged to form the implicit scheme, which is
 \begin{equation}
-T_i^k = -sT_{i+1}^{k+1} +(1+2s)T_i^{k+1} - sT_{i-1}^k
+\label{implicit_sol}
+T_i^k = -sT_{i+1}^{k+1} +(1+2s)T_i^{k+1} - sT_{i-1}^k.
 \end{equation}
-\noindent where again,
+\noindent Where again,
 \begin{equation}
-s = \frac{\alpha \Delta t}{\Delta x^2}
+s = \frac{\alpha \Delta t}{\Delta x^2},
 \end{equation}
 \noindent and $\alpha$ is the thermal diffusivity of the material.
 
-A tridiagonal system for $n$ unknowns may be written as $a_i x_{i - 1}  + b_i x_i  + c_i x_{i + 1}  = d_i , \,\!$ where $ a_1  = 0\, $ and $ c_n = 0\, $.
+Eqn.~(\ref{implicit_sol}) can be rewritten as $[A] T^{k+1} = T^k$, where matrix $A$ is tridiagonal. This tridiagonal system of $N$ unknowns may be written as $a_i x_{i - 1}  + b_i x_i  + c_i x_{i + 1}  = d_i , \,\!$ where $ a_1  = 0\, $ and $ c_N = 0\, $.
 
 \begin{equation}
 \begin{bmatrix}
    {b_1} & {c_1} & {   } & {   } & { 0 } \\
    {a_2} & {b_2} & {c_2} & {   } & {   } \\
    {   } & {a_3} & {b_3} & \ddots & {   } \\
-   {   } & {   } & \ddots & \ddots & {c_{n-1}}\\
-   { 0 } & {   } & {   } & {a_n} & {b_n}\\
+   {   } & {   } & \ddots & \ddots & {c_{N-1}}\\
+   { 0 } & {   } & {   } & {a_N} & {b_N}\\
 \end{bmatrix}
 \begin{bmatrix}
    {x_1 }  \\
    {x_2 }  \\
    {x_3 }  \\
    \vdots   \\
-   {x_n }  \\
+   {x_N }  \\
 \end{bmatrix}
 =
 \begin{bmatrix}
@@ -182,99 +187,66 @@ A tridiagonal system for $n$ unknowns may be written as $a_i x_{i - 1}  + b_i x_
    {d_2 }  \\
    {d_3 }  \\
    \vdots   \\
-   {d_n }  \\
+   {d_N }  \\
 \end{bmatrix}
 \end{equation}
-
-The forward sweep consists of modifying the coefficients as follows, denoting the new modified coefficients with primes:
-
+This equation can be quickly solved using the tridiagonal matrix algorithm (also known as the Thomas algorithm), which consists of a forward sweep followed by back substitution. The forward sweep consists of modifying the coefficients as follows, denoting the new modified coefficients with primes:
 \begin{equation}
 c'_i =
 \begin{cases}
 \begin{array}{lcl}
   \cfrac{c_i}{b_i}                  & ; & i = 1 \\
-  \cfrac{c_i}{b_i - a_i c'_{i - 1}} & ; & i = 2, 3, \dots, n-1 \\
+  \cfrac{c_i}{b_i - a_i c'_{i - 1}} & ; & i = 2, 3, \dots, N-1 \\
 \end{array}
 \end{cases}
 \,\end{equation}
-
 and
-
 \begin{equation}
 d'_i =
 \begin{cases}
 \begin{array}{lcl}
   \cfrac{d_i}{b_i}                  & ; & i = 1 \\
-  \cfrac{d_i - a_i d'_{i - 1}}{b_i - a_i c'_{i - 1}} & ; & i = 2, 3, \dots, n. \\
+  \cfrac{d_i - a_i d'_{i - 1}}{b_i - a_i c'_{i - 1}} & ; & i = 2, 3, \dots, N. \\
 \end{array}
 \end{cases}
 \,\end{equation}
-
 The solution is then obtained by back substitution:
-
 \begin{multline}
 \begin{split}
 x_n & = d'_n\, \\
-x_i & = d'_i - c'_i x_{i + 1} \qquad ; \ i = n - 1, n - 2, \ldots, 1.
+x_i & = d'_i - c'_i x_{i + 1} \qquad ; \ i = N - 1, N - 2, \ldots, 1.
 \end{split}
 \end{multline}
-
-% This scheme can also be implemented to solve the problem computationally. In pseudocode, this is
-% \begin{algorithmic}
-% \If {$i\geq maxval$}
-%     \State $i\gets 0$
-% \Else
-%     \If {$i+k\leq maxval$}
-%         \State $i\gets i+k$
-%     \EndIf
-% \EndIf
-% \end{algorithmic}
-
-% def Implicit(Told, t_end, dt, s):
-%     """
-%     This function computes the Forward-Time, Centered-Space (FTCS) implicit
-%     scheme for the 1D unsteady heat diffusion problem.
-%     """
-%     N = len(Told)
-%     time = 0.
-
-%     # Build our 'A' matrix
-%     a = [-s] * N
-%     a[0], a[-1] = 0, 0
-%     b = [1 + 2 * s] * N
-%     b[0], b[-1] = 1, 1        # hold boundary
-%     c = a
-
-%     while time <= t_end:
-%         Tnew = TDMAsolver(a, b, c, Told)
-
-%         Told = Tnew
-%         time += dt
-
-%     return Told
+In pseudocode, looks like:\\
+\begin{algorithmic}
+\State {\textbf{form} $[A]$}
+\While {$t \leq t_{end}$}
+    \State {$T_{k+1}$ = TDMA($T_k$, $[A]$)}
+    \State {$T_k = T_{k+1}$}
+    \State {t $\gets$ t + dt}
+\EndWhile
+\end{algorithmic}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}
 
-A Python script was used to obtain results for a 21 point mesh (N=21), and the Root Mean Square error,
-\begin{equation}
-\mbox{RMS} = \frac{1}{N^2}\sqrt{\sum\limits_{i=1}^N[T_i^n - T^*(x_i, t_n)]^2}
-\end{equation}
-was obtained for $s(=\Delta t/ \Delta x^2)$ = 1/6, 0.25, 0.5, and 0.75, at $t$ = 0.03, 0.06, and 0.09 using both the explicit and the implicit methods.
+A Python script was used to obtain results for a 21 point mesh (N=21), and the Root Mean Square error was obtained for $s(=\Delta t/ \Delta x^2)$ = 1/6, 0.25, 0.5, and 0.75, at $t$ = 0.03, 0.06, and 0.09 using both the explicit and the implicit methods. The RMS between the implicit and analytic solutions and the explicit and analytic solutions are shown in Tables~1 through~4. The temperature along the slab for each $s$ at each time are available as Plots~1 through~4.
+
+The RMS for the explicit solution tended to be about an order of magnitude higher than that of the implicit solution, E-04 compared to E-03, for values of $s$ = 1/6 and 0.25, while the RMS tended to be about the same, around E-03, for $s$ = and 0.5. At $s$ = 0.75, however, the explicit solution becomes unstable. While the RMS for the implicit solution was still around E-03, the RMS for the explicit solution grew rapidly.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%% begin table   %%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{table}[h]
 %\caption{Figure and table captions do not end with a period}
 \begin{center}
-\label{table_ASME}
+\label{table_results1}
 \begin{tabular}{|c | c c|}
 \hline
 t & Explicit RMS & Implicit RMS \\
 \hline
-0.03 & 4.41E-4 & 3.46E-5\\
-0.06 & 5.66E-4 & 3.33E-6\\
-0.09 & 6.26E-4 & 9.44E-6\\
+0.03 & 4.17E-03 & 3.33E-03\\
+0.06 & 1.00E-03 & 3.20E-04\\
+0.09 & 2.22E-03 & 9.09E-04\\
 \hline
 \end{tabular}
 \caption{RMS results from the numerical simulations compared to the analytic solution for s = 1/6}
@@ -284,14 +256,14 @@ t & Explicit RMS & Implicit RMS \\
 \begin{table}[h]
 %\caption{Figure and table captions do not end with a period}
 \begin{center}
-\label{table_ASME}
+\label{table_results2}
 \begin{tabular}{|c | c c|}
 \hline
 t & Explicit RMS & Implicit RMS \\
 \hline
-0.03 & 6.59E-4 & 2.24E-5\\
-0.06 & 9.05E-4 & 6.06E-6\\
-0.09 & 9.61E-4 & 9.35E-6\\
+0.03 & 1.77E-03 & 2.15E-03\\
+0.06 & 1.30E-03 & 5.83E-04\\
+0.09 & 1.07E-03 & 8.99E-04\\
 \hline
 \end{tabular}
 \caption{RMS results from the numerical simulations compared to the analytic solution for s = 0.25}
@@ -301,14 +273,14 @@ t & Explicit RMS & Implicit RMS \\
 \begin{table}[h]
 %\caption{Figure and table captions do not end with a period}
 \begin{center}
-\label{table_ASME}
+\label{table_results3}
 \begin{tabular}{|c | c c|}
 \hline
 t & Explicit RMS & Implicit RMS \\
 \hline
-0.03 & 1.74E-3 & 3.77E-5\\
-0.06 & 2.24E-3 & 1.53E-5\\
-0.09 & 2.21E-3 & 1.95E-5\\
+0.03 & 5.25E-03 & 3.63E-03\\
+0.06 & 3.72E-03 & 1.47E-03\\
+0.09 & 3.04E-03 & 1.88E-03\\
 \hline
 \end{tabular}
 \caption{RMS results from the numerical simulations compared to the analytic solution for s = 0.5}
@@ -318,58 +290,30 @@ t & Explicit RMS & Implicit RMS \\
 \begin{table}[h]
 %\caption{Figure and table captions do not end with a period}
 \begin{center}
-\label{table_ASME}
+\label{table_results4}
 \begin{tabular}{|c | c c|}
 \hline
 t & Explicit RMS & Implicit RMS \\
 \hline
-0.03 & 3.87E-3 & 5.38E-5 \\
-0.06 & 4.21E-3 & 2.46E-5\\
-0.09 & 3.51E-3 & 2.96E-5 \\
+0.03 & 4.15E+02 & 5.18E-03\\
+0.06 & 1.79E+07 & 2.37E-03\\
+0.09 & 9.82E+11 & 2.85E-03\\
 \hline
 \end{tabular}
 \caption{RMS results from the numerical simulations compared to the analytic solution for s = 0.75}
 \end{center}
 \end{table}
 
-%%%%%%%%%%%%%%%% end table %%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%% end tables %%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-The RMS between the implicit and analytic solutions and the explicit and analytic solutions are shown in Table~\ref{table_ASME}. The RMS tended to grow as a function of $s$, and shrink as a function of $t$. Additionally, the RMS for the explicit solution tended to be two orders of magnitude larger than the RMS for the implicit solution.
 
 \section{Discussions}
-Shankle chicken tail, fatback short ribs meatball pancetta ball tip sirloin short loin. Pork tongue pork belly pork loin beef ribs. Shank turkey pork belly pork loin ham hock ball tip leberkas meatloaf chuck ground round filet mignon kielbasa sirloin turducken tri-tip. Pancetta brisket sirloin beef ribs spare ribs, swine bacon ham hock. Ham kielbasa corned beef turkey turducken. Kevin biltong pork, tenderloin chuck pig ball tip filet mignon.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The bibliography is stored in an external database file
-% in the BibTeX format (file_name.bib).  The bibliography is
-% created by the following command and it will appear in this
-% position in the document. You may, of course, create your
-% own bibliography by using thebibliography environment as in
-%
-% \begin{thebibliography}{12}
-% ...
-% \bibitem{itemreference} D. E. Knudsen.
-% {\em 1966 World Bnus Almanac.}
-% {Permafrost Press, Novosibirsk.}
-% ...
-% \end{thebibliography}
+The solutions show a symmetric parabolic curve which approaches the boundary condition temperature, $T=1$, as $t \rightarrow 1$. Smaller timesteps tended to lead to more accurate results. More specifically, the overall error was proportional to the step size. As $s$ grows too large, however, the explicit solution grows unstable and produces a meaningless noncontinuous, nonphysical solution. This numerical instability is common when using unsuitably large timesteps with Euler methods.
 
-% Here's where you specify the bibliography style file.
-% The full file name for the bibliography style file
-% used for an ASME paper is asmems4.bst.
-%\bibliographystyle{asmems4}
+While the explicit solution works well for solving the 1D unsteady heat diffusion for low timesteps, care must be taken when using this method for larger timesteps. If larger timesteps are required, it is inappropriate to use the explicit method and the implicit method should instead be employed.
 
-% Here's where you specify the bibliography database file.
-% The full file name of the bibliography database for this
-% article is asme2e.bib. The name for your database is up
-% to you.
-%\bibliography{asme2e}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\clearpage
-\begin{figure}[b]
+ \begin{figure}[b]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.166_t_0.03.pdf}
 \includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.166_t_0.06.pdf}

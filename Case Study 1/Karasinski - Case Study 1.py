@@ -4,12 +4,11 @@ import os
 
 # Configure figures for production
 WIDTH = 495.0  # the number latex spits out
-FACTOR = 1.0   # the fraction of the width you'd like the figure to occupy
+FACTOR = 1.0   # the fraction of the width the figure should occupy
 fig_width_pt  = WIDTH * FACTOR
 
 inches_per_pt = 1.0 / 72.27
-golden_ratio  = (np.sqrt(5) - 1.0) / 2.0  # because it looks good
-
+golden_ratio  = (np.sqrt(5) - 1.0) / 2.0      # because it looks good
 fig_width_in  = fig_width_pt * inches_per_pt  # figure width in inches
 fig_height_in = fig_width_in * golden_ratio   # figure height in inches
 fig_dims      = [fig_width_in, fig_height_in] # fig dims as a list
@@ -35,13 +34,13 @@ def Solver(s, t_end, show_plot=False):
     T_initial[N - 1] = T1
 
     # Explicit Numerical Solution
-    T_explicit = Explicit(np.array(T_initial).copy(), t_end, dt, s)
+    T_explicit = Explicit(list(T_initial), t_end, dt, s)
 
     # Implicit Numerical Solution
-    T_implicit = Implicit(np.array(T_initial).copy(), t_end, dt, s)
+    T_implicit = Implicit(list(T_initial), t_end, dt, s)
 
     # Analytical Solution
-    T_analytic = np.array(T_initial).copy()
+    T_analytic = list(T_initial)
     for i in range(0, N):
         T_analytic[i] = Analytic(x[i], t_end)
 
@@ -51,7 +50,7 @@ def Solver(s, t_end, show_plot=False):
 
     # Format our plots
     plt.figure(figsize=fig_dims)
-    plt.axis([0, L, T0, T1])
+    # plt.axis([0, L, T0, T1])
     plt.xlabel('Length [nd]')
     plt.ylabel('Temperature [nd]')
     plt.title('s = ' + str(s)[:5] + ', t = ' + str(t_end)[:4])
@@ -84,13 +83,13 @@ def Explicit(Told, t_end, dt, s):
     """
     N = len(Told)
     time = 0.
-    Tnew = Told
+    Tnew = list(Told)
 
     while time <= t_end:
         for i in range(1, N - 1):
             Tnew[i] = s * Told[i + 1] + (1 - 2.0 * s) * Told[i] + s * Told[i - 1]
 
-        Told = Tnew
+        Told = list(Tnew)
         time += dt
 
     return Told
@@ -114,7 +113,7 @@ def Implicit(Told, t_end, dt, s):
     while time <= t_end:
         Tnew = TDMAsolver(a, b, c, Told)
 
-        Told = Tnew
+        Told = list(Tnew)
         time += dt
 
     return Told
@@ -132,7 +131,7 @@ def RootMeanSquare(a, b):
         RMS += (a[i] - b[i]) ** 2.
 
     RMS = RMS ** (1. / 2.)
-    RMS /= N**2.
+    RMS /= N**(1./2.)
 
     return RMS
 
@@ -142,7 +141,7 @@ def TDMAsolver(a, b, c, d):
     Tridiagonal Matrix Algorithm (a.k.a Thomas algorithm).
     """
     N = len(a)
-    Tnew = d
+    Tnew = list(d)
 
     # Initialize arrays
     gamma = np.zeros(N)

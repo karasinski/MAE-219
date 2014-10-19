@@ -22,13 +22,12 @@ N         = 21
 
 
 # Set-up Mesh
-#dx        = L / (N - 1)
 x         = linspace(0,L,N)
 dx        = x[1]-x[0]
  
 # Calculate time-step
 dt        = s*dx**2.0   
-time      = 0.
+time      = t_start
 
 # Initial Condition
 Tnew      = [T0]*N
@@ -37,7 +36,7 @@ Tnew      = [T0]*N
 Tnew[0]   = T1
 Tnew[N-1] = T1
 
-Told      = Tnew
+Told      = list(Tnew)
 
 plt.axis([0,L,T0,T1])
 plt.xlabel('Length [nd]')
@@ -50,8 +49,8 @@ while time <= t_end:
 
     plt.plot(x,Tnew,linewidth=1)
     time = time + dt
-    Told = Tnew
+    Told = list(Tnew)
 
 
 plt.show()
-print('\n Done.\n')
+print '\n Done.\n'
