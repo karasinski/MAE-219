@@ -125,7 +125,7 @@ T_{i+1} + T_{i-1} = 2T_i + \Delta x^2 \frac{\partial^2 T_i}{\partial x^2} + \mat
 \label{eq_SEMIFINAL}
 \end{equation}
 
-This result can be arranged to form both Forward-Time, Centered-Space (FTCS) explicit and implicit schemes.
+This result can be arranged to form Forward-Time, Centered-Space (FTCS) explicit and implicit schemes.
 
 \subsection{Explicit}
 Eqn.~(\ref{eq_SEMIFINAL}) can be rearranged to form the explicit scheme, which is
@@ -138,7 +138,7 @@ s = \frac{\alpha \Delta t}{\Delta x^2},
 \end{equation}
 \noindent and $\alpha$ is the thermal diffusivity of the material.
 
-This scheme can be implemented to solve the problem computationally. In pseudocode, looks like: \\
+This scheme can be implemented to solve the problem computationally. As pseudocode, this looks like: \\
 \begin{algorithmic}
 \While {$t \leq t_{end}$}
     \State {i $\gets$ 1}
@@ -150,7 +150,7 @@ This scheme can be implemented to solve the problem computationally. In pseudoco
     \State {t $\gets$ t + dt}
 \EndWhile \\
 \end{algorithmic}
-\noindent where N is the number of elements in your mesh. Each element in the interior is looped over (the boundary conditions remain constant), and the time marches forward until the designated end time has been reached.
+\noindent where N is the number of elements in your mesh (and $i = 0$ is the first element in the mesh). Each element in the interior is looped over (the boundary conditions remain constant), and the time marches forward until the designated end time has been reached.
 
 \subsection{Implicit}
 Eqn.~(\ref{eq_SEMIFINAL}) can also be rearranged to form the implicit scheme, which is
@@ -164,7 +164,7 @@ s = \frac{\alpha \Delta t}{\Delta x^2},
 \end{equation}
 \noindent and $\alpha$ is the thermal diffusivity of the material.
 
-Eqn.~(\ref{implicit_sol}) can be rewritten as $[A] T^{k+1} = T^k$, where matrix $A$ is tridiagonal. This tridiagonal system of $N$ unknowns may be written as $a_i x_{i - 1}  + b_i x_i  + c_i x_{i + 1}  = d_i , \,\!$ where $ a_1  = 0\, $ and $ c_N = 0\, $.
+Eqn.~(\ref{implicit_sol}) can be rewritten as $[A] T^{k+1} = T^k$, where matrix $A$ is tridiagonal. This tridiagonal system of $N$ unknowns may be written as $a_i x_{i - 1}  + b_i x_i  + c_i x_{i + 1}  = d_i , \,\!$ where $ a_1  = 0\, $ and $ c_N = 0\, $. In matrix form, this appears as:
 
 \begin{equation}
 \begin{bmatrix}
@@ -230,13 +230,11 @@ In pseudocode, looks like:\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}
 
-A Python script was used to obtain results for a 21 point mesh (N=21), and the Root Mean Square error was obtained for $s(=\Delta t/ \Delta x^2)$ = 1/6, 0.25, 0.5, and 0.75, at $t$ = 0.03, 0.06, and 0.09 using both the explicit and the implicit methods. The RMS between the implicit and analytic solutions and the explicit and analytic solutions are shown in Tables~1 through~4. The temperature along the slab for each $s$ at each time are available as Plots~1 through~4.
-
-The RMS for the explicit solution tended to be about an order of magnitude higher than that of the implicit solution, E-04 compared to E-03, for values of $s$ = 1/6 and 0.25, while the RMS tended to be about the same, around E-03, for $s$ = and 0.5. At $s$ = 0.75, however, the explicit solution becomes unstable. While the RMS for the implicit solution was still around E-03, the RMS for the explicit solution grew rapidly.
+A Python script was used to obtain results for a 21 point mesh (N=21), and the Root Mean Square error was obtained for $s(=\Delta t/ \Delta x^2)$ = 1/6, 0.25, 0.5, and 0.75, at $t$ = 0.03, 0.06, and 0.09 using both the explicit and the implicit methods. The RMS between the implicit and analytic solutions and the explicit and analytic solutions are shown in Tables~1 through~4. The temperature along the slab for each $s$ at each time are available as Plots~1 through~4. These plots show that the numerical solutions are, except for the case of large timesteps, very accurate when compared to the analytical solution.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%% begin table   %%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{table}[h]
+\begin{table}[htb]
 %\caption{Figure and table captions do not end with a period}
 \begin{center}
 \label{table_results1}
@@ -252,8 +250,7 @@ t & Explicit RMS & Implicit RMS \\
 \caption{RMS results from the numerical simulations compared to the analytic solution for s = 1/6}
 \end{center}
 \end{table}
-
-\begin{table}[h]
+\begin{table}[htb]
 %\caption{Figure and table captions do not end with a period}
 \begin{center}
 \label{table_results2}
@@ -269,8 +266,7 @@ t & Explicit RMS & Implicit RMS \\
 \caption{RMS results from the numerical simulations compared to the analytic solution for s = 0.25}
 \end{center}
 \end{table}
-
-\begin{table}[h]
+\begin{table}[htb]
 %\caption{Figure and table captions do not end with a period}
 \begin{center}
 \label{table_results3}
@@ -286,8 +282,7 @@ t & Explicit RMS & Implicit RMS \\
 \caption{RMS results from the numerical simulations compared to the analytic solution for s = 0.5}
 \end{center}
 \end{table}
-
-\begin{table}[h]
+\begin{table}[htb]
 %\caption{Figure and table captions do not end with a period}
 \begin{center}
 \label{table_results4}
@@ -307,13 +302,15 @@ t & Explicit RMS & Implicit RMS \\
 %%%%%%%%%%%%%%%% end tables %%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+The RMS for the explicit solution tended to be about an order of magnitude higher than that of the implicit solution, E-04 compared to E-03, for values of $s$ = 1/6 and 0.25, while the RMS tended to be about the same, around E-03, for $s$ = and 0.5. At $s$ = 0.75, however, the explicit solution becomes unstable. While the RMS for the implicit solution was still around E-03, the RMS for the explicit solution grew rapidly, to E+11.
+
 \section{Discussions}
 
 The solutions show a symmetric parabolic curve which approaches the boundary condition temperature, $T=1$, as $t \rightarrow 1$. Smaller timesteps tended to lead to more accurate results. More specifically, the overall error was proportional to the step size. As $s$ grows too large, however, the explicit solution grows unstable and produces a meaningless noncontinuous, nonphysical solution. This numerical instability is common when using unsuitably large timesteps with Euler methods.
 
 While the explicit solution works well for solving the 1D unsteady heat diffusion for low timesteps, care must be taken when using this method for larger timesteps. If larger timesteps are required, it is inappropriate to use the explicit method and the implicit method should instead be employed.
 
- \begin{figure}[b]
+\begin{figure}[b]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.166_t_0.03.pdf}
 \includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.166_t_0.06.pdf}
@@ -379,12 +376,4 @@ While the explicit solution works well for solving the 1D unsteady heat diffusio
 \end{center}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\section*{Appendix B: Head of Second Appendix}
-%\subsection*{Subsection head in appendix}
-%The equation counter is not reset in an appendix and the numbers will
-%follow one continual sequence from the beginning of the article to the very end as shown in the following example.
-%\begin{equation}
-%a = b + c.
-%\end{equation}
-
 \end{document}
