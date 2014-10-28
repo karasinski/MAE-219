@@ -189,3 +189,4 @@ sympy-plots-for-*.tex/
 figures/
 
 results.dat
+*/*.png
