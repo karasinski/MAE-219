@@ -58,10 +58,20 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem Description}
-The flow of an incompressible fluid induced in a square cavity by a moving upper boundary, or "lid-driven" cavity flow, is a classic validation case for Computational Fluid Dynamics (CFD) solvers. This case study involves performing numerical simulations of this flow problem for various flow regimes using an Open Source PDE solver: OpenFOAM.
+The flow of an incompressible fluid induced in a square cavity by a moving upper boundary, or ``lid-driven'' cavity flow, is a classic validation case for Computational Fluid Dynamics (CFD) solvers. The top wall moves in the $x$-direction at a speed of 1 m/s while the other 3 are stationary. This case study involves performing numerical simulations of this flow problem for various flow regimes using an Open Source PDE solver: OpenFOAM \cite{jasak2007openfoam}. Initially, the flow will be assumed laminar and will be solved on a uniform mesh using the icoFoam solver for laminar, isothermal, incompressible flow. This problem is solved for a 129x129 uniform grid with Reynolds numbers of 100, 400, 1000, and 3200, and a 257x257 grid with Reynolds numbers of 5000, 7500, and 10000 and are analytically compared to previous results \cite{ghia1982high}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Solver Setup}
+The installation of OpenFOAM is a nontrivial process. While official online documentation lists installation instructions for choice Linux distributions, there is no official documentation for installing OpenFOAM on OS X. Fortunately, some users have documentated their installations and made the steps available online \cite{ctfm_1}.
+
+OpenFOAM 2.3.0 can be built on OS X 10.9 fairly simply by making use of Homebrew (Homebrew is a free/open source software package management system that simplifies the installation of software on the OS X). Homebrew, when used alongside additional command lines tools such as curl and git, greatly simplifies the installation of OpenFOAM. Installation instructions are available in Appendix A. Before running these instructions, however, one must first install Paraview. Paraview has readibly avaialble precombiled binaries which can be installed in a normal fashion.
+
+To confirm that OpenFOAM has been installed correctly, the guide (\cite{ctfm_1}) recommends running the lid-driven cavity flow example which comes installed with OpenFOAM. After the example files are copied into a local directory, the example can be run via the following terminal commands:
+\begin{lstlisting}[language=sh]
+$ blockMesh
+$ icoFoam
+\end{lstlisting}
+which should result in a large amount of text being outputted to the screen. The user can then run the \lstinline[language=sh]`paraFoam` command to view the resulting simulation data.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution}
@@ -69,6 +79,7 @@ The flow of an incompressible fluid induced in a square cavity by a moving upper
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion and Conclusions}
 
+\nocite{*}
 % \begin{figure}[htb]
 % \begin{center}
 % \includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.75_t_0.03.pdf}
@@ -83,16 +94,7 @@ The flow of an incompressible fluid induced in a square cavity by a moving upper
 % The bibliography is stored in an external database file
 % in the BibTeX format (file_name.bib).  The bibliography is
 % created by the following command and it will appear in this
-% position in the document. You may, of course, create your
-% own bibliography by using thebibliography environment as in
-%
-% \begin{thebibliography}{12}
-% ...
-% \bibitem{itemreference} D. E. Knudsen.
-% {\em 1966 World Bnus Almanac.}
-% {Permafrost Press, Novosibirsk.}
-% ...
-% \end{thebibliography}
+% position in the document.
 
 % Here's where you specify the bibliography style file.
 % The full file name for the bibliography style file
@@ -106,16 +108,16 @@ The flow of an incompressible fluid induced in a square cavity by a moving upper
 \bibliography{asme2e}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \clearpage
-% \onecolumn
-% \appendix       %%% starting appendix
-% \section*{Appendix A: Python Code}
+\clearpage
+\onecolumn
+\appendix       %%% starting appendix
+\section*{Appendix A: OpenFOAM 2.3.0 installation}
 
-% \begin{figure}[b]
-% \begin{center}
-% \includegraphics[page=1,width=0.93\textwidth]{../Karasinski - Case Study 1.pdf}
-% \end{center}
-% \end{figure}
+\begin{figure}[b]
+\begin{center}
+\includegraphics[page=1,width=0.93\textwidth]{of230_install.pdf}
+\end{center}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{document}

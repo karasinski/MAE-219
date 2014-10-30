@@ -1,0 +1,35 @@
+#Download and install prerequisites
+brew tap homebrew/science
+brew install open-mpi
+brew install scotch
+brew install boost --without-single --with-mpi
+brew install cgal
+cd Downloads
+mkdir OpenFOAM && cd OpenFOAM
+curl -L http://downloads.sourceforge.net/foam/OpenFOAM-2.3.0.tgz > OpenFOAM-2.3.0.tgz
+curl -L https://raw.githubusercontent.com/mrklein/openfoam-os-x/master/OpenFOAM-2.3.0.patch > OpenFOAM-2.3.0.patch
+
+#Build OpenFOAM
+cd
+hdiutil create -size 4.4g -type SPARSEBUNDLE -fs HFSX -volname OpenFOAM -fsargs -s OpenFOAM.sparsebundle
+mkdir OpenFOAM
+hdiutil attach -mountpoint $HOME/OpenFOAM OpenFOAM.sparsebundle
+cd OpenFOAM
+tar xzf ~/Downloads/OpenFOAM/OpenFOAM-2.3.0.tgz
+cd OpenFOAM-2.3.0
+cp ~/Downloads/OpenFOAM/OpenFOAM-2.3.0.patch .
+git apply OpenFOAM-2.3.0.patch
+source etc/bashrc
+./Allwmake > log.Allwmake 2>&1
+
+#Test to see that everything worked out
+mkdir -p $FOAM_RUN
+run
+cp -r $FOAM_TUTORIALS/incompressible/icoFoam/cavity .
+cd cavity
+blockMesh
+icoFoam
+
+#Post config
+alias of230='hdiutil attach -quiet -mountpoint $HOME/OpenFOAM OpenFOAM.sparsebundle; sleep 1; source $HOME/OpenFOAM/OpenFOAM-2.3.0/etc/bashrc'
+of230
