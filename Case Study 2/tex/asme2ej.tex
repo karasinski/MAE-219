@@ -64,9 +64,9 @@ The flow of an incompressible fluid induced in a square cavity by a moving upper
 \section{Solver Setup}
 The installation of OpenFOAM is a nontrivial process. While official online documentation lists installation instructions for choice Linux distributions, there is no official documentation for installing OpenFOAM on OS X. Fortunately, some users have documentated their installations and made the steps available online \cite{ctfm_1}.
 
-OpenFOAM 2.3.0 can be built on OS X 10.9 fairly simply by making use of Homebrew (Homebrew is a free/open source software package management system that simplifies the installation of software on the OS X). Homebrew, when used alongside additional command lines tools such as curl and git, greatly simplifies the installation of OpenFOAM. Installation instructions are available in Appendix A. Before running these instructions, however, one must first install Paraview. Paraview has readibly avaialble precombiled binaries which can be installed in a normal fashion.
+OpenFOAM 2.3.0 can be built on OS X 10.9 fairly simply by making use of Homebrew (a free/open source software package management system that simplifies the installation of software on the OS X). Homebrew, when used alongside additional command lines tools such as curl and git, greatly simplifies the installation of OpenFOAM. Installation instructions are available in Appendix A. Before running these instructions, however, one must first install Paraview. Paraview has readibly avaialble precombiled binaries which can be installed in a normal fashion.
 
-To confirm that OpenFOAM has been installed correctly, the guide (\cite{ctfm_1}) recommends running the lid-driven cavity flow example which comes installed with OpenFOAM. After the example files are copied into a local directory, the example can be run via the following terminal commands:
+To confirm that OpenFOAM has been installed correctly, the guide recommends running the lid-driven cavity flow example which comes installed with OpenFOAM \cite{ctfm_1}. After the files are copied into a local directory, the example can be run via the following terminal commands:
 \begin{lstlisting}[language=sh]
 $ blockMesh
 $ icoFoam
@@ -76,19 +76,25 @@ which should result in a large amount of text being outputted to the screen. The
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution}
 
+Numerical solutions were found for the lid-driven cavity flow problem for a 129x129 uniform grid with Reynolds numbers of 100, 400, 1000, and 3200, and a 257x257 grid with Reynolds numbers of 5000, 7500, and 10000. To do this, the OpenFOAM icoFoam example, `cavity' was used.
+
+The initial mesh was set to be 129x129 grid points (by adjusting line 33 of the blockMeshDict file) and was generated with the \lstinline[language=sh]`blockMesh` command. To insure that the simulation runs to convergence (and given the quickness at which the simulation runs), the simulation end time is set to 30 seconds (line 26 of the controlDict file). All other default values were used, and the only value changed between runs is $Re$, the Reynolds number. This is done by adjusting $\nu$, the kinematic viscosity, which relates to the Reynolds number via:
+\begin{equation}
+Re = \frac{d|U|}{\nu},
+\end{equation}
+where $d = 0.1$m is the characteristic length, and $|U| = 1$ ms$^{-1}$ is the characteristic velocity. A Reynolds number of 100, for instance, can be achieved by setting $\nu = 0.001$m$^2$s$^{-1}$ (line 18 of the transportProperties file). After generating the grid and adjusting other necessary parameters, the simulation can be run via the \lstinline[language=sh]`icoFoam` command. Once the simulation has finished running, the streamfunction can be generated with the \lstinline[language=sh]`streamFunction` command.
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{figures/proj_1_s_0.75_t_0.03.pdf}
+\caption{Results for $s = 0.75$}
+\end{center}
+\end{figure}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion and Conclusions}
 
 \nocite{*}
-% \begin{figure}[htb]
-% \begin{center}
-% \includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.75_t_0.03.pdf}
-% \includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.75_t_0.06.pdf}
-% \includegraphics[width=0.5\textwidth]{../figures/proj_1_s_0.75_t_0.09.pdf}
-% \caption{Results for $s = 0.75$}
-% \end{center}
-% \end{figure}
-
 \hfill \break
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The bibliography is stored in an external database file
