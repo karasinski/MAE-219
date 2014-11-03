@@ -71,7 +71,17 @@ Re = \frac{d|U|}{\nu},
 \end{equation}
 where $d = 0.1$m is the characteristic length, and $|U| = 1$ ms$^{-1}$ is the characteristic velocity. A Reynolds number of 100, for instance, can be achieved by setting $\nu = 0.001$m$^2$s$^{-1}$ (line 18 of the transportProperties file). For both of the 129 x 129 grid cases, a step time of 0.005 was used. For the 257 x 257 grid with a Reynolds number of 5000, a time step of 0.001 was used, while the simulation with a Reynolds number of 10000 required a time step of 0.0001. After generating the grid and adjusting other necessary parameters, the simulation can be run via the \lstinline[language=sh]`icoFoam` command. Once the simulation has finished running, the streamfunction can be generated with the \lstinline[language=sh]`streamFunction` command.
 
-\begin{figure}[htb]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Discussion and Conclusions}
+Qualitative comparisons of streamlines to results previously published in the literature suggest a good match to the methods presented here for both the 129 x 129 and 257 x 257 uniform grids \cite{ghia1982high}.
+
+The results from OpenFOAM for Reynolds numbers of 100, 1000, and 5000 match previous results quite well. The results from the Reynolds number of 100 show the two characteristic eddies reported in previous results, one in the bottom left (BL$_1$) and one in the bottom right (BR$_1$). Figure \ref{Re100} shows the streamlines for this case. Similarly, the results for the Reynolds number of 1000 show both eddies BL$_1$ and BR$_1$, and also hints at an additional eddie in the bottom right corner, BR$_2$. This case also shows the beginning of separation of flow from the upper left corner (see Figure \ref{Re1000}). Increasing both the grid size (to 257 x 257) and the Reynolds number to 5000 makes the BL$_2$ eddie more clear, as was the case in previous studies. Setting the Reynolds number to 5000 also leads to the formation of an additional eddie in the top left corner (TL$_1$), as can be seen in Figure \ref{Re5000}. These three cases show a steady laminar flow which compares well to previously published results.
+
+For these stable, small Reynolds number cases, a low mesh size is preferable to a larger mesh. For the case of $Re = 400$, for instance, there is little point to using a larger mesh. The 129 x 129 grid took 175s to run for a simulation time of 30s on a single processor, while the 257 x 257 grid took 1271s. Inspecting the the streamlines for both of these cases shows nearly identical results (see Figures \ref{Re400-129} and \ref{Re400-257}). For stable solutions and low Reynolds numbers, it is therefore recommended to use smaller meshes.
+
+The steady solution for $Re = 10000$, however, is no longer stable. This effect can be explained by a Hopf bifurcation which occurs around $Re = 8000$ and leads to some periodicity in the formation and dissipation of transient eddies \cite{bruneau20062d}. Careful selection of the output time can lead to results that look nearly identical to those published in the previous result \cite{ghia1982high}. In Figure \ref{Re10000} the six eddies in the literature, TL$_1$, BL$_1$, BL$_2$, BR$_1$, BR$_2$, and BR$_3$ can be seen, but these results are only transient. Choosing the final timestep (Figure \ref{Re10000-fin}), however, shows different results that can be explained by the loss of stability. Refining the mesh would allow for additional eddies to become apparent, and the transition between these periodic states would become more obvious.
+
+\begin{figure}[htb!]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figure/Re100.png}
 \caption{$Re = 100$ at $t = 30$, Uniform Grid (129 x 129)}
@@ -87,6 +97,29 @@ where $d = 0.1$m is the characteristic length, and $|U| = 1$ ms$^{-1}$ is the ch
 \end{center}
 \end{figure}
 
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{asmems4}
+\bibliography{asme2e}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\hfill \break
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{figure/Re400-129.png}
+\caption{$Re = 400$ at $t = 30$, Uniform Grid (129 x 129)}
+\label{Re400-129}
+\vspace{5mm} %5mm vertical space
+\includegraphics[width=0.5\textwidth]{figure/Re400-257.png}
+\caption{$Re = 400$ at $t = 30$, Uniform Grid (257 x 257)}
+\label{Re400-257}
+\end{center}
+\end{figure}
+
+\hfill
+
 \begin{figure}[htb]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figure/Re10000.png}
@@ -98,19 +131,6 @@ where $d = 0.1$m is the characteristic length, and $|U| = 1$ ms$^{-1}$ is the ch
 \label{Re10000-fin}
 \end{center}
 \end{figure}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Discussion and Conclusions}
-Qualitative comparisons of streamlines to results previously published in the literature suggest a good match to the methods presented here for both the 129 x 129 and 257 x 257 uniform grids \cite{ghia1982high}.
-
-The results from OpenFOAM for Reynolds numbers of 100, 1000, and 5000 match previous results quite well. The results from the Reynolds number of 100 show the two characteristic eddies reported in previous results, one in the bottom left (BL$_1$) and one in the bottom right (BR$_1$). Figure \ref{Re100} shows the streamlines for this case. Similarly, the results for the Reynolds number of 1000 show both eddies BL$_1$ and BR$_1$, and also hints at an additional eddie in the bottom right corner, BR$_2$. This case also shows the beginning of separation of flow from the upper left corner (see Figure \ref{Re1000}). Increasing both the grid size (to 257 x 257) and the Reynolds number to 5000 makes the BL$_2$ eddie more clear, as was the case in previous studies. Setting the Reynolds number to 5000 also leads to the formation of an additional eddie in the top left corner (TL$_1$), as can be seen in Figure \ref{Re5000}. These three cases show a steady laminar flow which compares well to previously published results.
-
-The steady solution for $Re = 10000$, however, is no longer stable. This effect can be explained by a Hopf bifurcation which occurs around $Re = 8000$ and leads to some periodicity in the formation and dissipation of transient eddies \cite{bruneau20062d}. Careful selection of the output time can lead to results that look nearly identical to those published in the previous result \cite{ghia1982high}. In Figure \ref{Re10000} the six eddies in the literature, TL$_1$, BL$_1$, BL$_2$, BR$_1$, BR$_2$, and BR$_3$ can be seen, but these results are only transient. Choosing the final timestep (Figure \ref{Re10000-fin}), however, shows different results that can be explained by the loss of stability. Refining the mesh would allow for additional eddies to become apparent, and the transition between these periodic states would become more obvious.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \hfill \break
-\bibliographystyle{asmems4}
-\bibliography{asme2e}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
