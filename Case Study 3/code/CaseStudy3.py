@@ -169,6 +169,7 @@ def update_dimensions(widths):
         with open(path, 'w') as config_file:
             config_file.write(create_config_file(width))
 
+
 def run_simulations(widths):
     for width in widths:
         run = "Run" + str(width)
@@ -192,44 +193,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-# plot [0.5:2] [0:] 'postProcessing/sets/100/leftPatch sigmaxx.xy', 1e4*(1+(0.125/(x**2))+(0.09375/(x**4)))
-
-
-# original = '''
-# vertices
-# (
-#     (0.5 0 0)
-#     (1 0 0)
-#     (2 0 0)
-#     (2 0.707107 0)
-#     (0.707107 0.707107 0)
-#     (0.353553 0.353553 0)
-#     (2 2 0)
-#     (0.707107 2 0)
-#     (0 2 0)
-#     (0 1 0)
-#     (0 0.5 0)
-#     (0.5 0 0.5)
-#     (1 0 0.5)
-#     (2 0 0.5)
-#     (2 0.707107 0.5)
-#     (0.707107 0.707107 0.5)
-#     (0.353553 0.353553 0.5)
-#     (2 2 0.5)
-#     (0.707107 2 0.5)
-#     (0 2 0.5)
-#     (0 1 0.5)
-#     (0 0.5 0.5)
-# );
-
-# blocks
-# (
-#     hex (5 4 9 10 16 15 20 21) (10 10 1) simpleGrading (1 1 1)
-#     hex (0 1 4 5 11 12 15 16) (10 10 1) simpleGrading (1 1 1)
-#     hex (1 2 3 4 12 13 14 15) (20 10 1) simpleGrading (1 1 1)
-#     hex (4 3 6 7 15 14 17 18) (20 20 1) simpleGrading (1 1 1)
-#     hex (9 4 7 8 20 15 18 19) (10 20 1) simpleGrading (1 1 1)
-# );
-# '''
