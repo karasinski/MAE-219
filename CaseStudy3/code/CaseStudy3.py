@@ -2,6 +2,9 @@ import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import time
+import datetime
+
 
 # Configure figures for production
 WIDTH = 495.0  # the number latex spits out
@@ -18,7 +21,7 @@ fig_dims      = [fig_width_in, fig_height_in] # fig dims as a list
 def subprocess_cmd(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
     proc_stdout = process.communicate()[0].strip()
-    print proc_stdout
+    # print proc_stdout
 
 
 def generate_folders(widths):
@@ -32,7 +35,8 @@ def generate_folders(widths):
 
     print ('Folders generated.')
 
-def create_config_file(width):
+
+def create_config_file(width, mesh):
     config = '''
     /*--------------------------------*- C++ -*----------------------------------*\
     | =========                 |                                                 |
@@ -81,11 +85,11 @@ def create_config_file(width):
 
     blocks
     (
-        hex (5 4 9 10 16 15 20 21) (''' + str(width * 5) + ' ' + str(width * 5) + ''' 1) simpleGrading (1 1 1)
-        hex (0 1 4 5 11 12 15 16) (''' + str(width * 5) + ' ' + str(width * 5) + ''' 1) simpleGrading (1 1 1)
-        hex (1 2 3 4 12 13 14 15) (''' + str(width * 10) + ' ' + str(width * 5) + ''' 1) simpleGrading (1 1 1)
-        hex (4 3 6 7 15 14 17 18) (''' + str(width * 10) + ' ' + str(width * 10) + ''' 1) simpleGrading (1 1 1)
-        hex (9 4 7 8 20 15 18 19) (''' + str(width * 5) + ' ' + str(width * 10) + ''' 1) simpleGrading (1 1 1)
+        hex (5 4 9 10 16 15 20 21) (''' + str(mesh) + ' ' + str(mesh) + ''' 1) simpleGrading (1 1 1)
+        hex (0 1 4 5 11 12 15 16) (''' + str(mesh) + ' ' + str(mesh) + ''' 1) simpleGrading (1 1 1)
+        hex (1 2 3 4 12 13 14 15) (''' + str(mesh * 2) + ' ' + str(mesh) + ''' 1) simpleGrading (1 1 1)
+        hex (4 3 6 7 15 14 17 18) (''' + str(mesh * 2) + ' ' + str(mesh * 2) + ''' 1) simpleGrading (1 1 1)
+        hex (9 4 7 8 20 15 18 19) (''' + str(mesh) + ' ' + str(mesh * 2) + ''' 1) simpleGrading (1 1 1)
     );
 
     edges
@@ -177,12 +181,12 @@ def create_config_file(width):
     return config
 
 
-def update_dimensions(widths):
-    for width in widths:
+def update_dimensions(widths, meshes):
+    for width, mesh in zip(widths, meshes):
         run = "Run" + str(width)
         path = run + '/constant/polyMesh/blockMeshDict'
         with open(path, 'w') as config_file:
-            config_file.write(create_config_file(width))
+            config_file.write(create_config_file(width, mesh))
 
     print ('Config generated.')
 
@@ -199,6 +203,7 @@ def run_simulations(widths):
         command += "foamCalc components sigma; "
         command += "sample"
         subprocess_cmd(command)
+        print(run + ' complete.')
 
     print('Simulations complete.')
 
@@ -225,7 +230,9 @@ def generate_plots(widths):
     plt.legend(loc='best')
 
     # Save plots
-    save_name = 'test.pdf'
+    ts = time.time()
+    st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
+    save_name = 'test-' + st + '.pdf'
     try:
         os.mkdir('figures')
     except Exception:
@@ -239,9 +246,11 @@ def generate_plots(widths):
 
 def main():
     widths = [2, 3, 4, 5]
+    meshes = [10, 10, 10, 10]
 
+    print('Running widths ' + str(widths) + ' with meshes ' + str(meshes) + '.')
     generate_folders(widths)
-    update_dimensions(widths)
+    update_dimensions(widths, meshes)
     run_simulations(widths)
     generate_plots(widths)
     print('Done!')
