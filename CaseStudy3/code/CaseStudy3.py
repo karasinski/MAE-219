@@ -24,14 +24,12 @@ def subprocess_cmd(command):
     # print proc_stdout
 
 
-def generate_folders(widths):
-    command = "rm -rf Run*/; "
-    subprocess_cmd(command)
-
-    for width in widths:
-        run = "Run" + str(width)
-        command = "cp -rf base/ " + run + "/; "
-        subprocess_cmd(command)
+def generate_folders(widths, meshes):
+    for width, mesh in zip(widths, meshes):
+        run = "Run" + str(width) + '-' + str(mesh)
+        if not os.path.exists(run):
+            command = "cp -rf base/ " + run + "/; "
+            subprocess_cmd(command)
 
     print ('Folders generated.')
 
@@ -183,7 +181,7 @@ def create_config_file(width, mesh):
 
 def update_dimensions(widths, meshes):
     for width, mesh in zip(widths, meshes):
-        run = "Run" + str(width)
+        run = "Run" + str(width) + '-' + str(mesh)
         path = run + '/constant/polyMesh/blockMeshDict'
         with open(path, 'w') as config_file:
             config_file.write(create_config_file(width, mesh))
@@ -191,40 +189,46 @@ def update_dimensions(widths, meshes):
     print ('Config generated.')
 
 
-def run_simulations(widths):
-    for width in widths:
-        run = "Run" + str(width)
-        command = "hdiutil attach -quiet -mountpoint $HOME/OpenFOAM OpenFOAM.sparsebundle; "
-        command += "sleep 1; "
-        command += "source $HOME/OpenFOAM/OpenFOAM-2.3.0/etc/bashrc; "
-        command += "cd " + run + "; "
-        command += "blockMesh; "
-        command += "solidDisplacementFoam > log; "
-        command += "foamCalc components sigma; "
-        command += "sample"
-        subprocess_cmd(command)
+def run_simulations(widths, meshes):
+    for width, mesh in zip(widths, meshes):
+        run = "Run" + str(width) + '-' + str(mesh)
+        if not os.path.exists(run + '/100/'):
+            print(run + ' does not exist')
+            command = "hdiutil attach -quiet -mountpoint $HOME/OpenFOAM OpenFOAM.sparsebundle; "
+            command += "sleep 1; "
+            command += "source $HOME/OpenFOAM/OpenFOAM-2.3.0/etc/bashrc; "
+            command += "cd " + run + "; "
+            command += "blockMesh; "
+            command += "solidDisplacementFoam > log; "
+            command += "foamCalc components sigma; "
+            command += "sample"
+            subprocess_cmd(command)
         print(run + ' complete.')
 
     print('Simulations complete.')
 
 
-def generate_plots(widths):
-    # Format our plots
+def sigma_xx(x):
+    return 1E4*(1+(0.125/(x**2))+(0.09375/(x**4)))
+
+
+def plot_xx(widths, meshes):
+    # Format plot
     plt.figure(figsize=fig_dims)
     plt.xlabel('Distance, y (m)')
     plt.ylabel('Stress ($\sigma_{xx}$)$_{x=0}$(kPa)')
     plt.title('Normal stress along the vertical symmetry')
 
     x = np.linspace(0.5, 2)
-    sigmaxx = 1E4*(1+(0.125/(x**2))+(0.09375/(x**4)))
+    sigmaxx = sigma_xx(x)
 
     plt.plot(x, sigmaxx, '-k', label='Analytic Solution')
     plt.xlim(0.5, 2)
 
-    for width in widths:
-        path = 'Run' + str(width) + '/postProcessing/sets/100/leftPatch_sigmaxx.xy'
+    for width, mesh in zip(widths, meshes):
+        path = "Run" + str(width) + '-' + str(mesh) + '/postProcessing/sets/100/leftPatch_sigmaxx.xy'
         data = np.loadtxt(path)
-        label = 'Explicit Solution (y=' + str(2*width) + ')'
+        label = 'Explicit Solution (y=' + str(int(2*width)) + ')'
         plt.plot(data[:, 0], data[:, 1], '--', markersize=5, label=label)
 
     plt.legend(loc='best')
@@ -232,7 +236,7 @@ def generate_plots(widths):
     # Save plots
     ts = time.time()
     st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
-    save_name = 'test-' + st + '.pdf'
+    save_name = 'result-' + st + '.pdf'
     try:
         os.mkdir('figures')
     except Exception:
@@ -241,18 +245,60 @@ def generate_plots(widths):
     plt.savefig('figures/' + save_name, bbox_inches='tight')
     plt.clf()
 
+
+def plot_xx_err(widths, meshes):
+    # Format plot
+    plt.figure(figsize=fig_dims)
+    plt.xlabel('Distance, y (m)')
+    plt.ylabel('Error in Stress ($\sigma_{xx}$)$_{x=0}$(kPa)')
+    plt.title('Error in Normal stress along the vertical symmetry')
+    plt.xlim(0.5, 2)
+
+    for width, mesh in zip(widths, meshes):
+        path = "Run" + str(width) + '-' + str(mesh) + '/postProcessing/sets/100/leftPatch_sigmaxx.xy'
+        data = np.loadtxt(path)
+        label = 'Explicit Solution (y=' + str(int(2*width)) + ')'
+
+        x = data[:, 0]
+        sigmaxx = sigma_xx(x)
+        err = sigmaxx - data[:, 1]
+
+        RMS = np.sqrt(np.mean(np.square(err)))
+        print(width, RMS)
+
+        plt.plot(x, err, '--', markersize=5, label=label)
+
+    plt.legend(loc='best')
+
+    # Save plots
+    ts = time.time()
+    st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
+    save_name = 'error-' + st + '.pdf'
+    try:
+        os.mkdir('figures')
+    except Exception:
+        pass
+
+    plt.savefig('figures/' + save_name, bbox_inches='tight')
+    plt.clf()
+
+
+def generate_plots(widths, meshes):
+    plot_xx(widths, meshes)
+    plot_xx_err(widths, meshes)
+
     print('Plots generated.')
 
 
 def main():
-    widths = [2, 3, 4, 5]
-    meshes = [10, 10, 10, 10]
+    widths = [1.5, 2, 2.5, 50]
+    meshes = [10 for _ in widths]
 
     print('Running widths ' + str(widths) + ' with meshes ' + str(meshes) + '.')
-    generate_folders(widths)
+    generate_folders(widths, meshes)
     update_dimensions(widths, meshes)
-    run_simulations(widths)
-    generate_plots(widths)
+    run_simulations(widths, meshes)
+    generate_plots(widths, meshes)
     print('Done!')
 
 if __name__ == "__main__":
