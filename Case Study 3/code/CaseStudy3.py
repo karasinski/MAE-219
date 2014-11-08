@@ -1,4 +1,18 @@
 import subprocess
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+# Configure figures for production
+WIDTH = 495.0  # the number latex spits out
+FACTOR = 1.0   # the fraction of the width the figure should occupy
+fig_width_pt  = WIDTH * FACTOR
+
+inches_per_pt = 1.0 / 72.27
+golden_ratio  = (np.sqrt(5) - 1.0) / 2.0      # because it looks good
+fig_width_in  = fig_width_pt * inches_per_pt  # figure width in inches
+fig_height_in = fig_width_in * golden_ratio   # figure height in inches
+fig_dims      = [fig_width_in, fig_height_in] # fig dims as a list
 
 
 def subprocess_cmd(command):
@@ -16,6 +30,7 @@ def generate_folders(widths):
         command = "cp -rf base/ " + run + "/; "
         subprocess_cmd(command)
 
+    print ('Folders generated.')
 
 def create_config_file(width):
     config = '''
@@ -169,6 +184,8 @@ def update_dimensions(widths):
         with open(path, 'w') as config_file:
             config_file.write(create_config_file(width))
 
+    print ('Config generated.')
+
 
 def run_simulations(widths):
     for width in widths:
@@ -184,12 +201,45 @@ def run_simulations(widths):
         subprocess_cmd(command)
 
 
+def generate_plots(widths):
+    # Format our plots
+    plt.figure(figsize=fig_dims)
+    plt.xlabel('Distance, y (m)')
+    plt.ylabel('Stress ($\sigma_{xx}$)$_{x=0}$(kPa)')
+    plt.title('Normal stress along the vertical symmetry')
+
+    x = np.linspace(0.5, 2)
+    sigmaxx = 1E4*(1+(0.125/(x**2))+(0.09375/(x**4)))
+
+    plt.plot(x, sigmaxx, '-k', label='Analytic Solution')
+    plt.xlim(0.5, 2)
+
+    for width in widths:
+        path = 'Run' + str(width) + '/postProcessing/sets/100/leftPatch_sigmaxx.xy'
+        data = np.loadtxt(path)
+        label = 'Explicit Solution (y=' + str(2*width) + ')'
+        plt.plot(data[:, 0], data[:, 1], '--', markersize=5, label=label)
+
+    plt.legend(loc='best')
+
+    # Save plots
+    save_name = 'test.pdf'
+    try:
+        os.mkdir('figures')
+    except Exception:
+        pass
+
+    plt.savefig('figures/' + save_name, bbox_inches='tight')
+    plt.clf()
+
+
 def main():
     widths = [2, 4, 6, 8, 10, 20]
 
     generate_folders(widths)
     update_dimensions(widths)
     run_simulations(widths)
+    generate_plots(widths)
 
 if __name__ == "__main__":
     main()
