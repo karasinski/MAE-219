@@ -200,6 +200,8 @@ def run_simulations(widths):
         command += "sample"
         subprocess_cmd(command)
 
+    print('Simulations complete.')
+
 
 def generate_plots(widths):
     # Format our plots
@@ -232,14 +234,17 @@ def generate_plots(widths):
     plt.savefig('figures/' + save_name, bbox_inches='tight')
     plt.clf()
 
+    print('Plots generated.')
+
 
 def main():
-    widths = [2, 4, 6, 8, 10, 20]
+    widths = [2, 3, 4, 5]
 
     generate_folders(widths)
     update_dimensions(widths)
     run_simulations(widths)
     generate_plots(widths)
+    print('Done!')
 
 if __name__ == "__main__":
     main()
