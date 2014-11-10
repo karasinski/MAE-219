@@ -212,6 +212,11 @@ def sigma_xx(x):
     return 1E4*(1+(0.125/(x**2))+(0.09375/(x**4)))
 
 
+# this has not been found analytically
+def sigma_yy(x):
+    return 1E4*(0.25-(0.125/(x**2))-(0.09375/(x**4)))
+
+
 def plot_xx(widths, meshes):
     # Format plot
     plt.figure(figsize=fig_dims)
@@ -255,16 +260,57 @@ def plot_xx(widths, meshes):
     plt.clf()
 
 
+def plot_xx_err(widths, meshes):
+    # Format plot
+    plt.figure(figsize=fig_dims)
+    plt.xlabel('Distance, y (m)')
+    plt.ylabel('Error in Stress ($\sigma_{xx}$)$_{x=0}$(kPa)')
+    plt.title('Error in Normal stress along the vertical symmetry')
+    plt.xlim(0.5, 2)
+
+    for width, mesh in zip(widths, meshes):
+        path = "Run" + str(width) + '-' + str(mesh) + '/postProcessing/sets/100/leftPatch_sigmaxx_sigmayy.xy'
+        data = np.loadtxt(path)
+
+        if widths.count(widths[0]) == len(widths):
+            label = 'Explicit Solution ($n=' + str(int(mesh)) + '$)'
+        else:
+            label = 'Explicit Solution ($x=' + str(int(2*width)) + '$)'
+
+        x = data[:, 0]
+        sigmaxx = sigma_xx(x)
+        err = sigmaxx - data[:, 1]
+
+        RMS = np.sqrt(np.mean(np.square(err)))
+        print(width, RMS)
+
+        plt.plot(x, err, '--', markersize=5, label=label)
+
+    plt.legend(loc='best')
+
+    # Save plots
+    ts = time.time()
+    st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
+    save_name = 'error-x-' + st + '.pdf'
+    try:
+        os.mkdir('figures')
+    except Exception:
+        pass
+
+    plt.savefig('figures/' + save_name, bbox_inches='tight')
+    plt.clf()
+
+
 def plot_yy(widths, meshes):
     # Format plot
     plt.figure(figsize=fig_dims)
     plt.xlabel('Distance, x (m)')
     plt.ylabel('Stress ($\sigma_{yy}$)$_{y=0}$(kPa)')
     title = 'Normal stress along the horizontal symmetry'
-    # x = np.linspace(0.5, 2)
-    # sigmaxx = sigma_xx(x)
+    y = np.linspace(0.5, 2)
+    sigmayy = sigma_yy(y)
 
-    # plt.plot(x, sigmaxx, '-k', label='Analytic Solution')
+    plt.plot(y, sigmayy, '-k', label='Analytic Solution')
     plt.xlim(0.5, 2)
 
     for width, mesh in zip(widths, meshes):
@@ -298,38 +344,38 @@ def plot_yy(widths, meshes):
     plt.clf()
 
 
-def plot_xx_err(widths, meshes):
+def plot_yy_err(widths, meshes):
     # Format plot
     plt.figure(figsize=fig_dims)
-    plt.xlabel('Distance, y (m)')
-    plt.ylabel('Error in Stress ($\sigma_{xx}$)$_{x=0}$(kPa)')
-    plt.title('Error in Normal stress along the vertical symmetry')
+    plt.xlabel('Distance, x (m)')
+    plt.ylabel('Error in Stress ($\sigma_{yy}$)$_{y=0}$(kPa)')
+    plt.title('Error in Normal stress along the horizontal symmetry')
     plt.xlim(0.5, 2)
 
     for width, mesh in zip(widths, meshes):
-        path = "Run" + str(width) + '-' + str(mesh) + '/postProcessing/sets/100/leftPatch_sigmaxx_sigmayy.xy'
+        path = "Run" + str(width) + '-' + str(mesh) + '/postProcessing/sets/100/downPatch_sigmaxx_sigmayy.xy'
         data = np.loadtxt(path)
 
         if widths.count(widths[0]) == len(widths):
             label = 'Explicit Solution ($n=' + str(int(mesh)) + '$)'
         else:
-            label = 'Explicit Solution ($x=' + str(int(2*width)) + '$)'
+            label = 'Explicit Solution ($y=' + str(int(2*width)) + '$)'
 
-        x = data[:, 0]
-        sigmaxx = sigma_xx(x)
-        err = sigmaxx - data[:, 1]
+        y = data[:, 0]
+        sigmayy = sigma_yy(y)
+        err = sigmayy - data[:, 2]
 
         RMS = np.sqrt(np.mean(np.square(err)))
         print(width, RMS)
 
-        plt.plot(x, err, '--', markersize=5, label=label)
+        plt.plot(y, err, '--', markersize=5, label=label)
 
     plt.legend(loc='best')
 
     # Save plots
     ts = time.time()
     st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
-    save_name = 'error-' + st + '.pdf'
+    save_name = 'error-y-' + st + '.pdf'
     try:
         os.mkdir('figures')
     except Exception:
@@ -343,6 +389,7 @@ def generate_plots(widths, meshes):
     plot_xx(widths, meshes)
     plot_xx_err(widths, meshes)
     plot_yy(widths, meshes)
+    plot_yy_err(widths, meshes)
 
     print('Plots generated.')
 
