@@ -225,7 +225,7 @@ def plot_xx(widths, meshes):
     plt.xlim(0.5, 2)
 
     for width, mesh in zip(widths, meshes):
-        path = "Run" + str(width) + '-' + str(mesh) + '/postProcessing/sets/100/leftPatch_sigmaxx.xy'
+        path = "Run" + str(width) + '-' + str(mesh) + '/postProcessing/sets/100/leftPatch_sigmaxx_sigmayy.xy'
         data = np.loadtxt(path)
 
         if widths.count(widths[0]) == len(widths):
@@ -245,7 +245,50 @@ def plot_xx(widths, meshes):
     # Save plots
     ts = time.time()
     st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
-    save_name = 'result-' + st + '.pdf'
+    save_name = 'result-x-' + st + '.pdf'
+    try:
+        os.mkdir('figures')
+    except Exception:
+        pass
+
+    plt.savefig('figures/' + save_name, bbox_inches='tight')
+    plt.clf()
+
+
+def plot_yy(widths, meshes):
+    # Format plot
+    plt.figure(figsize=fig_dims)
+    plt.xlabel('Distance, x (m)')
+    plt.ylabel('Stress ($\sigma_{yy}$)$_{y=0}$(kPa)')
+    title = 'Normal stress along the horizontal symmetry'
+    # x = np.linspace(0.5, 2)
+    # sigmaxx = sigma_xx(x)
+
+    # plt.plot(x, sigmaxx, '-k', label='Analytic Solution')
+    plt.xlim(0.5, 2)
+
+    for width, mesh in zip(widths, meshes):
+        path = "Run" + str(width) + '-' + str(mesh) + '/postProcessing/sets/100/downPatch_sigmaxx_sigmayy.xy'
+        data = np.loadtxt(path)
+
+        if widths.count(widths[0]) == len(widths):
+            label = 'Explicit Solution ($n=' + str(int(mesh)) + '$)'
+        else:
+            label = 'Explicit Solution ($y=' + str(int(2*width)) + '$)'
+        plt.plot(data[:, 0], data[:, 2], '--', markersize=5, label=label)
+
+    if widths.count(widths[0]) == len(widths):
+        title += ' ($y=' + str(int(2*width)) + '$)'
+    else:
+        title += ' ($n=' + str(int(mesh)) + '$)'
+
+    plt.title(title)
+    plt.legend(loc='best')
+
+    # Save plots
+    ts = time.time()
+    st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
+    save_name = 'result-y-' + st + '.pdf'
     try:
         os.mkdir('figures')
     except Exception:
@@ -264,7 +307,7 @@ def plot_xx_err(widths, meshes):
     plt.xlim(0.5, 2)
 
     for width, mesh in zip(widths, meshes):
-        path = "Run" + str(width) + '-' + str(mesh) + '/postProcessing/sets/100/leftPatch_sigmaxx.xy'
+        path = "Run" + str(width) + '-' + str(mesh) + '/postProcessing/sets/100/leftPatch_sigmaxx_sigmayy.xy'
         data = np.loadtxt(path)
 
         if widths.count(widths[0]) == len(widths):
@@ -299,6 +342,7 @@ def plot_xx_err(widths, meshes):
 def generate_plots(widths, meshes):
     plot_xx(widths, meshes)
     plot_xx_err(widths, meshes)
+    plot_yy(widths, meshes)
 
     print('Plots generated.')
 
