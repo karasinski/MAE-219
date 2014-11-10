@@ -193,7 +193,7 @@ def run_simulations(widths, meshes):
     for width, mesh in zip(widths, meshes):
         run = "Run" + str(width) + '-' + str(mesh)
         if not os.path.exists(run + '/100/'):
-            print(run + ' does not exist')
+            print(run + ' running now.')
             command = "hdiutil attach -quiet -mountpoint $HOME/OpenFOAM OpenFOAM.sparsebundle; "
             command += "sleep 1; "
             command += "source $HOME/OpenFOAM/OpenFOAM-2.3.0/etc/bashrc; "
@@ -217,8 +217,7 @@ def plot_xx(widths, meshes):
     plt.figure(figsize=fig_dims)
     plt.xlabel('Distance, y (m)')
     plt.ylabel('Stress ($\sigma_{xx}$)$_{x=0}$(kPa)')
-    plt.title('Normal stress along the vertical symmetry')
-
+    title = 'Normal stress along the vertical symmetry'
     x = np.linspace(0.5, 2)
     sigmaxx = sigma_xx(x)
 
@@ -228,9 +227,19 @@ def plot_xx(widths, meshes):
     for width, mesh in zip(widths, meshes):
         path = "Run" + str(width) + '-' + str(mesh) + '/postProcessing/sets/100/leftPatch_sigmaxx.xy'
         data = np.loadtxt(path)
-        label = 'Explicit Solution (y=' + str(int(2*width)) + ')'
+
+        if widths.count(widths[0]) == len(widths):
+            label = 'Explicit Solution ($n=' + str(int(mesh)) + '$)'
+        else:
+            label = 'Explicit Solution ($x=' + str(int(2*width)) + '$)'
         plt.plot(data[:, 0], data[:, 1], '--', markersize=5, label=label)
 
+    if widths.count(widths[0]) == len(widths):
+        title += ' ($x=' + str(int(2*width)) + '$)'
+    else:
+        title += ' ($n=' + str(int(mesh)) + '$)'
+
+    plt.title(title)
     plt.legend(loc='best')
 
     # Save plots
@@ -257,7 +266,11 @@ def plot_xx_err(widths, meshes):
     for width, mesh in zip(widths, meshes):
         path = "Run" + str(width) + '-' + str(mesh) + '/postProcessing/sets/100/leftPatch_sigmaxx.xy'
         data = np.loadtxt(path)
-        label = 'Explicit Solution (y=' + str(int(2*width)) + ')'
+
+        if widths.count(widths[0]) == len(widths):
+            label = 'Explicit Solution ($n=' + str(int(mesh)) + '$)'
+        else:
+            label = 'Explicit Solution ($x=' + str(int(2*width)) + '$)'
 
         x = data[:, 0]
         sigmaxx = sigma_xx(x)
@@ -290,10 +303,7 @@ def generate_plots(widths, meshes):
     print('Plots generated.')
 
 
-def main():
-    widths = [1.5, 2, 2.5, 50]
-    meshes = [10 for _ in widths]
-
+def main(widths, meshes):
     print('Running widths ' + str(widths) + ' with meshes ' + str(meshes) + '.')
     generate_folders(widths, meshes)
     update_dimensions(widths, meshes)
@@ -302,4 +312,12 @@ def main():
     print('Done!')
 
 if __name__ == "__main__":
-    main()
+    # Increasing mesh resolution
+    widths = [2, 2, 2]
+    meshes = [10, 100, 1000]
+    main(widths, meshes)
+
+    # Changing the plate size
+    widths = [1.5, 2, 2.5, 50]
+    meshes = [10 for _ in widths]
+    main(widths, meshes)
