@@ -214,7 +214,7 @@ def sigma_xx(x):
 
 # this has not been found analytically
 def sigma_yy(x):
-    return 1E4*(0.25-(0.125/(x**2))-(0.09375/(x**4)))
+    return 1E4*(-(0.125/(x**2))-(0.09375/(x**4)))
 
 
 def plot_xx(widths, meshes):
@@ -320,11 +320,11 @@ def plot_yy(widths, meshes):
         if widths.count(widths[0]) == len(widths):
             label = 'Explicit Solution ($n=' + str(int(mesh)) + '$)'
         else:
-            label = 'Explicit Solution ($y=' + str(int(2*width)) + '$)'
+            label = 'Explicit Solution ($x=' + str(int(2*width)) + '$)'
         plt.plot(data[:, 0], data[:, 2], '--', markersize=5, label=label)
 
     if widths.count(widths[0]) == len(widths):
-        title += ' ($y=' + str(int(2*width)) + '$)'
+        title += ' ($x=' + str(int(2*width)) + '$)'
     else:
         title += ' ($n=' + str(int(mesh)) + '$)'
 
@@ -359,7 +359,7 @@ def plot_yy_err(widths, meshes):
         if widths.count(widths[0]) == len(widths):
             label = 'Explicit Solution ($n=' + str(int(mesh)) + '$)'
         else:
-            label = 'Explicit Solution ($y=' + str(int(2*width)) + '$)'
+            label = 'Explicit Solution ($x=' + str(int(2*width)) + '$)'
 
         y = data[:, 0]
         sigmayy = sigma_yy(y)
