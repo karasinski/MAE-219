@@ -85,9 +85,9 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem Description}
-This case study involves a linear-elastic, steady-state stress analysis on a square plate with a circular hole at its center. The plate dimensions are: side length $x = 4$m and radius $R = 0.5$m. It is loaded with a uniform traction of $\sigma = 10$kPa over its left and right faces as can be seen in Figure~\ref{geometry}. A mesh sensitivity study is performd for a plate with side length $x = 4$m, and an effect of the plate length study is performed for plates of length $x = 3$m, 4m, 5m, and 100m.
+This case study involves a linear-elastic, steady-state stress analysis on a square plate with a circular hole at its center. The plate dimensions are: side length $x = 4$m and radius $R = 0.5$m. It is loaded with a uniform traction of $\sigma = 10$kPa over its left and right faces as can be seen in Figure~\ref{geometry}.
 
-The stress normal to the vertical plane of symmetry is calculated for each case, and the results are compared to the analytical solution:
+A mesh sensitivity study is performd for a plate with side length $x = 4$m, and an effect of the plate length study is performed for plates of length $x = 3$m, 4m, 5m, and 100m. The stress normal to the vertical plane of symmetry is calculated for each case, and the results are compared to the analytical solution:
 \begin{equation}
 (\sigma_{xx})_{x=0} \left\{ \begin{array}{lll}
         \mbox{$\sigma(1+\frac{R^2}{2Y^2}+\frac{3R^4}{2y^4}) $} & \mbox{for } &|y| \geq R \\
@@ -95,7 +95,7 @@ The stress normal to the vertical plane of symmetry is calculated for each case,
 \label{vertical_stress}
 \end{equation}
 
-A Python script was created to automatically generate the configuration files, calculate the resulting steady-state stress through the plate using OpenFOAM, and plot the results for both the sensitivity and plate length studies. This script can be seen in the Appendix.
+A Python script was created to automatically generate the configuration files, calculate the resulting steady-state stress through the plate using OpenFOAM, and plot the results for both the sensitivity and plate length studies. This script is included in the Appendix.
 
 \begin{figure}[b]
 \begin{center}
@@ -107,9 +107,9 @@ A Python script was created to automatically generate the configuration files, c
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
- Two symmetry planes can be identified for this geometry and therefore the solution domain need only cover a quarter of the geometry, shown by the shaded area in Figure~\ref{geometry}. The quarter plate is then broken into five blocks of varying sizes, as can be seen in Figure~\ref{blocks}. These blocks have a characteristic number of points, $n$. Blocks 0 and 1 consist of $n$ by $n$ points, block 2 consists of $2n$ by $n$ points, block 3 consists of $2n$ by $2n$ points, and block 4 consists of $n$ by $2n$ points. The mesh is generated with OpenFOAM's `blockMesh' and Figure~\ref{mesh} shows the resulting mesh for $n = 10$.
+ Two symmetry planes can be identified for this geometry and therefore the solution domain need only cover a quarter of the geometry, shown by the shaded area in Figure~\ref{geometry}. The quarter plate is then broken into five blocks of varying sizes, as can be seen in Figure~\ref{blocks}. These blocks have a characteristic number of points, $n$. Blocks 0 and 1 consist of $n$ by $n$ points, block 2 consists of $2n$ by $n$ points, block 3 consists of $2n$ by $2n$ points, and block 4 consists of $n$ by $2n$ points. The mesh is generated with OpenFOAM's `blockMesh' command, and the resulting mesh for $n = 10$ can be seen in Figure~\ref{mesh}.
 
- The mesh sensity study looks at meshes of $n = 10, 100, $ and $1000$ and a plate width of $x = 4$m. The effect of plate length study looks at plate lengths of $x = 3$m, 4m, 5m, and 100m with a mesh of $n = 10$. Once the meshes have been generated, OpenFOAM's `solidDisplacementFoam' solver runs the simulation, and $\sigma_{xx}$ is calculated and sampled by the OpenFOAM commands `foamCalc components sigma' and `sample'.
+ The mesh sensitivity study looks at meshes resulting from $n = 10, 100, $ and $1000$ on a plate width of $x = 4$m. The effect of plate length study looks at plate lengths of $x = 3$m, 4m, 5m, and 100m with a mesh of $n = 10$. Once the meshes have been generated, OpenFOAM's `solidDisplacementFoam' solver runs the simulation, and $\sigma_{xx}$ is calculated and sampled by the OpenFOAM commands `foamCalc components sigma' and `sample'. The `solidDisplacementFoam' solver is a transient segregated finite-volume solver for linear-elastic, small-strain deformation of a solid body, and is well suited to solve this problem.
 
 \begin{figure}[tb]
 \begin{center}
@@ -126,6 +126,24 @@ A Python script was created to automatically generate the configuration files, c
 \label{mesh}
 \end{center}
 \end{figure}
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../code/figures/result-x-[2, 2, 2][10, 100, 1000].pdf}
+\includegraphics[width=0.5\textwidth]{../code/figures/error-x-[2, 2, 2][10, 100, 1000].pdf}
+% \includegraphics[width=0.5\textwidth]{../code/figures/result-y-[2, 2, 2][10, 100, 1000].pdf}
+% \includegraphics[width=0.5\textwidth]{../code/figures/error-y-[2, 2, 2][10, 100, 1000].pdf}
+\caption{Results of mesh sensitivity study}
+\label{sensitivity_study}
+\includegraphics[width=0.5\textwidth]{../code/figures/result-x-[1.5, 2, 2.5, 50][10, 10, 10, 10].pdf}
+\includegraphics[width=0.5\textwidth]{../code/figures/error-x-[1.5, 2, 2.5, 50][10, 10, 10, 10].pdf}
+% \includegraphics[width=0.5\textwidth]{../code/figures/result-y-[2, 2, 2][10, 100, 1000].pdf}
+% \includegraphics[width=0.5\textwidth]{../code/figures/error-y-[2, 2, 2][10, 100, 1000].pdf}
+\caption{Results of plate length study}
+\label{length_study}
+\end{center}
+\end{figure}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}

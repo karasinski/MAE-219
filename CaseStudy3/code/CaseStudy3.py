@@ -248,9 +248,7 @@ def plot_xx(widths, meshes):
     plt.legend(loc='best')
 
     # Save plots
-    ts = time.time()
-    st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
-    save_name = 'result-x-' + st + '.pdf'
+    save_name = 'result-x-' + str(widths) + str(meshes) + '.pdf'
     try:
         os.mkdir('figures')
     except Exception:
@@ -282,16 +280,14 @@ def plot_xx_err(widths, meshes):
         err = sigmaxx - data[:, 1]
 
         RMS = np.sqrt(np.mean(np.square(err)))
-        print(width, RMS)
+        print('x err', width, mesh, RMS)
 
         plt.plot(x, err, '--', markersize=5, label=label)
 
     plt.legend(loc='best')
 
     # Save plots
-    ts = time.time()
-    st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
-    save_name = 'error-x-' + st + '.pdf'
+    save_name = 'error-x-' + str(widths) + str(meshes) + '.pdf'
     try:
         os.mkdir('figures')
     except Exception:
@@ -332,9 +328,7 @@ def plot_yy(widths, meshes):
     plt.legend(loc='best')
 
     # Save plots
-    ts = time.time()
-    st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
-    save_name = 'result-y-' + st + '.pdf'
+    save_name = 'result-y-' + str(widths) + str(meshes) + '.pdf'
     try:
         os.mkdir('figures')
     except Exception:
@@ -366,16 +360,14 @@ def plot_yy_err(widths, meshes):
         err = sigmayy - data[:, 2]
 
         RMS = np.sqrt(np.mean(np.square(err)))
-        print(width, RMS)
+        print('y err', width, mesh, RMS)
 
         plt.plot(y, err, '--', markersize=5, label=label)
 
     plt.legend(loc='best')
 
     # Save plots
-    ts = time.time()
-    st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
-    save_name = 'error-y-' + st + '.pdf'
+    save_name = 'error-y-' + str(widths) + str(meshes) + '.pdf'
     try:
         os.mkdir('figures')
     except Exception:
