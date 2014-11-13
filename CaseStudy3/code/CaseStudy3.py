@@ -7,7 +7,7 @@ import datetime
 
 
 # Configure figures for production
-WIDTH = 495.0  # the number latex spits out
+WIDTH = 495.0  # width of one column
 FACTOR = 1.0   # the fraction of the width the figure should occupy
 fig_width_pt  = WIDTH * FACTOR
 
@@ -277,10 +277,10 @@ def plot_xx_err(widths, meshes):
 
         x = data[:, 0]
         sigmaxx = sigma_xx(x)
-        err = sigmaxx - data[:, 1]
+        err = data[:, 1] - sigmaxx
 
-        RMS = np.sqrt(np.mean(np.square(err)))
-        print('x err', width, mesh, RMS)
+        RMS = np.sqrt(np.mean(np.square(err)))/(max(sigmaxx) - min(sigmaxx))
+        print('x err', width, mesh, '{0:.3e}'.format(RMS))
 
         plt.plot(x, err, '--', markersize=5, label=label)
 
@@ -357,10 +357,10 @@ def plot_yy_err(widths, meshes):
 
         y = data[:, 0]
         sigmayy = sigma_yy(y)
-        err = sigmayy - data[:, 2]
+        err = data[:, 2] - sigmayy
 
-        RMS = np.sqrt(np.mean(np.square(err)))
-        print('y err', width, mesh, RMS)
+        RMS = np.sqrt(np.mean(np.square(err)))/(max(sigmayy) - min(sigmayy))
+        print('y err', width, mesh, '{0:.3e}'.format(RMS))
 
         plt.plot(y, err, '--', markersize=5, label=label)
 
@@ -395,6 +395,11 @@ def main(widths, meshes):
     print('Done!')
 
 if __name__ == "__main__":
+    # Base case
+    widths = [2]
+    meshes = [10]
+    main(widths, meshes)
+
     # Increasing mesh resolution
     widths = [2, 2, 2]
     meshes = [10, 100, 1000]

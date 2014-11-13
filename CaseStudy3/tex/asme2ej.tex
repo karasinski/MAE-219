@@ -95,37 +95,97 @@ A mesh sensitivity study is performd for a plate with side length $x = 4$m, and 
 \label{vertical_stress}
 \end{equation}
 
-A Python script was created to automatically generate the configuration files, calculate the resulting steady-state stress through the plate using OpenFOAM, and plot the results for both the sensitivity and plate length studies. This script is included in the Appendix.
+A Python script was created to automatically generate the configuration files, calculate the resulting steady-state stress through the plate using OpenFOAM \cite{jasak2007openfoam}, and plot the results for both the sensitivity and plate length studies. This script is included in the Appendix.
 
-\begin{figure}[b]
+\begin{figure}[t]
 \begin{center}
-\includegraphics[width=0.5\textwidth]{figure/user144x.png}
-\caption{Geometry of the plate with a hole}
+\includegraphics[width=0.45\textwidth]{figure/user144x.png}
+\caption{Geometry of the plate with a hole \cite{ctfm_1}}
 \label{geometry}
 \end{center}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
- Two symmetry planes can be identified for this geometry and therefore the solution domain need only cover a quarter of the geometry, shown by the shaded area in Figure~\ref{geometry}. The quarter plate is then broken into five blocks of varying sizes, as can be seen in Figure~\ref{blocks}. These blocks have a characteristic number of points, $n$. Blocks 0 and 1 consist of $n$ by $n$ points, block 2 consists of $2n$ by $n$ points, block 3 consists of $2n$ by $2n$ points, and block 4 consists of $n$ by $2n$ points. The mesh is generated with OpenFOAM's `blockMesh' command, and the resulting mesh for $n = 10$ can be seen in Figure~\ref{mesh}.
+ Two symmetry planes can be identified for this geometry and therefore the solution domain need only cover a quarter of the geometry, shown by the shaded area in Figure~\ref{geometry}. The quarter plate is then broken into five blocks of varying sizes, as can be seen in Figure~\ref{blocks}. These blocks have a multiple of the characteristic number of points, $n$, in the $x_i$ and $y_i$ directions. Blocks 0 and 1 consist of $n$ by $n$ points, block 2 consists of $2n$ by $n$ points, block 3 consists of $2n$ by $2n$ points, and block 4 consists of $n$ by $2n$ points. The mesh is generated with OpenFOAM's `blockMesh' command, and the resulting mesh for $n = 10$ can be seen in Figure~\ref{mesh}.
 
  The mesh sensitivity study looks at meshes resulting from $n = 10, 100, $ and $1000$ on a plate width of $x = 4$m. The effect of plate length study looks at plate lengths of $x = 3$m, 4m, 5m, and 100m with a mesh of $n = 10$. Once the meshes have been generated, OpenFOAM's `solidDisplacementFoam' solver runs the simulation, and $\sigma_{xx}$ is calculated and sampled by the OpenFOAM commands `foamCalc components sigma' and `sample'. The `solidDisplacementFoam' solver is a transient segregated finite-volume solver for linear-elastic, small-strain deformation of a solid body, and is well suited to solve this problem.
-
-\begin{figure}[tb]
+\begin{figure}[thb]
 \begin{center}
-\includegraphics[width=0.5\textwidth]{figure/user149x.png}
-\caption{Block structure of the mesh for the plate with a hole}
+\includegraphics[width=0.45\textwidth]{figure/user149x.png}
+\caption{Block structure of the mesh for the plate with a hole \cite{ctfm_1}}
 \label{blocks}
-\end{center}
-\end{figure}
-
-\begin{figure}[tb]
-\begin{center}
-\includegraphics[width=0.5\textwidth]{figure/user152x.png}
-\caption{Mesh of the hole in a plate problem with $n = 10$}
+\includegraphics[width=0.45\textwidth]{figure/user152x.png}
+\caption{Mesh of the hole in a plate problem with $n = 10$ \cite{ctfm_1}}
 \label{mesh}
 \end{center}
 \end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results Discussion}
+The computational result for normal stress along the vertical symmetry can be compared to the analytical result above, Equation~\ref{vertical_stress}. The Root Mean Square error,
+\begin{equation}
+\mbox{RMSE} = \sqrt{\frac{1}{N}\sum\limits_{i=1}^N[\sigma_i - \sigma^*_i]^2},
+\end{equation}
+and the Normalized Root Mean Square error,
+\begin{equation}
+\mbox{NRMS} = \dfrac{RMSE}{max(\sigma^*)-min(\sigma^*)},
+\end{equation}
+can be calculated. Here $\sigma_i$ is the computational result for the the stress for each point along the boundary, $\sigma^*_i$ is the analytical solution, and $N$ is the number of points along the boundary.
+
+\subsection{Selected key results for the base case}
+The base case described in the OpenFOAM tutorial involves a plate of width $x = 4$ with a mesh resulting from $n = 10$ \cite{ctfm_1}. The NRMS from the analytical solution for this case is approximately 9.41\%. The results for the normal stress and the deviation from the analytical solution for this case can be seen in Figure~\ref{base_study}.
+
+\begin{figure}[b]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../code/figures/result-x-[2][10].pdf}
+\includegraphics[width=0.5\textwidth]{../code/figures/error-x-[2][10].pdf}
+\caption{Results of base case}
+\label{base_study}
+\end{center}
+\end{figure}
+
+\subsection{Mesh sensitivity study}
+The mesh sensitivity study looks at meshes resulting from $n = 10, 100, $ and $1000$ on a plate width of $x = 4$m.
+
+\begin{table}[htb]
+%\caption{Figure and table captions do not end with a period}
+\begin{center}
+\label{mesh_table}
+\begin{tabular}{|r | r r|}
+\hline
+$x (m)$ & $n$ & $NRMS$ \\
+\hline
+4 & 10   & 9.41\%\\
+4 & 100  & 9.72\%\\
+4 & 1000 & 9.01\%\\
+\hline
+\end{tabular}
+\caption{NRMS results from the numerical simulations for the mesh sensitivity study}
+\end{center}
+\end{table}
+
+\subsection{Effect of the plate length study}
+The effect of plate length study looks at plate lengths of $x = 3$m, 4m, 5m, and 100m with a mesh of $n = 10$.
+
+\begin{table}[htb]
+%\caption{Figure and table captions do not end with a period}
+\begin{center}
+\label{mesh_table}
+\begin{tabular}{|r | r r|}
+\hline
+$x (m)$ & $n$ & $NRMS$ \\
+\hline
+3   & 10 & 14.58\%\\
+4   & 10 & 9.41\%\\
+5   & 10 & 6.22\%\\
+100 & 10 & 3.11\%\\
+\hline
+\end{tabular}
+\caption{NRMS results from the numerical simulations for the effect of plate length study}
+\end{center}
+\end{table}
+
 
 \begin{figure}[tb]
 \begin{center}
@@ -146,14 +206,11 @@ A Python script was created to automatically generate the configuration files, c
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Results Discussion}
-\noindent Mesh sensitivity study\\
-Selected key results for the base case\\
-Effect of the plate length study\\
-Summary of the difficulties that you have encountered in running the various cases and how you have addressed them.\\
+\section{Conculsion}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Conculsion}
+\bibliographystyle{asmems4}
+\bibliography{asme2e}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
