@@ -2,8 +2,6 @@ import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import time
-import datetime
 
 
 # Configure figures for production
@@ -212,9 +210,8 @@ def sigma_xx(x):
     return 1E4*(1+(0.125/(x**2))+(0.09375/(x**4)))
 
 
-# this has not been found analytically
 def sigma_yy(x):
-    return 1E4*(-(0.125/(x**2))-(0.09375/(x**4)))
+    return 1E4*((0.125/(x**2))-(0.09375/(x**4)))
 
 
 def plot_xx(widths, meshes):
@@ -396,16 +393,16 @@ def main(widths, meshes):
 
 if __name__ == "__main__":
     # Base case
-    widths = [2]
+    widths = [ 2]
     meshes = [10]
     main(widths, meshes)
 
     # Increasing mesh resolution
-    widths = [2, 2, 2]
+    widths = [2,    2,    2]
     meshes = [10, 100, 1000]
     main(widths, meshes)
 
-    # Changing the plate size
+    # Changing the plate size with better meshes
     widths = [1.5, 2, 2.5, 50]
-    meshes = [10 for _ in widths]
+    meshes = [1000 for _ in widths]
     main(widths, meshes)
