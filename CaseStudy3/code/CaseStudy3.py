@@ -398,9 +398,10 @@ if __name__ == "__main__":
     main(widths, meshes)
 
     # Increasing mesh resolution
-    widths = [2,    2,    2]
-    meshes = [10, 100, 1000]
+    widths = [2,    2,    2, 50,  50,   50]
+    meshes = [10, 100, 1000, 10, 100, 1000]
     main(widths, meshes)
+
 
     # Changing the plate size with better meshes
     widths = [1.5, 2, 2.5, 50]

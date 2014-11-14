@@ -133,20 +133,73 @@ A Python script was created to automatically generate the configuration files, c
 \section{Results Discussion}
 The computational result for normal stress along the vertical and horizontal symmetries can be compared to the analyticals result above, Equations~\ref{vertical_stress} and~\ref{horizontal_stress}. The Root Mean Square error,
 \begin{equation}
-\mbox{RMSE} = \sqrt{\frac{1}{N}\sum\limits_{i=1}^N[\sigma_i - \sigma^*_i]^2},
+RMSE = \sqrt{\frac{1}{N}\sum\limits_{i=1}^N[\sigma_i - \sigma^*_i]^2},
 \end{equation}
 and the Normalized Root Mean Square error,
 \begin{equation}
-\mbox{NRMS} = \dfrac{RMSE}{max(\sigma^*)-min(\sigma^*)},
+NRMS = \dfrac{RMSE}{max(\sigma^*)-min(\sigma^*)},
 \end{equation}
-can be calculated. Here $\sigma_i$ is the computational result for the the stress for each point along the boundary, $\sigma^*_i$ is the analytical solution, and $N$ is the number of points along the boundary. The NRMS for each case is expressed as a percentage, where lower values indicate a result closer to the analytic solution. For the remainder of this paper $NRMS_{xx}$ will note the NRMS error along the vertical plane of symmetry, while $NRMS_{yy}$ will note the NRMS error along the horizontal plane of symmetry.
+can be calculated. Here $\sigma_i$ is the computational result for the the stress for each point along the boundary, $\sigma^*_i$ is the analytical solution, and $N$ is the number of points along the boundary. The $NRMS$ for each case is expressed as a percentage, where lower values indicate a result closer to the analytic solution. For the remainder of this paper $NRMS_{xx}$ will note the $NRMS$ error along the vertical plane of symmetry, while $NRMS_{yy}$ will note the $NRMS$ error along the horizontal plane of symmetry.
 
-\subsection{Selected key results for the base case}
-The base case described in the OpenFOAM tutorial involves a plate of width $x = 4$ with a mesh resulting from $n = 10$ \cite{ctfm_1}. The NRMS from the analytical solution for this case is approximately 9.41\% for the vertical symmetry, and 18.36\% for the horizontal symmetry. The results for the normal stress along the symmetries and their deviation from the analytical solution for this case can be seen in Figure~\ref{base_study}.
+\subsection{Results for the base case}
+The base case described in the OpenFOAM tutorial involves a plate of width $x = 4$ with a mesh resulting from $n = 10$ \cite{ctfm_1}. The $NRMS$ from the analytical solution for this case is approximately 9.41\% for the vertical symmetry, and 18.36\% for the horizontal symmetry. The results for the normal stress along the symmetries and their deviation from the analytical solution for this case can be seen in Figure~\ref{base_study}.
 
 A quick look at the error plots suggest that the stress along the vertical symmetry is overestimated, while the stress along the horizontal symmetry is underestimated. These results suggest that a square plate with a relatively low number of cells can fairly accurately reproduce the analytical solution of an infinitely wide plate for the vertical symmetry, but fails to do well in estimating the stress along the horizontal symmetry. Increasing the mesh and the length of the plate could lead to results that closer approximate this analytic solution.
 
-\begin{figure}[b]
+\subsection{Mesh sensitivity}
+The mesh sensitivity study looks at meshes resulting from $n = 10, 100, $ and $1000$ on a plate width of $x = 4$m. Little change is seen $NRMS$ for either symmetry, suggesting only a weak dependence on the mesh size. See the plots in Figure~\ref{sensitivity_study} for complete results for this case. Looking at a plate of width $x = 100$m, however, shows a dramatic decrease in error in the vertical symmetry for larger mesh sizes. This is due to the sparse nature of the meshes generated from $n = 10$. Having only 30 grid points over a 100m plate is not significant, and results in a spacing of about 1.65m, worse than using only 2 grid points over the initial 4m case. The 300 grid points resulting from a $n = 100$ leads to a spacing of about .16m and leads to much better results---a $NRMS_{yy}$ of only 5.96\% compared to 31.86\%.
+
+Based on these results, meshes resulting from $n = 100$ are the minimum recommended meshes for this type of study. Meshes resulting from $n = 1000$ will be used for the effect of plate length study. Full results for these cases can be seen in Table~\ref{mesh_table}.
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|r r | r r|}
+\hline
+$x (m)$ & $n$ & $NRMS_{xx}$ & $NRMS_{yy}$ \\
+\hline
+4 & 10   & 9.41\% & 18.36\% \\
+4 & 100  & 9.72\% & 18.77\% \\
+4 & 1000 & 9.01\% & 17.43\% \\
+\hline
+100 & 10   & 3.10\% & 31.86\% \\
+100 & 100  & 4.24\% & 5.96\% \\
+100 & 1000 & 4.06\% & 4.19\% \\
+\hline
+\end{tabular}
+\caption{$NRMS$ results from the numerical simulations for the mesh sensitivity study}
+\label{mesh_table}
+\end{center}
+\end{table}
+
+\subsection{Effect of the plate length}
+The effect of plate length study looks at plate lengths of $x = 3$m, 4m, 5m, and 100m with a mesh of $n = 1000$. The $NRMS$ for both the vertical and horizontal symmetries decrease rapidly with increases in the plate length, and both reach values of around 4\% for the case of $x = 100$m. The $NRMS_{yy}$ is more dramatically changed by the increase in plate length, which makes sense as it is along the direction being directly affected by varying the plate length. Full results for these cases can be seen in Table~\ref{length_table}.
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|r r | r r|}
+\hline
+$x (m)$ & $n$ & $NRMS_{xx}$ & $NRMS_{yy}$ \\
+\hline
+3   & 1000 & 14.58\% & 28.29\% \\
+4   & 1000 & 9.01\% & 17.43\% \\
+5   & 1000 & 6.04\% & 8.82\% \\
+100 & 1000 & 4.06\% & 4.19\% \\
+\hline
+\end{tabular}
+\caption{$NRMS$ results from the numerical simulations for the effect of plate length study}
+\label{length_table}
+\end{center}
+\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusion}
+OpenFOAM was used to investigate the mesh sensitivity and the effects of plate length between the analytical solution for an infinitely wide plate and the computational results for stress on a square plate with a circular hole at its center. Increasing the mesh density to create a grid spacing of less than .2m led to acceptable values for the $NRMS$ along both symmetries, while larger grid spacing led to generally poor results. The analytical solutions for the stress along the vertical and horizontal symmetries for the infinitely wide plate compared quite well to computational results for a plate of width $x = 100$m with a mesh resulting from $n = 1000$, leading to $NRMS$ values of around 4\%. A plate of $x = 5$m with the same mesh also compared quite well, leading to a $NRMS_{xx}$ of around 6\% and a $NRMS_{yy}$ of around 9\%.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{asmems4}
+\bibliography{asme2e}
+
+\begin{figure}[thb]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{../code/figures/result-x-[2][10].pdf}
 \includegraphics[width=0.5\textwidth]{../code/figures/error-x-[2][10].pdf}
@@ -156,48 +209,6 @@ A quick look at the error plots suggest that the stress along the vertical symme
 \label{base_study}
 \end{center}
 \end{figure}
-
-\subsection{Mesh sensitivity study}
-The mesh sensitivity study looks at meshes resulting from $n = 10, 100, $ and $1000$ on a plate width of $x = 4$m.
-
-\begin{table}[htb]
-%\caption{Figure and table captions do not end with a period}
-\begin{center}
-\label{mesh_table}
-\begin{tabular}{|r r | r r|}
-\hline
-$x (m)$ & $n$ & $NRMS_{xx}$ & $NRMS_{yy}$ \\
-\hline
-4 & 10   & 9.41\% & 18.36\% \\
-4 & 100  & 9.72\% & 18.77\% \\
-4 & 1000 & 9.01\% & 17.43\% \\
-\hline
-\end{tabular}
-\caption{NRMS results from the numerical simulations for the mesh sensitivity study}
-\end{center}
-\end{table}
-
-\subsection{Effect of the plate length study}
-The effect of plate length study looks at plate lengths of $x = 3$m, 4m, 5m, and 100m with a mesh of $n = 100$.
-
-\begin{table}[htb]
-%\caption{Figure and table captions do not end with a period}
-\begin{center}
-\label{mesh_table}
-\begin{tabular}{|r r | r r|}
-\hline
-$x (m)$ & $n$ & $NRMS_{xx}$ & $NRMS_{yy}$ \\
-\hline
-3   & 100 & 15.02\% & 29.17\% \\
-4   & 100 &  9.71\% & 18.77\% \\
-5   & 100 &  6.46\% &  9.43\% \\
-100 & 100 &  4.24\% &  5.96\% \\
-\hline
-\end{tabular}
-\caption{NRMS results from the numerical simulations for the effect of plate length study}
-\end{center}
-\end{table}
-
 
 \begin{figure}[tb]
 \begin{center}
@@ -209,24 +220,17 @@ $x (m)$ & $n$ & $NRMS_{xx}$ & $NRMS_{yy}$ \\
 \label{sensitivity_study}
 \end{center}
 \end{figure}
-\begin{figure}[tb]
+
+\begin{figure}[thb]
 \begin{center}
-\includegraphics[width=0.5\textwidth]{../code/figures/result-x-[1.5, 2, 2.5, 50][100, 100, 100, 100].pdf}
-\includegraphics[width=0.5\textwidth]{../code/figures/error-x-[1.5, 2, 2.5, 50][100, 100, 100, 100].pdf}
-\includegraphics[width=0.5\textwidth]{../code/figures/result-y-[1.5, 2, 2.5, 50][100, 100, 100, 100].pdf}
-\includegraphics[width=0.5\textwidth]{../code/figures/error-y-[1.5, 2, 2.5, 50][100, 100, 100, 100].pdf}
+\includegraphics[width=0.5\textwidth]{../code/figures/result-x-[1.5, 2, 2.5, 50][1000, 1000, 1000, 1000].pdf}
+\includegraphics[width=0.5\textwidth]{../code/figures/error-x-[1.5, 2, 2.5, 50][1000, 1000, 1000, 1000].pdf}
+\includegraphics[width=0.5\textwidth]{../code/figures/result-y-[1.5, 2, 2.5, 50][1000, 1000, 1000, 1000].pdf}
+\includegraphics[width=0.5\textwidth]{../code/figures/error-y-[1.5, 2, 2.5, 50][1000, 1000, 1000, 1000].pdf}
 \caption{Results of plate length study}
 \label{length_study}
 \end{center}
 \end{figure}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Conclusion}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\bibliographystyle{asmems4}
-\bibliography{asme2e}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
