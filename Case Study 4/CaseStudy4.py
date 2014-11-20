@@ -1,8 +1,8 @@
+from PrettyPlots import *
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy
+from scipy import log10
 from scipy.optimize import curve_fit
-import pylab
 
 
 class Config(object):
@@ -25,7 +25,7 @@ class Config(object):
         self.x = np.append(np.arange(0, self.L, self.dx), self.L)
 
 
-def generate_things(C, s):
+def generate_solutions(C, s):
     c = Config(C, s)
 
     # Initial Condition with boundary conditions
@@ -44,7 +44,7 @@ def generate_things(C, s):
     err = T_explicit - T_analytic
     RMS = np.sqrt(np.mean(np.square(err)))
 
-    print('dx: ' + str(c.dx) + ', dt: ' + str(c.dt))
+    # print('dx: ' + str(c.dx) + ', dt: ' + str(c.dt) + ', RMS: ' + str(RMS))
     return [c.dx, c.dt, RMS]
 
 
@@ -73,10 +73,10 @@ def Explicit(T, c):
     T = np.array(T)
     T_old = np.array(T)
 
-    spatial_stability = dx < (2 * D) / u
-    temporal_stability = dt < dx ** 2 / (2 * D)
-    print('Stability: spatial ' + str(spatial_stability) +
-                  ', temporal ' + str(temporal_stability))
+    # spatial_stability = dx < (2 * D) / u
+    # temporal_stability = dt < dx ** 2 / (2 * D)
+    # print('Stability: spatial ' + str(spatial_stability) +
+                  # ', temporal ' + str(temporal_stability))
 
     t = 0
     while t < 1 / tau:
@@ -95,45 +95,60 @@ def Explicit(T, c):
     return np.array(T_old)
 
 
+def linear_fit(x, a, b):
+    '''Define our (line) fitting function'''
+    return a + b * x
+
+
+def effective_order(x, y):
+    '''Find slope of log log plot to find our effective order of accuracy'''
+
+    logx = log10(x)
+    logy = log10(y)
+    out = curve_fit(linear_fit, logx, logy)
+
+    return out[0][1]
+
+
 def main():
     C = [0.1,   0.5,   2, 0.5, 0.5]
     s = [0.25, 0.25, .25, 0.5,   1]
 
     results = []
     for C_i, s_i in zip(C, s):
-        dx, dt, RMS = generate_things(C_i, s_i)
+        dx, dt, RMS = generate_solutions(C_i, s_i)
         # print('C: ' + str(C_i) + ', s: ' + str(s_i))
         results.append([dx, dt, RMS])
 
-    # print(results)
+    # Sort and convert
     results.sort(key=lambda x: x[0])
-    # print(results)
     results = np.array(results)
 
+    # Pull out data
+    x = results[:, 0]
+    t = results[:, 1]
+    RMS = results[:, 2]
+
+    # Find effective order of accuracy
+    order_accuracy_x = effective_order(x, RMS)
+    order_accuracy_t = effective_order(t, RMS)
+    # print('x order: ', order_accuracy_x, 't order: ', order_accuracy_t)
+
+    # Show effect of dx on RMS
     plt.subplot(2, 1, 1)
-    plt.plot(results[:, 0], results[:, 2], '.')
-    plt.title('dx vs RMS')
+    plt.plot(x, RMS, '.')
+    plt.title('dx vs RMS, effective order {0:1.2f}'.format(order_accuracy_x))
+    plt.xscale('log')
     plt.yscale('log')
 
-    # logx = scipy.log10(results[:, 0])
-    # logy = scipy.log10(results[:, 2])
-
-    # # define our (line) fitting function
-    # def linear_fit(x, a, b):
-    #     return a + b * x
-
-    # out = curve_fit(linear_fit, logx, logy)
-    # fit = linear_fit(results[:, 0], out[0][0], out[0][1])
-    # # pfinal = out[0]
-    # # covar = out[1]
-    # # print(pfinal, covar)
-    # plt.plot(results[:, 0], fit)
-    # print(out)
-
+    # Show effect of dt on RMS
     plt.subplot(2, 1, 2)
-    plt.plot(results[:, 1], results[:, 2], '.')
-    plt.title('dt vs RMS')
+    plt.plot(t, RMS, '.')
+    plt.title('dt vs RMS, effective order {0:1.2f}'.format(order_accuracy_t))
+    plt.xscale('log')
     plt.yscale('log')
+
+    # Finally show it off
     plt.show()
 
 
