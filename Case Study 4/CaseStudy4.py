@@ -85,12 +85,14 @@ def Explicit(T, c):
                     (D * dt / dx ** 2 + u * dt / (2 * dx)) * T_old[i - 1] +
                     (D * dt / dx ** 2 - u * dt / (2 * dx)) * T_old[i + 1])
 
+        # Enforce our periodic boundary condition
+        T[-1] = ((1 - 2 * D * dt / dx ** 2) * T_old[-1] +
+                (D * dt / dx ** 2 + u * dt / (2 * dx)) * T_old[-2] +
+                (D * dt / dx ** 2 - u * dt / (2 * dx)) * T_old[1])
+        T[0] = T[-1]
+
         T_old = np.array(T)
         t += dt
-
-        # Enforce our periodic boundary condition
-        T_old[0] = np.exp(-k ** 2 * D * t) * np.sin(-k * u * t)
-        T_old[-1] = T_old[0]
 
     return np.array(T_old)
 
