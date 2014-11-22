@@ -29,7 +29,7 @@ def generate_solutions(C, s):
     c = Config(C, s)
 
     # Initial Condition with boundary conditions
-    T_initial = [np.sin(c.k * x_i) for x_i in c.x]
+    T_initial = np.sin(c.k * c.x)
 
     # Analytic Solution
     T_analytic = Analytic(c)
@@ -38,6 +38,11 @@ def generate_solutions(C, s):
     # Explicit Numerical Solution
     T_explicit = Explicit(T_initial, c)
     plt.plot(T_explicit, label='Explicit')
+
+    # Explicit Numerical Solution
+    T_upwind = Upwind(T_initial, c)
+    plt.plot(T_upwind, label='Upwind')
+
     plt.legend()
     plt.show()
 
@@ -67,7 +72,7 @@ def Explicit(T, c):
     convective flux and the diffusive flux.
     """
 
-    D, dt, dx, u, tau, k = c.D, c.dt, c.dx, c.u, c.tau, c.k
+    D, dt, dx, u, tau = c.D, c.dt, c.dx, c.u, c.tau
 
     N = len(T)
     T = np.array(T)
@@ -89,6 +94,38 @@ def Explicit(T, c):
         T[-1] = ((1 - 2 * D * dt / dx ** 2) * T_old[-1] +
                 (D * dt / dx ** 2 + u * dt / (2 * dx)) * T_old[-2] +
                 (D * dt / dx ** 2 - u * dt / (2 * dx)) * T_old[1])
+        T[0] = T[-1]
+
+        T_old = np.array(T)
+        t += dt
+
+    return np.array(T_old)
+
+
+def Upwind(T, c):
+    '''
+    Upwind-Finite Volume method: Explicit (forward Euler), with the convective
+    flux treated using the basic upwind method and the diffusive flux treated
+    using central differencing.
+    '''
+
+    D, dt, dx, u, tau = c.D, c.dt, c.dx, c.u, c.tau
+
+    N = len(T)
+    T = np.array(T)
+    T_old = np.array(T)
+
+    t = 0
+    while t <= 1 / tau:
+        for i in range(0, N - 1):
+            T[i] = (D * dt / dx ** 2 * (T_old[i + 1] - 2 * T_old[i] + T_old[i - 1]) -
+                    u * dt / (2 * dx) * (3 * T_old[i] - 4 * T_old[i - 1] + T_old[i - 2]) +
+                    T_old[i])
+
+        # Enforce our periodic boundary condition
+        T[-1] = (D * dt / dx ** 2 * (T_old[0] - 2 * T_old[-1] + T_old[-2]) -
+                 u * dt / (2 * dx) * (3 * T_old[-1] - 4 * T_old[-2] + T_old[-3]) +
+                 T_old[-1])
         T[0] = T[-1]
 
         T_old = np.array(T)
