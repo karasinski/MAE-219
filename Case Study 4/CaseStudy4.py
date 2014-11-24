@@ -7,7 +7,6 @@ import scipy.sparse as sparse
 
 
 class Config(object):
-
     def __init__(self, C, s):
         # Import parameters
         self.C = C
@@ -30,32 +29,32 @@ def generate_solutions(C, s):
     c = Config(C, s)
 
     # Initial Condition with boundary conditions
-    T_initial = np.sin(c.k * c.x)
+    Phi_initial = np.sin(c.k * c.x)
 
     # Analytic Solution
-    T_analytic = Analytic(c)
-    plt.plot(T_analytic, label='Analytic')
+    Phi_analytic = Analytic(c)
+    plt.plot(Phi_analytic, label='Analytic')
 
     # Explicit Solution
-    T_explicit = Explicit(T_initial, c)
-    plt.plot(T_explicit, label='Explicit')
+    Phi_explicit = Explicit(Phi_initial, c)
+    plt.plot(Phi_explicit, label='Explicit')
 
     # Upwind Solution
-    T_upwind = Upwind(T_initial, c)
-    plt.plot(T_upwind, label='Upwind')
+    Phi_upwind = Upwind(Phi_initial, c)
+    plt.plot(Phi_upwind, label='Upwind')
 
     # Trapezoidal Solution
-    T_trapezoidal = Trapezoidal(T_initial, c)
-    plt.plot(T_trapezoidal, label='Trapezoidal')
+    Phi_trapezoidal = Trapezoidal(Phi_initial, c)
+    plt.plot(Phi_trapezoidal, label='Trapezoidal')
 
     # QUICK Solution
-    T_quick = QUICK(T_initial, c)
-    plt.plot(T_quick, label='QUICK')
+    Phi_quick = QUICK(Phi_initial, c)
+    plt.plot(Phi_quick, label='QUICK')
 
     plt.legend()
     plt.show()
 
-    err = T_explicit - T_analytic
+    err = Phi_explicit - Phi_analytic
     RMS = np.sqrt(np.mean(np.square(err)))
 
     # print('dx: ' + str(c.dx) + ', dt: ' + str(c.dt) + ', RMS: ' + str(RMS))
@@ -66,19 +65,19 @@ def Analytic(c):
     k, D, u, tau, x, dt = c.k, c.D, c.u, c.tau, c.x, c.dt
 
     N = len(x)
-    T = np.array(x)
+    Phi = np.array(x)
 
     t = 0
     while t < tau:
         t += dt
 
     for i in range(0, N):
-        T[i] = np.exp(-k ** 2 * D * t) * np.sin(k * (x[i] - u * t))
+        Phi[i] = np.exp(-k ** 2 * D * t) * np.sin(k * (x[i] - u * t))
 
-    return np.array(T)
+    return np.array(Phi)
 
 
-def Explicit(T, c):
+def Explicit(Phi, c):
     """
     FTCS (Explicit) - Forward-Time and central differencing for both the
     convective flux and the diffusive flux.
@@ -86,9 +85,9 @@ def Explicit(T, c):
 
     D, dt, dx, u, tau = c.D, c.dt, c.dx, c.u, c.tau
 
-    N = len(T)
-    T = np.array(T)
-    T_old = np.array(T)
+    N = len(Phi)
+    Phi = np.array(Phi)
+    Phi_old = np.array(Phi)
 
     # spatial_stability = dx < (2 * D) / u
     # temporal_stability = dt < dx ** 2 / (2 * D)
@@ -98,23 +97,23 @@ def Explicit(T, c):
     t = 0
     while t < tau:
         for i in range(1, N - 1):
-            T[i] = ((1 - 2 * D * dt / dx ** 2) * T_old[i] +
-                    (D * dt / dx ** 2 + u * dt / (2 * dx)) * T_old[i - 1] +
-                    (D * dt / dx ** 2 - u * dt / (2 * dx)) * T_old[i + 1])
+            Phi[i] = ((1 - 2 * D * dt / dx ** 2) * Phi_old[i] +
+                      (D * dt / dx ** 2 + u * dt / (2 * dx)) * Phi_old[i - 1] +
+                      (D * dt / dx ** 2 - u * dt / (2 * dx)) * Phi_old[i + 1])
 
         # Enforce our periodic boundary condition
-        T[-1] = ((1 - 2 * D * dt / dx ** 2) * T_old[-1] +
-                 (D * dt / dx ** 2 + u * dt / (2 * dx)) * T_old[-2] +
-                 (D * dt / dx ** 2 - u * dt / (2 * dx)) * T_old[1])
-        T[0] = T[-1]
+        Phi[-1] = ((1 - 2 * D * dt / dx ** 2) * Phi_old[-1] +
+                   (D * dt / dx ** 2 + u * dt / (2 * dx)) * Phi_old[-2] +
+                   (D * dt / dx ** 2 - u * dt / (2 * dx)) * Phi_old[1])
+        Phi[0] = Phi[-1]
 
-        T_old = np.array(T)
+        Phi_old = np.array(Phi)
         t += dt
 
-    return np.array(T_old)
+    return np.array(Phi_old)
 
 
-def Upwind(T, c):
+def Upwind(Phi, c):
     '''
     Upwind-Finite Volume method: Explicit (forward Euler), with the convective
     flux treated using the basic upwind method and the diffusive flux treated
@@ -123,46 +122,47 @@ def Upwind(T, c):
 
     D, dt, dx, u, tau = c.D, c.dt, c.dx, c.u, c.tau
 
-    N = len(T)
-    T = np.array(T)
-    T_old = np.array(T)
+    N = len(Phi)
+    Phi = np.array(Phi)
+    Phi_old = np.array(Phi)
 
     t = 0
     while t <= tau:
         # Enforce our periodic boundary condition
-        T[0] = (D * dt / dx ** 2 * (T_old[1] - 2 * T_old[0] + T_old[-1]) -
-                u * dt / (2 * dx) * (3 * T_old[0] - 4 * T_old[-1] + T_old[-2]) +
-                T_old[0])
+        Phi[0] = (D * dt / dx ** 2 * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[-1]) -
+                  u * dt / (2 * dx) * (3 * Phi_old[0] - 4 * Phi_old[-1] + Phi_old[-2]) +
+                  Phi_old[0])
 
-        T[1] = (D * dt / dx ** 2 * (T_old[2] - 2 * T_old[1] + T_old[0]) -
-                u * dt / (2 * dx) * (3 * T_old[1] - 4 * T_old[0] + T_old[-1]) +
-                T_old[1])
+        Phi[1] = (D * dt / dx ** 2 * (Phi_old[2] - 2 * Phi_old[1] + Phi_old[0]) -
+                  u * dt / (2 * dx) * (3 * Phi_old[1] - 4 * Phi_old[0] + Phi_old[-1]) +
+                  Phi_old[1])
 
         for i in range(2, N - 1):
-            T[i] = (D * dt / dx ** 2 * (T_old[i + 1] - 2 * T_old[i] + T_old[i - 1]) -
-                    u * dt / (2 * dx) * (3 * T_old[i] - 4 * T_old[i - 1] + T_old[i - 2]) +
-                    T_old[i])
+            Phi[i] = (D * dt / dx ** 2 * (Phi_old[i + 1] - 2 * Phi_old[i] + Phi_old[i - 1]) -
+                      u * dt / (2 * dx) * (3 * Phi_old[i] - 4 * Phi_old[i - 1] + Phi_old[i - 2]) +
+                      Phi_old[i])
 
-        T[-1] = (D * dt / dx ** 2 * (T_old[0] - 2 * T_old[-1] + T_old[-2]) -
-                 u * dt / (2 * dx) * (3 * T_old[-1] - 4 * T_old[-2] + T_old[-3]) +
-                 T_old[-1])
+        Phi[-1] = (D * dt / dx ** 2 * (Phi_old[0] - 2 * Phi_old[-1] + Phi_old[-2]) -
+                   u * dt / (2 * dx) * (3 * Phi_old[-1] - 4 * Phi_old[-2] + Phi_old[-3]) +
+                   Phi_old[-1])
 
-        T_old = np.array(T)
+        Phi_old = np.array(Phi)
         t += dt
 
-    return np.array(T_old)
+    return np.array(Phi_old)
 
 
-def Trapezoidal(T, c):
+def Trapezoidal(Phi, c):
     D, dt, dx, u, tau = c.D, c.dt, c.dx, c.u, c.tau
 
-    N = len(T)
-    T = np.array(T)
+    N = len(Phi)
+    Phi = np.array(Phi)
+    Phi_old = np.array(Phi)
 
     # Create Coefficient Matrix
-    upper = [-(dt * D) / (2 * dx ** 2) + dt * u / (4 * dx) for i in range(0, N)]
-    main = [1 + (dt * D / (dx ** 2)) for i in range(0, N)]
-    lower = [-(dt * D) / (2 * dx ** 2) - dt * u / (4 * dx) for i in range(0, N)]
+    upper = [-(dt * D) / (2 * dx ** 2) + dt * u / (4 * dx) for _ in range(0, N)]
+    main = [1 + (dt * D / (dx ** 2)) for _ in range(0, N)]
+    lower = [-(dt * D) / (2 * dx ** 2) - dt * u / (4 * dx) for _ in range(0, N)]
 
     data = lower, main, upper
     diags = np.array([-1, 0, 1])
@@ -172,63 +172,65 @@ def Trapezoidal(T, c):
     matrix[0, N - 1] = -(dt * D) / (2 * dx ** 2) - dt * u / (4 * dx)
     matrix[N - 1, 0] = -(dt * D) / (2 * dx ** 2) + dt * u / (4 * dx)
 
-    T_old = np.array(T)
-
     # create blank b array
-    b = np.array(T_old)
+    b = np.array(Phi_old)
 
     t = 0
     while t <= tau:
         # create b array
         # First value
-        b[0] = ((dt * D / (2 * dx ** 2)) * (T_old[1] - 2 * T_old[0] + T_old[N - 1]) -
-                (u * dt / (4 * dx)) * (T_old[1] - T_old[N - 1]) + T_old[0])
+        b[0] = ((dt * D / (2 * dx ** 2)) * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[N - 1]) -
+                (u * dt / (4 * dx)) * (Phi_old[1] - Phi_old[N - 1]) + Phi_old[0])
 
         for i in range(1, N - 1):
-            b[i] = ((dt * D / (2 * dx ** 2)) * (T_old[i + 1] - 2 * T_old[i] + T_old[i - 1]) -
-                    (u * dt / (4 * dx)) * (T_old[i + 1] - T_old[i - 1]) + T_old[i])
+            b[i] = ((dt * D / (2 * dx ** 2)) * (Phi_old[i + 1] - 2 * Phi_old[i] + Phi_old[i - 1]) -
+                    (u * dt / (4 * dx)) * (Phi_old[i + 1] - Phi_old[i - 1]) + Phi_old[i])
 
         # last value
-        b[N - 1] = ((dt * D / (2 * dx ** 2)) * (T_old[0] - 2 * T_old[N - 1] + T_old[N - 2]) -
-                    (u * dt / (4 * dx)) * (T_old[0] - T_old[N - 2]) + T_old[N - 1])
+        b[N - 1] = ((dt * D / (2 * dx ** 2)) * (Phi_old[0] - 2 * Phi_old[N - 1] + Phi_old[N - 2]) -
+                    (u * dt / (4 * dx)) * (Phi_old[0] - Phi_old[N - 2]) + Phi_old[N - 1])
 
         # Solve matrix
-        T = np.linalg.solve(matrix, b)
+        Phi = np.linalg.solve(matrix, b)
 
-        T_old = np.array(T)
+        Phi_old = np.array(Phi)
         t += dt
 
-    return np.array(T_old)
+    return np.array(Phi_old)
 
 
-def QUICK(T, c):
+def QUICK(Phi, c):
     D, dt, dx, u, tau = c.D, c.dt, c.dx, c.u, c.tau
 
-    N = len(T)
-    T = np.array(T)
-    T_old = np.array(T)
+    N = len(Phi)
+    Phi = np.array(Phi)
+    Phi_old = np.array(Phi)
 
     t = 0
     while t <= tau:
         # First two points
-        T[0] = (dt * (D * (T_old[1] - 2 * T_old[0] + T_old[N - 1]) / (dx ** 2) - u *
-                      (3 * T_old[1] - T_old[N - 2] + 6 * T_old[N - 1] - 8 * T_old[0]) / (8 * dx)) + T_old[0])
-        T[1] = (dt * (D * (T_old[2] - 2 * T_old[1] + T_old[0]) / (dx ** 2) - u *
-                      (3 * T_old[2] - T_old[N - 1] + 6 * T_old[0] - 8 * T_old[1]) / (8 * dx)) + T_old[1])
+        Phi[0] = (dt * (D  / dx ** 2 * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[N - 1]) -
+                  u / (8 * dx) * (3 * Phi_old[1] - Phi_old[N - 2] + 6 * Phi_old[N - 1] - 8 * Phi_old[0])) +
+                  Phi_old[0])
+        Phi[1] = (dt * (D  / dx ** 2 * (Phi_old[2] - 2 * Phi_old[1] + Phi_old[0]) -
+                  u / (8 * dx) * (3 * Phi_old[2] - Phi_old[N - 1] + 6 * Phi_old[0] - 8 * Phi_old[1])) +
+                  Phi_old[1])
 
         for i in range(2, N - 1):
-            T[i] = (dt * (D * (T_old[i + 1] - 2 * T_old[i] + T_old[i - 1]) / (dx ** 2) - u *
-                          (3 * T_old[i + 1] - T_old[i - 2] + 6 * T_old[i - 1] - 8 * T_old[i]) / (8 * dx)) + T_old[i])
+            Phi[i] = (dt * (D  / dx ** 2 * (Phi_old[i + 1] - 2 * Phi_old[i] + Phi_old[i - 1]) -
+                      u / (8 * dx) * (3 * Phi_old[i + 1] - Phi_old[i - 2] + 6 * Phi_old[i - 1] - 8 * Phi_old[i])) +
+                      Phi_old[i])
 
         # Last point
-        T[N - 1] = (dt * (D * (T_old[0] - 2 * T_old[N - 1] + T_old[N - 2]) / (dx ** 2) - u *
-                          (3 * T_old[0] - T_old[N - 3] + 6 * T_old[N - 2] - 8 * T_old[N - 1]) / (8 * dx)) + T_old[N - 1])
+        Phi[N - 1] = (dt * (D / dx ** 2 * (Phi_old[0] - 2 * Phi_old[N - 1] + Phi_old[N - 2]) -
+                      u / (8 * dx) * (3 * Phi_old[0] - Phi_old[N - 3] + 6 * Phi_old[N - 2] - 8 * Phi_old[N - 1])) +
+                      Phi_old[N - 1])
 
         # Increment
-        T_old = np.array(T)
+        Phi_old = np.array(Phi)
         t += dt
 
-    return np.array(T_old)
+    return np.array(Phi_old)
 
 
 def linear_fit(x, a, b):
