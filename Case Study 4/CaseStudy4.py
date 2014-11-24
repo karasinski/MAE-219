@@ -30,33 +30,22 @@ def stability(c):
     C, s, D, u, dx, dt = c.C, c.s, c.D, c.u, c.dx, c.dt
 
     print('C = ', C, ' s = ', s)
-    stable_x = dx < (2 * D) / u
-    stable_t = dt < dx ** 2 / (2 * D)
-    print('Explicit: spatial ' + str(stable_x) + ', temporal ' + str(stable_t))
-
-    # stable_x = ???
-    # stable_t = ???
-    # print('Upwind: spatial ' + str(stable_x) + ', temporal ' + str(stable_t))
-
-    # stable_x = ???
-    stable_t = dt < dx ** 2 / D
-    print('Trapezoidal: temporal ' + str(stable_t))
-
-    # stable_x = ???
-    # stable_t = ???
-    # print('QUICK: spatial ' + str(stable_x) + ', temporal ' + str(stable_t))
+    print('FTCS: ' + str(dx < (2 * D) / u and dt < dx ** 2 / (2 * D)))
+    print('Upwind: ' + str(u * dt / dx + 2 * D * dt / dx ** 2 <= 1))
+    print('Trapezoidal: True')
+    print('QUICK: ' + str(C < min(2-4*s, np.sqrt(2*s))))
 
 
-def save_figure(analytic, solution, title):
-    plt.plot(analytic, label='Analytic')
-    plt.plot(solution, '.', label=title.split(' ')[0])
+def save_figure(x, analytic, solution, title):
+    plt.plot(x, analytic, label='Analytic')
+    plt.plot(x, solution, '.', label=title.split(' ')[0])
 
     # Calculate NRMS for this solution
     err = solution - analytic
     NRMS = np.sqrt(np.mean(np.square(err)))/(max(analytic) - min(analytic))
 
     plt.ylabel('$\Phi$')
-    plt.xlabel('x')
+    plt.xlabel('L (m)')
     plt.title('C=' + title.split(' ')[1] +
               ' s=' + title.split(' ')[2] +
               ' NRMS={0:.3e}'.format(NRMS))
@@ -73,13 +62,13 @@ def save_figure(analytic, solution, title):
     plt.clf()
 
 
-def save_state(analytic, solutions, state):
-    plt.plot(analytic, label='Analytic')
+def save_state(x, analytic, solutions, state):
+    plt.plot(x, analytic, label='Analytic')
     for solution in solutions:
-        plt.plot(solution[0], '.', label=solution[1])
+        plt.plot(x, solution[0], '.', label=solution[1])
 
     plt.ylabel('$\Phi$')
-    plt.xlabel('x')
+    plt.xlabel('L (m)')
 
     title = 'C=' + state.split(' ')[0] + ' s=' + state.split(' ')[1]
     plt.title(title)
@@ -109,7 +98,7 @@ def generate_solutions(C, s):
     Phi_analytic = Analytic(c)
 
     # Explicit Solution
-    Phi_explicit = Explicit(Phi_initial, c)
+    Phi_ftcs = FTCS(Phi_initial, c)
 
     # Upwind Solution
     Phi_upwind = Upwind(Phi_initial, c)
@@ -121,42 +110,37 @@ def generate_solutions(C, s):
     Phi_quick = QUICK(Phi_initial, c)
 
     # Save individual comparisons
-    # save_figure(Phi_analytic, Phi_explicit, 'Explicit ' + str(C) + ' ' + str(s))
-    # save_figure(Phi_analytic, Phi_upwind, 'Upwind ' + str(C) + ' ' + str(s))
-    # save_figure(Phi_analytic, Phi_trapezoidal, 'Trapezoidal ' + str(C) + ' ' + str(s))
-    # save_figure(Phi_analytic, Phi_quick, 'QUICK ' + str(C) + ' ' + str(s))
+    # save_figure(c.x, Phi_analytic, Phi_ftcs, 'FTCS ' + str(C) + ' ' + str(s))
+    # save_figure(c.x, Phi_analytic, Phi_upwind, 'Upwind ' + str(C) + ' ' + str(s))
+    # save_figure(c.x, Phi_analytic, Phi_trapezoidal, 'Trapezoidal ' + str(C) + ' ' + str(s))
+    # save_figure(c.x, Phi_analytic, Phi_quick, 'QUICK ' + str(C) + ' ' + str(s))
 
     # Save group comparison
-    solutions = [(Phi_explicit, 'Explicit'),
+    solutions = [(Phi_ftcs, 'FTCS'),
                  (Phi_upwind, 'Upwind'),
                  (Phi_trapezoidal, 'Trapezoidal'),
                  (Phi_quick, 'QUICK')]
-    save_state(Phi_analytic, solutions, str(C) + ' ' + str(s))
+    # save_state(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
 
-    err = Phi_explicit - Phi_analytic
+    err = Phi_ftcs - Phi_analytic
     RMS = np.sqrt(np.mean(np.square(err)))
 
-    # print('dx: ' + str(c.dx) + ', dt: ' + str(c.dt) + ', RMS: ' + str(RMS))
     return [c.dx, c.dt, RMS]
 
 
 def Analytic(c):
-    k, D, u, tau, x, dt = c.k, c.D, c.u, c.tau, c.x, c.dt
+    k, D, u, tau, x = c.k, c.D, c.u, c.tau, c.x
 
     N = len(x)
     Phi = np.array(x)
 
-    t = 0
-    while t < tau:
-        t += dt
-
     for i in range(0, N):
-        Phi[i] = np.exp(-k ** 2 * D * t) * np.sin(k * (x[i] - u * t))
+        Phi[i] = np.exp(-k ** 2 * D * tau) * np.sin(k * (x[i] - u * tau))
 
     return np.array(Phi)
 
 
-def Explicit(Phi, c):
+def FTCS(Phi, c):
     """
     FTCS (Explicit) - Forward-Time and central differencing for both the
     convective flux and the diffusive flux.
@@ -286,20 +270,20 @@ def QUICK(Phi, c):
     while t <= tau:
         # Enforce our periodic boundary condition
         Phi[0] = (dt * D / dx ** 2 * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[N - 1]) -
-                  dt * u / (8 * dx) * (3 * Phi_old[1] - Phi_old[N - 2] + 6 * Phi_old[N - 1] - 8 * Phi_old[0]) +
+                  dt * u / (8 * dx) * (3 * Phi_old[1] + Phi_old[N - 2] - 7 * Phi_old[N - 1] + 3 * Phi_old[0]) +
                   Phi_old[0])
         Phi[1] = (dt * D / dx ** 2 * (Phi_old[2] - 2 * Phi_old[1] + Phi_old[0]) -
-                  dt * u / (8 * dx) * (3 * Phi_old[2] - Phi_old[N - 1] + 6 * Phi_old[0] - 8 * Phi_old[1]) +
+                  dt * u / (8 * dx) * (3 * Phi_old[2] + Phi_old[N - 1] - 7 * Phi_old[0] + 3 * Phi_old[1]) +
                   Phi_old[1])
 
         for i in range(2, N - 1):
             Phi[i] = (dt * D / dx ** 2 * (Phi_old[i + 1] - 2 * Phi_old[i] + Phi_old[i - 1]) -
-                      dt * u / (8 * dx) * (3 * Phi_old[i + 1] - Phi_old[i - 2] + 6 * Phi_old[i - 1] - 8 * Phi_old[i]) +
+                      dt * u / (8 * dx) * (3 * Phi_old[i + 1] + Phi_old[i - 2] - 7 * Phi_old[i - 1] + 3 * Phi_old[i]) +
                       Phi_old[i])
 
         # Enforce our periodic boundary condition
         Phi[N - 1] = (dt * D / dx ** 2 * (Phi_old[0] - 2 * Phi_old[N - 1] + Phi_old[N - 2]) -
-                      dt * u / (8 * dx) * (3 * Phi_old[0] - Phi_old[N - 3] + 6 * Phi_old[N - 2] - 8 * Phi_old[N - 1]) +
+                      dt * u / (8 * dx) * (3 * Phi_old[0] + Phi_old[N - 3] - 7 * Phi_old[N - 2] + 3 * Phi_old[N - 1]) +
                       Phi_old[N - 1])
 
         # Increment
@@ -331,7 +315,6 @@ def main():
     results = []
     for C_i, s_i in zip(C, s):
         dx, dt, RMS = generate_solutions(C_i, s_i)
-        # print('C: ' + str(C_i) + ', s: ' + str(s_i))
         results.append([dx, dt, RMS])
 
     # Sort and convert
