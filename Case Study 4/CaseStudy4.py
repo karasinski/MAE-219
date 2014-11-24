@@ -180,15 +180,18 @@ def Trapezoidal(Phi, c):
         # create b array
         # First value
         b[0] = ((dt * D / (2 * dx ** 2)) * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[N - 1]) -
-                (u * dt / (4 * dx)) * (Phi_old[1] - Phi_old[N - 1]) + Phi_old[0])
+                (u * dt / (4 * dx)) * (Phi_old[1] - Phi_old[N - 1]) +
+                Phi_old[0])
 
         for i in range(1, N - 1):
             b[i] = ((dt * D / (2 * dx ** 2)) * (Phi_old[i + 1] - 2 * Phi_old[i] + Phi_old[i - 1]) -
-                    (u * dt / (4 * dx)) * (Phi_old[i + 1] - Phi_old[i - 1]) + Phi_old[i])
+                    (u * dt / (4 * dx)) * (Phi_old[i + 1] - Phi_old[i - 1]) +
+                    Phi_old[i])
 
         # last value
         b[N - 1] = ((dt * D / (2 * dx ** 2)) * (Phi_old[0] - 2 * Phi_old[N - 1] + Phi_old[N - 2]) -
-                    (u * dt / (4 * dx)) * (Phi_old[0] - Phi_old[N - 2]) + Phi_old[N - 1])
+                    (u * dt / (4 * dx)) * (Phi_old[0] - Phi_old[N - 2]) +
+                     Phi_old[N - 1])
 
         # Solve matrix
         Phi = np.linalg.solve(matrix, b)
@@ -207,23 +210,24 @@ def QUICK(Phi, c):
     Phi_old = np.array(Phi)
 
     t = 0
+
     while t <= tau:
         # First two points
-        Phi[0] = (dt * (D  / dx ** 2 * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[N - 1]) -
-                  u / (8 * dx) * (3 * Phi_old[1] - Phi_old[N - 2] + 6 * Phi_old[N - 1] - 8 * Phi_old[0])) +
+        Phi[0] = (dt * D / dx ** 2 * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[N - 1]) -
+                  dt * u / (8 * dx) * (3 * Phi_old[1] - Phi_old[N - 2] + 6 * Phi_old[N - 1] - 8 * Phi_old[0]) +
                   Phi_old[0])
-        Phi[1] = (dt * (D  / dx ** 2 * (Phi_old[2] - 2 * Phi_old[1] + Phi_old[0]) -
-                  u / (8 * dx) * (3 * Phi_old[2] - Phi_old[N - 1] + 6 * Phi_old[0] - 8 * Phi_old[1])) +
+        Phi[1] = (dt * D / dx ** 2 * (Phi_old[2] - 2 * Phi_old[1] + Phi_old[0]) -
+                  dt * u / (8 * dx) * (3 * Phi_old[2] - Phi_old[N - 1] + 6 * Phi_old[0] - 8 * Phi_old[1]) +
                   Phi_old[1])
 
         for i in range(2, N - 1):
-            Phi[i] = (dt * (D  / dx ** 2 * (Phi_old[i + 1] - 2 * Phi_old[i] + Phi_old[i - 1]) -
-                      u / (8 * dx) * (3 * Phi_old[i + 1] - Phi_old[i - 2] + 6 * Phi_old[i - 1] - 8 * Phi_old[i])) +
+            Phi[i] = (dt * D / dx ** 2 * (Phi_old[i + 1] - 2 * Phi_old[i] + Phi_old[i - 1]) -
+                      dt * u / (8 * dx) * (3 * Phi_old[i + 1] - Phi_old[i - 2] + 6 * Phi_old[i - 1] - 8 * Phi_old[i]) +
                       Phi_old[i])
 
         # Last point
-        Phi[N - 1] = (dt * (D / dx ** 2 * (Phi_old[0] - 2 * Phi_old[N - 1] + Phi_old[N - 2]) -
-                      u / (8 * dx) * (3 * Phi_old[0] - Phi_old[N - 3] + 6 * Phi_old[N - 2] - 8 * Phi_old[N - 1])) +
+        Phi[N - 1] = (dt * D / dx ** 2 * (Phi_old[0] - 2 * Phi_old[N - 1] + Phi_old[N - 2]) -
+                      dt * u / (8 * dx) * (3 * Phi_old[0] - Phi_old[N - 3] + 6 * Phi_old[N - 2] - 8 * Phi_old[N - 1]) +
                       Phi_old[N - 1])
 
         # Increment
