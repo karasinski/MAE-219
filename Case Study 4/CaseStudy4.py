@@ -29,14 +29,21 @@ class Config(object):
 def stability(c):
     C, s, D, u, dx, dt = c.C, c.s, c.D, c.u, c.dx, c.dt
 
+    FTCS = dx < (2 * D) / u and dt < dx ** 2 / (2 * D)
+    Upwind = u * dt / dx + 2 * D * dt / dx ** 2 < 1
+    Trapezoidal = True
+    QUICK = C < min(2-4*s, np.sqrt(2*s))
+
     print('C = ', C, ' s = ', s)
-    print('FTCS: ' + str(dx < (2 * D) / u and dt < dx ** 2 / (2 * D)))
-    print('Upwind: ' + str(u * dt / dx + 2 * D * dt / dx ** 2 <= 1))
-    print('Trapezoidal: True')
-    print('QUICK: ' + str(C < min(2-4*s, np.sqrt(2*s))))
+    print('FTCS: ' + str(FTCS))
+    print('Upwind: ' + str(Upwind))
+    print('Trapezoidal: ' + str(Trapezoidal))
+    print('QUICK: ' + str(QUICK))
+
+    return [FTCS, Upwind, Trapezoidal, QUICK]
 
 
-def save_figure(x, analytic, solution, title):
+def save_figure(x, analytic, solution, title, stable):
     plt.plot(x, analytic, label='Analytic')
     plt.plot(x, solution, '.', label=title.split(' ')[0])
 
@@ -46,7 +53,14 @@ def save_figure(x, analytic, solution, title):
 
     plt.ylabel('$\Phi$')
     plt.xlabel('L (m)')
-    plt.title('C=' + title.split(' ')[1] +
+
+    if stable:
+        stability = 'Stable, '
+    else:
+        stability = 'Unstable, '
+
+    plt.title(stability +
+              'C=' + title.split(' ')[1] +
               ' s=' + title.split(' ')[2] +
               ' NRMS={0:.3e}'.format(NRMS))
     plt.legend(loc='best')
@@ -85,11 +99,36 @@ def save_state(x, analytic, solutions, state):
     plt.clf()
 
 
+def save_state_RMS(x, analytic, solutions, state):
+    for solution in solutions:
+        RMS = solution[0] - analytic
+        plt.plot(x, RMS, label=solution[1])
+
+    plt.ylabel('RMS Error')
+    plt.xlabel('L (m)')
+    plt.ylim([-0.05, 0.05])
+
+    title = 'C=' + state.split(' ')[0] + ' s=' + state.split(' ')[1]
+    plt.title(title)
+    plt.legend(loc='best')
+
+    # Save plots
+    save_name = 'RMS ' + title + '.pdf'
+    try:
+        os.mkdir('figures')
+    except Exception:
+        pass
+
+    plt.show()
+    # plt.savefig('figures/' + save_name, bbox_inches='tight')
+    plt.clf()
+
+
 def generate_solutions(C, s):
     c = Config(C, s)
 
     # Spit out some stability information
-    stability(c)
+    stable = stability(c)
 
     # Initial Condition with boundary conditions
     Phi_initial = np.sin(c.k * c.x)
@@ -110,10 +149,14 @@ def generate_solutions(C, s):
     Phi_quick = QUICK(Phi_initial, c)
 
     # Save individual comparisons
-    # save_figure(c.x, Phi_analytic, Phi_ftcs, 'FTCS ' + str(C) + ' ' + str(s))
-    # save_figure(c.x, Phi_analytic, Phi_upwind, 'Upwind ' + str(C) + ' ' + str(s))
-    # save_figure(c.x, Phi_analytic, Phi_trapezoidal, 'Trapezoidal ' + str(C) + ' ' + str(s))
-    # save_figure(c.x, Phi_analytic, Phi_quick, 'QUICK ' + str(C) + ' ' + str(s))
+    save_figure(c.x, Phi_analytic, Phi_ftcs,
+                'FTCS ' + str(C) + ' ' + str(s), stable[0])
+    save_figure(c.x, Phi_analytic, Phi_upwind,
+                'Upwind ' + str(C) + ' ' + str(s), stable[1])
+    save_figure(c.x, Phi_analytic, Phi_trapezoidal,
+                'Trapezoidal ' + str(C) + ' ' + str(s), stable[2])
+    save_figure(c.x, Phi_analytic, Phi_quick,
+                'QUICK ' + str(C) + ' ' + str(s), stable[3])
 
     # Save group comparison
     solutions = [(Phi_ftcs, 'FTCS'),
@@ -121,11 +164,14 @@ def generate_solutions(C, s):
                  (Phi_trapezoidal, 'Trapezoidal'),
                  (Phi_quick, 'QUICK')]
     # save_state(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
+    save_state_RMS(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
 
-    err = Phi_ftcs - Phi_analytic
-    RMS = np.sqrt(np.mean(np.square(err)))
+    RMS = []
+    for solution in solutions:
+        err = solution[0] - Phi_analytic
+        RMS.append(np.sqrt(np.mean(np.square(err))))
 
-    return [c.dx, c.dt, RMS]
+    return [c.dx, c.dt, RMS[0], RMS[1], RMS[2], RMS[3]]
 
 
 def Analytic(c):
@@ -236,8 +282,8 @@ def Trapezoidal(Phi, c):
     t = 0
     while t <= tau:
         # Enforce our periodic boundary condition
-        b[0] = ((dt * D / (2 * dx ** 2)) * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[N - 1]) -
-                (u * dt / (4 * dx)) * (Phi_old[1] - Phi_old[N - 1]) +
+        b[0] = ((dt * D / (2 * dx ** 2)) * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[-1]) -
+                (u * dt / (4 * dx)) * (Phi_old[1] - Phi_old[-1]) +
                 Phi_old[0])
 
         for i in range(1, N - 1):
@@ -246,9 +292,9 @@ def Trapezoidal(Phi, c):
                     Phi_old[i])
 
         # Enforce our periodic boundary condition
-        b[N - 1] = ((dt * D / (2 * dx ** 2)) * (Phi_old[0] - 2 * Phi_old[N - 1] + Phi_old[N - 2]) -
-                    (u * dt / (4 * dx)) * (Phi_old[0] - Phi_old[N - 2]) +
-                     Phi_old[N - 1])
+        b[-1] = ((dt * D / (2 * dx ** 2)) * (Phi_old[0] - 2 * Phi_old[-1] + Phi_old[-2]) -
+                 (u * dt / (4 * dx)) * (Phi_old[0] - Phi_old[-2]) +
+                 Phi_old[-1])
 
         # Solve matrix
         Phi = np.linalg.solve(matrix, b)
@@ -270,7 +316,7 @@ def QUICK(Phi, c):
     while t <= tau:
         # Enforce our periodic boundary condition
         Phi[0] = (dt * D / dx ** 2 * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[N - 1]) -
-                  dt * u / (8 * dx) * (3 * Phi_old[1] + Phi_old[N - 2] - 7 * Phi_old[N - 1] + 3 * Phi_old[0]) +
+                  dt * u / (8 * dx) * (3 * Phi_old[1] + Phi_old[-2] - 7 * Phi_old[N - 1] + 3 * Phi_old[0]) +
                   Phi_old[0])
         Phi[1] = (dt * D / dx ** 2 * (Phi_old[2] - 2 * Phi_old[1] + Phi_old[0]) -
                   dt * u / (8 * dx) * (3 * Phi_old[2] + Phi_old[N - 1] - 7 * Phi_old[0] + 3 * Phi_old[1]) +
@@ -282,9 +328,9 @@ def QUICK(Phi, c):
                       Phi_old[i])
 
         # Enforce our periodic boundary condition
-        Phi[N - 1] = (dt * D / dx ** 2 * (Phi_old[0] - 2 * Phi_old[N - 1] + Phi_old[N - 2]) -
-                      dt * u / (8 * dx) * (3 * Phi_old[0] + Phi_old[N - 3] - 7 * Phi_old[N - 2] + 3 * Phi_old[N - 1]) +
-                      Phi_old[N - 1])
+        Phi[-1] = (dt * D / dx ** 2 * (Phi_old[0] - 2 * Phi_old[-1] + Phi_old[-2]) -
+                   dt * u / (8 * dx) * (3 * Phi_old[0] + Phi_old[-3] - 7 * Phi_old[-2] + 3 * Phi_old[-1]) +
+                   Phi_old[-1])
 
         # Increment
         Phi_old = np.array(Phi)
@@ -308,23 +354,8 @@ def effective_order(x, y):
     return out[0][1]
 
 
-def main():
-    C = [0.1,   0.5,   2, 0.5, 0.5]
-    s = [0.25, 0.25, .25, 0.5,   1]
-
-    results = []
-    for C_i, s_i in zip(C, s):
-        dx, dt, RMS = generate_solutions(C_i, s_i)
-        results.append([dx, dt, RMS])
-
-    # Sort and convert
-    results.sort(key=lambda x: x[0])
-    results = np.array(results)
-
-    # Pull out data
-    x = results[:, 0]
-    t = results[:, 1]
-    RMS = results[:, 2]
+def plot_order(x, t, RMS):
+    RMS, title = RMS[0], RMS[1]
 
     # Find effective order of accuracy
     order_accuracy_x = effective_order(x, RMS)
@@ -345,8 +376,42 @@ def main():
     plt.xscale('log')
     plt.yscale('log')
 
+    # Slap the method name on
+    plt.suptitle(title)
+
     # Finally show it off
     plt.show()
+
+
+def main():
+    C = [0.1,   0.5,   2, 0.5, 0.5]
+    s = [0.25, 0.25, .25, 0.5,   1]
+
+    results = []
+    for C_i, s_i in zip(C, s):
+        out = generate_solutions(C_i, s_i)
+        results.append(out)
+
+    # Sort and convert
+    results.sort(key=lambda x: x[0])
+    results = np.array(results)
+
+    # Pull out data
+    x = results[:, 0]
+    t = results[:, 1]
+    RMS_FTCS = results[:, 2]
+    RMS_Upwind = results[:, 3]
+    RMS_Trapezoidal = results[:, 4]
+    RMS_QUICK = results[:, 5]
+
+    # Plot effective orders
+    rmss = [(RMS_FTCS, 'FTCS'),
+            (RMS_Upwind, 'Upwind'),
+            (RMS_Trapezoidal, 'Trapezoidal'),
+            (RMS_QUICK, 'QUICK')]
+    for rms in rmss:
+        # plot_order(x, t, rms)
+        pass
 
 
 if __name__ == "__main__":
