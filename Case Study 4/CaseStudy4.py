@@ -173,6 +173,7 @@ def generate_solutions(C, s, find_order=False):
         err = solution[0] - Phi_analytic
         RMS.append(np.sqrt(np.mean(np.square(err))))
 
+    print(C, s, c.dx, c.dt)
     return [c.dx, c.dt, RMS[0], RMS[1], RMS[2], RMS[3]]
 
 
@@ -437,23 +438,23 @@ def main():
     #     generate_solutions(C_i, s_i)
 
     # FTCS, C <= sqrt(2 * s * u), s <= 0.5
-    C = [0.2, 0.25, 0.3, 0.35, 0.4]
-    s = [0.1, 0.2,  0.3, 0.4,  0.5]
-    calc_stability(C, s, 'FTCS')
+    # C = [0.10, 0.50, 2.00, 0.35, 0.5]
+    # s = [0.25, 0.25, 0.25, 0.40, 0.5]
+    # calc_stability(C, s, 'FTCS')
 
     # Upwind, C + 2s <=1
-    C = [0.5, 0.4,  0.3,  0.2,  0.1]
-    s = [0.2, 0.25, 0.30, 0.35, 0.4]
-    calc_stability(C, s, 'Upwind')
+    # C = [0.1, 0.2, 0.3, 0.05, 0.1]
+    # s = [0.4, 0.3, 0.2, 0.15, 0.1]
+    # calc_stability(C, s, 'Upwind')
 
     # Trap, always stable
-    C = [0.1,   0.5,   2, 0.5, 0.5]
-    s = [0.25, 0.25, .25, 0.5,   1]
-    calc_stability(C, s, 'Trapezoidal')
+    # C = [0.5, 0.6, 0.7, 0.8, 0.9]
+    # s = [0.25, 0.25, 0.25, 0.25, 0.25]
+    # calc_stability(C, s, 'Trapezoidal')
 
     # QUICK, C <= max(2-4*s,sqrt(2*s))
-    C = [0.1, 0.2,  0.3, 0.4,  0.5]
-    s = [0.1, 0.15, 0.2, 0.25, 0.3]
+    C = [0.25, 0.4, 0.5, 0.6,  0.7]
+    s = [0.25, 0.25, 0.25, 0.25, 0.25]
     calc_stability(C, s, 'QUICK')
 
 
