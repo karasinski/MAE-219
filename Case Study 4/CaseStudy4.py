@@ -34,11 +34,11 @@ def stability(c):
     Trapezoidal = True
     QUICK = C < min(2-4*s, np.sqrt(2*s))
 
-    print('C = ', C, ' s = ', s)
-    print('FTCS: ' + str(FTCS))
-    print('Upwind: ' + str(Upwind))
-    print('Trapezoidal: ' + str(Trapezoidal))
-    print('QUICK: ' + str(QUICK))
+    # print('C = ', C, ' s = ', s)
+    # print('FTCS: ' + str(FTCS))
+    # print('Upwind: ' + str(Upwind))
+    # print('Trapezoidal: ' + str(Trapezoidal))
+    # print('QUICK: ' + str(QUICK))
 
     return [FTCS, Upwind, Trapezoidal, QUICK]
 
@@ -119,12 +119,11 @@ def save_state_RMS(x, analytic, solutions, state):
     except Exception:
         pass
 
-    plt.show()
-    # plt.savefig('figures/' + save_name, bbox_inches='tight')
+    plt.savefig('figures/' + save_name, bbox_inches='tight')
     plt.clf()
 
 
-def generate_solutions(C, s):
+def generate_solutions(C, s, find_order=False):
     c = Config(C, s)
 
     # Spit out some stability information
@@ -148,23 +147,26 @@ def generate_solutions(C, s):
     # QUICK Solution
     Phi_quick = QUICK(Phi_initial, c)
 
-    # Save individual comparisons
-    save_figure(c.x, Phi_analytic, Phi_ftcs,
-                'FTCS ' + str(C) + ' ' + str(s), stable[0])
-    save_figure(c.x, Phi_analytic, Phi_upwind,
-                'Upwind ' + str(C) + ' ' + str(s), stable[1])
-    save_figure(c.x, Phi_analytic, Phi_trapezoidal,
-                'Trapezoidal ' + str(C) + ' ' + str(s), stable[2])
-    save_figure(c.x, Phi_analytic, Phi_quick,
-                'QUICK ' + str(C) + ' ' + str(s), stable[3])
-
     # Save group comparison
     solutions = [(Phi_ftcs, 'FTCS'),
                  (Phi_upwind, 'Upwind'),
                  (Phi_trapezoidal, 'Trapezoidal'),
                  (Phi_quick, 'QUICK')]
-    # save_state(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
-    save_state_RMS(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
+
+    if not find_order:
+        # Save individual comparisons
+        save_figure(c.x, Phi_analytic, Phi_ftcs,
+                    'FTCS ' + str(C) + ' ' + str(s), stable[0])
+        save_figure(c.x, Phi_analytic, Phi_upwind,
+                    'Upwind ' + str(C) + ' ' + str(s), stable[1])
+        save_figure(c.x, Phi_analytic, Phi_trapezoidal,
+                    'Trapezoidal ' + str(C) + ' ' + str(s), stable[2])
+        save_figure(c.x, Phi_analytic, Phi_quick,
+                    'QUICK ' + str(C) + ' ' + str(s), stable[3])
+
+        # and group comparisons
+        save_state(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
+        save_state_RMS(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
 
     RMS = []
     for solution in solutions:
@@ -314,7 +316,7 @@ def QUICK(Phi, c):
 
     t = 0
     while t <= tau:
-        # Enforce our periodic boundary condition
+        # Enforce our periodic boundary condition, first two
         Phi[0] = (dt * D / dx ** 2 * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[N - 1]) -
                   dt * u / (8 * dx) * (3 * Phi_old[1] + Phi_old[-2] - 7 * Phi_old[N - 1] + 3 * Phi_old[0]) +
                   Phi_old[0])
@@ -327,7 +329,7 @@ def QUICK(Phi, c):
                       dt * u / (8 * dx) * (3 * Phi_old[i + 1] + Phi_old[i - 2] - 7 * Phi_old[i - 1] + 3 * Phi_old[i]) +
                       Phi_old[i])
 
-        # Enforce our periodic boundary condition
+        # Enforce our periodic boundary condition, last
         Phi[-1] = (dt * D / dx ** 2 * (Phi_old[0] - 2 * Phi_old[-1] + Phi_old[-2]) -
                    dt * u / (8 * dx) * (3 * Phi_old[0] + Phi_old[-3] - 7 * Phi_old[-2] + 3 * Phi_old[-1]) +
                    Phi_old[-1])
@@ -355,46 +357,58 @@ def effective_order(x, y):
 
 
 def plot_order(x, t, RMS):
+    fig = plt.figure()
     RMS, title = RMS[0], RMS[1]
 
     # Find effective order of accuracy
     order_accuracy_x = effective_order(x, RMS)
     order_accuracy_t = effective_order(t, RMS)
-    print('x order: ', order_accuracy_x, 't order: ', order_accuracy_t)
+    print(title, 'x order: ', order_accuracy_x, 't order: ', order_accuracy_t)
 
     # Show effect of dx on RMS
-    plt.subplot(2, 1, 1)
+    fig.add_subplot(2, 1, 1)
     plt.plot(x, RMS, '.')
     plt.title('dx vs RMS, effective order {0:1.2f}'.format(order_accuracy_x))
     plt.xscale('log')
     plt.yscale('log')
+    plt.xlabel('dx')
+    plt.ylabel('RMS')
+    fig.subplots_adjust(hspace=.35)
 
     # Show effect of dt on RMS
-    plt.subplot(2, 1, 2)
+    fig.add_subplot(2, 1, 2)
     plt.plot(t, RMS, '.')
     plt.title('dt vs RMS, effective order {0:1.2f}'.format(order_accuracy_t))
     plt.xscale('log')
     plt.yscale('log')
+    plt.xlabel('dt')
+    plt.ylabel('RMS')
 
     # Slap the method name on
     plt.suptitle(title)
 
-    # Finally show it off
-    plt.show()
+    # Save plots
+    save_name = 'Order ' + title + '.pdf'
+    try:
+        os.mkdir('figures')
+    except Exception:
+        pass
+
+    plt.savefig('figures/' + save_name, bbox_inches='tight')
+    plt.clf()
 
 
-def main():
-    C = [0.1,   0.5,   2, 0.5, 0.5]
-    s = [0.25, 0.25, .25, 0.5,   1]
-
+def calc_stability(C, s, solver):
     results = []
     for C_i, s_i in zip(C, s):
-        out = generate_solutions(C_i, s_i)
+        out = generate_solutions(C_i, s_i, find_order=True)
         results.append(out)
 
     # Sort and convert
+    # print('pre', np.array(results))
     results.sort(key=lambda x: x[0])
     results = np.array(results)
+    # print('post', results)
 
     # Pull out data
     x = results[:, 0]
@@ -405,13 +419,42 @@ def main():
     RMS_QUICK = results[:, 5]
 
     # Plot effective orders
-    rmss = [(RMS_FTCS, 'FTCS'),
-            (RMS_Upwind, 'Upwind'),
-            (RMS_Trapezoidal, 'Trapezoidal'),
-            (RMS_QUICK, 'QUICK')]
-    for rms in rmss:
-        # plot_order(x, t, rms)
-        pass
+    rms_list = [(RMS_FTCS, 'FTCS'),
+                (RMS_Upwind, 'Upwind'),
+                (RMS_Trapezoidal, 'Trapezoidal'),
+                (RMS_QUICK, 'QUICK')]
+
+    for rms in rms_list:
+        if rms[1] == solver:
+            plot_order(x, t, rms)
+
+
+def main():
+    # Cases
+    # C = [0.1,   0.5,   2, 0.5, 0.5]
+    # s = [0.25, 0.25, .25, 0.5,   1]
+    # for C_i, s_i in zip(C, s):
+    #     generate_solutions(C_i, s_i)
+
+    # FTCS, C <= sqrt(2 * s * u), s <= 0.5
+    C = [0.2, 0.25, 0.3, 0.35, 0.4]
+    s = [0.1, 0.2,  0.3, 0.4,  0.5]
+    calc_stability(C, s, 'FTCS')
+
+    # Upwind, C + 2s <=1
+    C = [0.5, 0.4,  0.3,  0.2,  0.1]
+    s = [0.2, 0.25, 0.30, 0.35, 0.4]
+    calc_stability(C, s, 'Upwind')
+
+    # Trap, always stable
+    C = [0.1,   0.5,   2, 0.5, 0.5]
+    s = [0.25, 0.25, .25, 0.5,   1]
+    calc_stability(C, s, 'Trapezoidal')
+
+    # QUICK, C <= max(2-4*s,sqrt(2*s))
+    C = [0.1, 0.2,  0.3, 0.4,  0.5]
+    s = [0.1, 0.15, 0.2, 0.25, 0.3]
+    calc_stability(C, s, 'QUICK')
 
 
 if __name__ == "__main__":
