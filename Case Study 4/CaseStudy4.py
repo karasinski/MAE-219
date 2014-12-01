@@ -30,7 +30,8 @@ def stability(c):
     C, s, D, u, dx, dt = c.C, c.s, c.D, c.u, c.dx, c.dt
 
     FTCS = dx < (2 * D) / u and dt < dx ** 2 / (2 * D)
-    Upwind = u * dt / dx + 2 * D * dt / dx ** 2 < 1
+    FTCS = C <= np.sqrt(2 * s * u) and s <= 0.5
+    Upwind = C + 2*s < 1
     Trapezoidal = True
     QUICK = C < min(2-4*s, np.sqrt(2*s))
 
@@ -77,7 +78,7 @@ def save_figure(x, analytic, solution, title, stable):
 
 
 def save_state(x, analytic, solutions, state):
-    plt.plot(x, analytic, label='Analytic')
+    plt.plot(x, analytic, 'k', label='Analytic')
     for solution in solutions:
         plt.plot(x, solution[0], '.', label=solution[1])
 
@@ -99,12 +100,12 @@ def save_state(x, analytic, solutions, state):
     plt.clf()
 
 
-def save_state_RMS(x, analytic, solutions, state):
+def save_state_error(x, analytic, solutions, state):
     for solution in solutions:
-        RMS = solution[0] - analytic
-        plt.plot(x, RMS, label=solution[1])
+        Error = solution[0] - analytic
+        plt.plot(x, Error, '.', label=solution[1])
 
-    plt.ylabel('RMS Error')
+    plt.ylabel('Error')
     plt.xlabel('L (m)')
     plt.ylim([-0.05, 0.05])
 
@@ -113,7 +114,7 @@ def save_state_RMS(x, analytic, solutions, state):
     plt.legend(loc='best')
 
     # Save plots
-    save_name = 'RMS ' + title + '.pdf'
+    save_name = 'Error ' + title + '.pdf'
     try:
         os.mkdir('figures')
     except Exception:
@@ -166,15 +167,14 @@ def generate_solutions(C, s, find_order=False):
 
         # and group comparisons
         save_state(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
-        save_state_RMS(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
+        save_state_error(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
 
-    RMS = []
+    NRMS = []
     for solution in solutions:
         err = solution[0] - Phi_analytic
-        RMS.append(np.sqrt(np.mean(np.square(err))))
+        NRMS.append(np.sqrt(np.mean(np.square(err)))/(max(Phi_analytic) - min(Phi_analytic)))
 
-    print(C, s, c.dx, c.dt)
-    return [c.dx, c.dt, RMS[0], RMS[1], RMS[2], RMS[3]]
+    return [c.dx, c.dt, NRMS[0], NRMS[1], NRMS[2], NRMS[3]]
 
 
 def Analytic(c):
@@ -235,7 +235,6 @@ def Upwind(Phi, c):
 
     t = 0
     while t <= tau:
-        # Enforce our periodic boundary condition
         Phi[0] = (D * dt / dx ** 2 * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[-1]) -
                   u * dt / (2 * dx) * (3 * Phi_old[0] - 4 * Phi_old[-1] + Phi_old[-2]) +
                   Phi_old[0])
@@ -317,7 +316,6 @@ def QUICK(Phi, c):
 
     t = 0
     while t <= tau:
-        # Enforce our periodic boundary condition, first two
         Phi[0] = (dt * D / dx ** 2 * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[N - 1]) -
                   dt * u / (8 * dx) * (3 * Phi_old[1] + Phi_old[-2] - 7 * Phi_old[N - 1] + 3 * Phi_old[0]) +
                   Phi_old[0])
@@ -330,7 +328,6 @@ def QUICK(Phi, c):
                       dt * u / (8 * dx) * (3 * Phi_old[i + 1] + Phi_old[i - 2] - 7 * Phi_old[i - 1] + 3 * Phi_old[i]) +
                       Phi_old[i])
 
-        # Enforce our periodic boundary condition, last
         Phi[-1] = (dt * D / dx ** 2 * (Phi_old[0] - 2 * Phi_old[-1] + Phi_old[-2]) -
                    dt * u / (8 * dx) * (3 * Phi_old[0] + Phi_old[-3] - 7 * Phi_old[-2] + 3 * Phi_old[-1]) +
                    Phi_old[-1])
@@ -364,7 +361,7 @@ def plot_order(x, t, RMS):
     # Find effective order of accuracy
     order_accuracy_x = effective_order(x, RMS)
     order_accuracy_t = effective_order(t, RMS)
-    print(title, 'x order: ', order_accuracy_x, 't order: ', order_accuracy_t)
+    # print(title, 'x order: ', order_accuracy_x, 't order: ', order_accuracy_t)
 
     # Show effect of dx on RMS
     fig.add_subplot(2, 1, 1)
@@ -373,7 +370,7 @@ def plot_order(x, t, RMS):
     plt.xscale('log')
     plt.yscale('log')
     plt.xlabel('dx')
-    plt.ylabel('RMS')
+    plt.ylabel('NRMS')
     fig.subplots_adjust(hspace=.35)
 
     # Show effect of dt on RMS
@@ -383,7 +380,7 @@ def plot_order(x, t, RMS):
     plt.xscale('log')
     plt.yscale('log')
     plt.xlabel('dt')
-    plt.ylabel('RMS')
+    plt.ylabel('NRMS')
 
     # Slap the method name on
     plt.suptitle(title)
@@ -406,10 +403,8 @@ def calc_stability(C, s, solver):
         results.append(out)
 
     # Sort and convert
-    # print('pre', np.array(results))
     results.sort(key=lambda x: x[0])
     results = np.array(results)
-    # print('post', results)
 
     # Pull out data
     x = results[:, 0]
@@ -432,27 +427,24 @@ def calc_stability(C, s, solver):
 
 def main():
     # Cases
-    # C = [0.1,   0.5,   2, 0.5, 0.5]
-    # s = [0.25, 0.25, .25, 0.5,   1]
-    # for C_i, s_i in zip(C, s):
-    #     generate_solutions(C_i, s_i)
+    C = [0.1,   0.5,   2, 0.5, 0.5]
+    s = [0.25, 0.25, .25, 0.5,   1]
+    for C_i, s_i in zip(C, s):
+        generate_solutions(C_i, s_i)
 
-    # FTCS, C <= sqrt(2 * s * u), s <= 0.5
-    # C = [0.10, 0.50, 2.00, 0.35, 0.5]
-    # s = [0.25, 0.25, 0.25, 0.40, 0.5]
-    # calc_stability(C, s, 'FTCS')
+    # Stable values for each case to find effective order of methods
+    C = [0.10, 0.50, 0.40, 0.35, 0.5]
+    s = [0.25, 0.25, 0.25, 0.40, 0.5]
+    calc_stability(C, s, 'FTCS')
 
-    # Upwind, C + 2s <=1
-    # C = [0.1, 0.2, 0.3, 0.05, 0.1]
-    # s = [0.4, 0.3, 0.2, 0.15, 0.1]
-    # calc_stability(C, s, 'Upwind')
+    C = [0.1, 0.2, 0.3, 0.05, 0.1]
+    s = [0.4, 0.3, 0.2, 0.15, 0.1]
+    calc_stability(C, s, 'Upwind')
 
-    # Trap, always stable
-    # C = [0.5, 0.6, 0.7, 0.8, 0.9]
-    # s = [0.25, 0.25, 0.25, 0.25, 0.25]
-    # calc_stability(C, s, 'Trapezoidal')
+    C = [0.5, 0.6, 0.7, 0.8, 0.9]
+    s = [0.25, 0.25, 0.25, 0.25, 0.25]
+    calc_stability(C, s, 'Trapezoidal')
 
-    # QUICK, C <= max(2-4*s,sqrt(2*s))
     C = [0.25, 0.4, 0.5, 0.6,  0.7]
     s = [0.25, 0.25, 0.25, 0.25, 0.25]
     calc_stability(C, s, 'QUICK')
