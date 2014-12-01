@@ -153,17 +153,78 @@ The following cases are considered:
 \nocite{*}
 \bibliographystyle{asmems4}
 \bibliography{asme2e}
-%
-%\begin{figure}[thb]
-%\begin{center}
-%\includegraphics[width=0.5\textwidth]{../code/figures/result-x-[2][10].pdf}
-%\includegraphics[width=0.5\textwidth]{../code/figures/error-x-[2][10].pdf}
-%\includegraphics[width=0.5\textwidth]{../code/figures/result-y-[2][10].pdf}
-%\includegraphics[width=0.5\textwidth]{../code/figures/error-y-[2][10].pdf}
-%\caption{Results of base case}
-%\label{base_study}
-%\end{center}
-%\end{figure}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.4\textwidth]{figures/CDS.pdf}
+\caption{FTCS scheme}
+\label{FTCS_scheme}
+\end{center}
+\end{figure}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.4\textwidth]{figures/upwind.pdf}
+\caption{Upwind scheme}
+\label{Upwind_scheme}
+\end{center}
+\end{figure}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.4\textwidth]{figures/quick.pdf}
+\caption{QUICK scheme}
+\label{QUICK_scheme}
+\end{center}
+\end{figure}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../code/figures/C=0.1 s=0.25.pdf}
+\caption{Results of first case}
+\label{base_study}
+\end{center}
+\end{figure}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../code/figures/Error C=0.1 s=0.25.pdf}
+\caption{Error for first case}
+\label{base_study}
+\end{center}
+\end{figure}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../code/figures/Order FTCS.pdf}
+% \includegraphics[width=0.5\textwidth]{../code/figures/Order Upwind.pdf}
+% \includegraphics[width=0.5\textwidth]{../code/figures/Order Trapezoidal.pdf}
+\includegraphics[width=0.5\textwidth]{../code/figures/Order QUICK.pdf}
+\caption{Effective order of accuracy}
+\label{base_study}
+\end{center}
+\end{figure}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../code/figures/FTCS 0.1 0.25.pdf}
+\includegraphics[width=0.5\textwidth]{../code/figures/FTCS 0.5 0.25.pdf}
+\includegraphics[width=0.5\textwidth]{../code/figures/FTCS 0.5 1.pdf}
+\caption{FTCS method's transition into instability}
+\label{base_study}
+\end{center}
+\end{figure}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../code/figures/QUICK 0.1 0.25.pdf}
+\includegraphics[width=0.5\textwidth]{../code/figures/QUICK 0.5 0.25.pdf}
+\includegraphics[width=0.5\textwidth]{../code/figures/QUICK 0.5 1.pdf}
+\caption{QUICK method's transition into instability}
+\label{base_study}
+\end{center}
+\end{figure}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage

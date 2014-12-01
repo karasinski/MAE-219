@@ -189,6 +189,8 @@ def QUICK(Phi, c):
 
 
 def save_figure(x, analytic, solution, title, stable):
+    plt.figure(figsize=fig_dims)
+
     plt.plot(x, analytic, label='Analytic')
     plt.plot(x, solution, '.', label=title.split(' ')[0])
 
@@ -218,10 +220,12 @@ def save_figure(x, analytic, solution, title, stable):
         pass
 
     plt.savefig('figures/' + save_name, bbox_inches='tight')
-    plt.clf()
+    plt.close()
 
 
 def save_state(x, analytic, solutions, state):
+    plt.figure(figsize=fig_dims)
+
     plt.plot(x, analytic, 'k', label='Analytic')
     for solution in solutions:
         plt.plot(x, solution[0], '.', label=solution[1])
@@ -241,10 +245,12 @@ def save_state(x, analytic, solutions, state):
         pass
 
     plt.savefig('figures/' + save_name, bbox_inches='tight')
-    plt.clf()
+    plt.close()
 
 
 def save_state_error(x, analytic, solutions, state):
+    plt.figure(figsize=fig_dims)
+
     for solution in solutions:
         Error = solution[0] - analytic
         plt.plot(x, Error, '.', label=solution[1])
@@ -265,11 +271,12 @@ def save_state_error(x, analytic, solutions, state):
         pass
 
     plt.savefig('figures/' + save_name, bbox_inches='tight')
-    plt.clf()
+    plt.close()
 
 
 def plot_order(x, t, RMS):
-    fig = plt.figure()
+    fig = plt.figure(figsize=fig_dims)
+
     RMS, title = RMS[0], RMS[1]
 
     # Find effective order of accuracy
@@ -307,13 +314,12 @@ def plot_order(x, t, RMS):
         pass
 
     plt.savefig('figures/' + save_name, bbox_inches='tight')
-    plt.clf()
+    plt.close()
 
 
 def stability(c):
-    C, s, D, u, dx, dt = c.C, c.s, c.D, c.u, c.dx, c.dt
+    C, s, u = c.C, c.s, c.u
 
-    FTCS = dx < (2 * D) / u and dt < dx ** 2 / (2 * D)
     FTCS = C <= np.sqrt(2 * s * u) and s <= 0.5
     Upwind = C + 2*s < 1
     Trapezoidal = True
