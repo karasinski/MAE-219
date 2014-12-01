@@ -88,6 +88,39 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem Description}
+The transport of various scalar quantities (e.g species mass fraction, temperature) in flows can be modeled using a linear convection-diffusion equation (presented here in a 1-D form),
+\begin{equation}
+\frac{\partial \phi}{\partial t} + u \frac{\partial \phi}{\partial x} = D \frac{\partial \phi^2}{\partial x^2}
+\end{equation}
+$\phi$ is the transported scalar, $u$ and $D$ are known parameters (flow velocity and diffusion coefficient respectively). The purpose of this case study is to investigate the behavior of various numerical solutions of this equation.
+
+This case study focuses on the solution of the 1-D linear transport equation (above)
+for $x$ $\in$ $[0, L]$ and $t$ $\in$ $[0, \tau ]$ (where $\tau = 1/k^2D$) subject to periodic boundary conditions and the following initial condition
+\begin{equation}
+\phi(x, 0) = sin(kx),
+\end{equation}
+\noindent with $k = 2\pi/L$ and $L=1$ m. The convection velocity is $u = 0.2$ m/s, and the diffusion coefficient is $D = 0.005$ m$^2$/s.
+
+This problem has an analytical solution \cite{analytic_citation},
+\begin{equation}
+\Phi(x, t) = exp(-k^2Dt) sin[k(x-ut)].
+\end{equation}
+
+Numerical solutions of this problem were created using the following schemes:
+\begin{enumerate}
+\item FTCS (Explicit) — Forward-Time and central differencing for both the convective flux and the diffusive flux.
+\item Upwind — Finite Volume method: Explicit (forward Euler), with the convective flux treated using
+the basic upwind method and the diffusive flux treated using central differencing.
+\item Trapezoidal — (AKA Crank-Nicholson).
+\item QUICK — Finite Volume method: Explicit, with the convective flux treated using the QUICK method and the diffusive flux treated using central differencing.
+\end{enumerate}
+
+The following cases are considered:
+\begin{equation*}
+(C, s) \in \{(0.1, 0.25), (0.5, 0.25), (2, 0.25), (0.5, 0.5), (0.5, 1)\}
+\end{equation*}
+\noindent where $C = u\Delta t/\Delta x$ and $s = D\Delta t/\Delta x^2$. A uniform mesh for all solvers and cases. The stability and accuracy of these schemes was investigated.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
@@ -117,8 +150,9 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\bibliographystyle{asmems4}
-%\bibliography{asme2e}
+\nocite{*}
+\bibliographystyle{asmems4}
+\bibliography{asme2e}
 %
 %\begin{figure}[thb]
 %\begin{center}
