@@ -26,157 +26,6 @@ class Config(object):
         self.x = np.append(np.arange(0, self.L, self.dx), self.L)
 
 
-def stability(c):
-    C, s, D, u, dx, dt = c.C, c.s, c.D, c.u, c.dx, c.dt
-
-    FTCS = dx < (2 * D) / u and dt < dx ** 2 / (2 * D)
-    FTCS = C <= np.sqrt(2 * s * u) and s <= 0.5
-    Upwind = C + 2*s < 1
-    Trapezoidal = True
-    QUICK = C < min(2-4*s, np.sqrt(2*s))
-
-    # print('C = ', C, ' s = ', s)
-    # print('FTCS: ' + str(FTCS))
-    # print('Upwind: ' + str(Upwind))
-    # print('Trapezoidal: ' + str(Trapezoidal))
-    # print('QUICK: ' + str(QUICK))
-
-    return [FTCS, Upwind, Trapezoidal, QUICK]
-
-
-def save_figure(x, analytic, solution, title, stable):
-    plt.plot(x, analytic, label='Analytic')
-    plt.plot(x, solution, '.', label=title.split(' ')[0])
-
-    # Calculate NRMS for this solution
-    err = solution - analytic
-    NRMS = np.sqrt(np.mean(np.square(err)))/(max(analytic) - min(analytic))
-
-    plt.ylabel('$\Phi$')
-    plt.xlabel('L (m)')
-
-    if stable:
-        stability = 'Stable, '
-    else:
-        stability = 'Unstable, '
-
-    plt.title(stability +
-              'C=' + title.split(' ')[1] +
-              ' s=' + title.split(' ')[2] +
-              ' NRMS={0:.3e}'.format(NRMS))
-    plt.legend(loc='best')
-
-    # Save plots
-    save_name = title + '.pdf'
-    try:
-        os.mkdir('figures')
-    except Exception:
-        pass
-
-    plt.savefig('figures/' + save_name, bbox_inches='tight')
-    plt.clf()
-
-
-def save_state(x, analytic, solutions, state):
-    plt.plot(x, analytic, 'k', label='Analytic')
-    for solution in solutions:
-        plt.plot(x, solution[0], '.', label=solution[1])
-
-    plt.ylabel('$\Phi$')
-    plt.xlabel('L (m)')
-
-    title = 'C=' + state.split(' ')[0] + ' s=' + state.split(' ')[1]
-    plt.title(title)
-    plt.legend(loc='best')
-
-    # Save plots
-    save_name = title + '.pdf'
-    try:
-        os.mkdir('figures')
-    except Exception:
-        pass
-
-    plt.savefig('figures/' + save_name, bbox_inches='tight')
-    plt.clf()
-
-
-def save_state_error(x, analytic, solutions, state):
-    for solution in solutions:
-        Error = solution[0] - analytic
-        plt.plot(x, Error, '.', label=solution[1])
-
-    plt.ylabel('Error')
-    plt.xlabel('L (m)')
-    plt.ylim([-0.05, 0.05])
-
-    title = 'C=' + state.split(' ')[0] + ' s=' + state.split(' ')[1]
-    plt.title(title)
-    plt.legend(loc='best')
-
-    # Save plots
-    save_name = 'Error ' + title + '.pdf'
-    try:
-        os.mkdir('figures')
-    except Exception:
-        pass
-
-    plt.savefig('figures/' + save_name, bbox_inches='tight')
-    plt.clf()
-
-
-def generate_solutions(C, s, find_order=False):
-    c = Config(C, s)
-
-    # Spit out some stability information
-    stable = stability(c)
-
-    # Initial Condition with boundary conditions
-    Phi_initial = np.sin(c.k * c.x)
-
-    # Analytic Solution
-    Phi_analytic = Analytic(c)
-
-    # Explicit Solution
-    Phi_ftcs = FTCS(Phi_initial, c)
-
-    # Upwind Solution
-    Phi_upwind = Upwind(Phi_initial, c)
-
-    # Trapezoidal Solution
-    Phi_trapezoidal = Trapezoidal(Phi_initial, c)
-
-    # QUICK Solution
-    Phi_quick = QUICK(Phi_initial, c)
-
-    # Save group comparison
-    solutions = [(Phi_ftcs, 'FTCS'),
-                 (Phi_upwind, 'Upwind'),
-                 (Phi_trapezoidal, 'Trapezoidal'),
-                 (Phi_quick, 'QUICK')]
-
-    if not find_order:
-        # Save individual comparisons
-        save_figure(c.x, Phi_analytic, Phi_ftcs,
-                    'FTCS ' + str(C) + ' ' + str(s), stable[0])
-        save_figure(c.x, Phi_analytic, Phi_upwind,
-                    'Upwind ' + str(C) + ' ' + str(s), stable[1])
-        save_figure(c.x, Phi_analytic, Phi_trapezoidal,
-                    'Trapezoidal ' + str(C) + ' ' + str(s), stable[2])
-        save_figure(c.x, Phi_analytic, Phi_quick,
-                    'QUICK ' + str(C) + ' ' + str(s), stable[3])
-
-        # and group comparisons
-        save_state(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
-        save_state_error(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
-
-    NRMS = []
-    for solution in solutions:
-        err = solution[0] - Phi_analytic
-        NRMS.append(np.sqrt(np.mean(np.square(err)))/(max(Phi_analytic) - min(Phi_analytic)))
-
-    return [c.dx, c.dt, NRMS[0], NRMS[1], NRMS[2], NRMS[3]]
-
-
 def Analytic(c):
     k, D, u, tau, x = c.k, c.D, c.u, c.tau, c.x
 
@@ -339,19 +188,84 @@ def QUICK(Phi, c):
     return np.array(Phi_old)
 
 
-def linear_fit(x, a, b):
-    '''Define our (line) fitting function'''
-    return a + b * x
+def save_figure(x, analytic, solution, title, stable):
+    plt.plot(x, analytic, label='Analytic')
+    plt.plot(x, solution, '.', label=title.split(' ')[0])
+
+    # Calculate NRMS for this solution
+    err = solution - analytic
+    NRMS = np.sqrt(np.mean(np.square(err)))/(max(analytic) - min(analytic))
+
+    plt.ylabel('$\Phi$')
+    plt.xlabel('L (m)')
+
+    if stable:
+        stability = 'Stable, '
+    else:
+        stability = 'Unstable, '
+
+    plt.title(stability +
+              'C=' + title.split(' ')[1] +
+              ' s=' + title.split(' ')[2] +
+              ' NRMS={0:.3e}'.format(NRMS))
+    plt.legend(loc='best')
+
+    # Save plots
+    save_name = title + '.pdf'
+    try:
+        os.mkdir('figures')
+    except Exception:
+        pass
+
+    plt.savefig('figures/' + save_name, bbox_inches='tight')
+    plt.clf()
 
 
-def effective_order(x, y):
-    '''Find slope of log log plot to find our effective order of accuracy'''
+def save_state(x, analytic, solutions, state):
+    plt.plot(x, analytic, 'k', label='Analytic')
+    for solution in solutions:
+        plt.plot(x, solution[0], '.', label=solution[1])
 
-    logx = log10(x)
-    logy = log10(y)
-    out = curve_fit(linear_fit, logx, logy)
+    plt.ylabel('$\Phi$')
+    plt.xlabel('L (m)')
 
-    return out[0][1]
+    title = 'C=' + state.split(' ')[0] + ' s=' + state.split(' ')[1]
+    plt.title(title)
+    plt.legend(loc='best')
+
+    # Save plots
+    save_name = title + '.pdf'
+    try:
+        os.mkdir('figures')
+    except Exception:
+        pass
+
+    plt.savefig('figures/' + save_name, bbox_inches='tight')
+    plt.clf()
+
+
+def save_state_error(x, analytic, solutions, state):
+    for solution in solutions:
+        Error = solution[0] - analytic
+        plt.plot(x, Error, '.', label=solution[1])
+
+    plt.ylabel('Error')
+    plt.xlabel('L (m)')
+    plt.ylim([-0.05, 0.05])
+
+    title = 'C=' + state.split(' ')[0] + ' s=' + state.split(' ')[1]
+    plt.title(title)
+    plt.legend(loc='best')
+
+    # Save plots
+    save_name = 'Error ' + title + '.pdf'
+    try:
+        os.mkdir('figures')
+    except Exception:
+        pass
+
+    plt.savefig('figures/' + save_name, bbox_inches='tight')
+    plt.clf()
 
 
 def plot_order(x, t, RMS):
@@ -396,6 +310,39 @@ def plot_order(x, t, RMS):
     plt.clf()
 
 
+def stability(c):
+    C, s, D, u, dx, dt = c.C, c.s, c.D, c.u, c.dx, c.dt
+
+    FTCS = dx < (2 * D) / u and dt < dx ** 2 / (2 * D)
+    FTCS = C <= np.sqrt(2 * s * u) and s <= 0.5
+    Upwind = C + 2*s < 1
+    Trapezoidal = True
+    QUICK = C < min(2-4*s, np.sqrt(2*s))
+
+    # print('C = ', C, ' s = ', s)
+    # print('FTCS: ' + str(FTCS))
+    # print('Upwind: ' + str(Upwind))
+    # print('Trapezoidal: ' + str(Trapezoidal))
+    # print('QUICK: ' + str(QUICK))
+
+    return [FTCS, Upwind, Trapezoidal, QUICK]
+
+
+def linear_fit(x, a, b):
+    '''Define our (line) fitting function'''
+    return a + b * x
+
+
+def effective_order(x, y):
+    '''Find slope of log log plot to find our effective order of accuracy'''
+
+    logx = log10(x)
+    logy = log10(y)
+    out = curve_fit(linear_fit, logx, logy)
+
+    return out[0][1]
+
+
 def calc_stability(C, s, solver):
     results = []
     for C_i, s_i in zip(C, s):
@@ -423,6 +370,59 @@ def calc_stability(C, s, solver):
     for rms in rms_list:
         if rms[1] == solver:
             plot_order(x, t, rms)
+
+
+def generate_solutions(C, s, find_order=False):
+    c = Config(C, s)
+
+    # Spit out some stability information
+    stable = stability(c)
+
+    # Initial Condition with boundary conditions
+    Phi_initial = np.sin(c.k * c.x)
+
+    # Analytic Solution
+    Phi_analytic = Analytic(c)
+
+    # Explicit Solution
+    Phi_ftcs = FTCS(Phi_initial, c)
+
+    # Upwind Solution
+    Phi_upwind = Upwind(Phi_initial, c)
+
+    # Trapezoidal Solution
+    Phi_trapezoidal = Trapezoidal(Phi_initial, c)
+
+    # QUICK Solution
+    Phi_quick = QUICK(Phi_initial, c)
+
+    # Save group comparison
+    solutions = [(Phi_ftcs, 'FTCS'),
+                 (Phi_upwind, 'Upwind'),
+                 (Phi_trapezoidal, 'Trapezoidal'),
+                 (Phi_quick, 'QUICK')]
+
+    if not find_order:
+        # Save individual comparisons
+        save_figure(c.x, Phi_analytic, Phi_ftcs,
+                    'FTCS ' + str(C) + ' ' + str(s), stable[0])
+        save_figure(c.x, Phi_analytic, Phi_upwind,
+                    'Upwind ' + str(C) + ' ' + str(s), stable[1])
+        save_figure(c.x, Phi_analytic, Phi_trapezoidal,
+                    'Trapezoidal ' + str(C) + ' ' + str(s), stable[2])
+        save_figure(c.x, Phi_analytic, Phi_quick,
+                    'QUICK ' + str(C) + ' ' + str(s), stable[3])
+
+        # and group comparisons
+        save_state(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
+        save_state_error(c.x, Phi_analytic, solutions, str(C) + ' ' + str(s))
+
+    NRMS = []
+    for solution in solutions:
+        err = solution[0] - Phi_analytic
+        NRMS.append(np.sqrt(np.mean(np.square(err)))/(max(Phi_analytic) - min(Phi_analytic)))
+
+    return [c.dx, c.dt, NRMS[0], NRMS[1], NRMS[2], NRMS[3]]
 
 
 def main():
