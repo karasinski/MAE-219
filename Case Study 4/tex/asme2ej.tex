@@ -125,22 +125,31 @@ The following cases are considered:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
-\begin{figure}[thb]
-\begin{center}
-\includegraphics[width=0.4\textwidth]{figure/FTCS.png}
-\caption{FTCS scheme}
-\label{FTCS_scheme}
-\end{center}
-\end{figure}
+Four schemes were developed to deal with the five considered cases. These are an explicit FTCS scheme, an upwind finite volume scheme, an implicit trapezoidal scheme, and a QUICK finite volume scheme.
+
+The first scheme involves using forward-time and central differencing (FTCS) for both the convective flux and the diffusive flux and yields second-order convergence in space and first-order convergence in time. In order to implement this method, the domain of the problem must be discretized. This method calculates the state of the system at a later time from the state of the system at the current time, and is thus an explicit method. For the 1-D transport equation on a uniform grid, the state $\phi$ at grid point $i$ and timestep $f$ can be calculated by the following equation,
 
 \begin{equation}
 \label{ftcs_eqn}
 \begin{split}
-\phi_i ^f = & \left(1-\frac{2 D\Delta t}{h^2}\right) \phi_i ^{f-1} + \\
-            & \left(\frac{D \Delta t}{h^2} + \frac{u \Delta t}{2h}\right) \phi_{i-1} ^{f-1} + \\
-            & \left(\frac{D \Delta t}{h^2} - \frac{u \Delta t}{2h}\right) \phi_{i+1} ^{f-1}
+\phi_i ^f = & \left(1-\frac{2 D\Delta t}{\Delta x^2}\right) \phi_i ^{f-1} + \\
+            & \left(\frac{D \Delta t}{\Delta x^2} + \frac{u \Delta t}{2 \Delta x}\right) \phi_{i-1} ^{f-1} + \\
+            & \left(\frac{D \Delta t}{\Delta x^2} - \frac{u \Delta t}{2 \Delta x}\right) \phi_{i+1} ^{f-1}.
 \end{split}
 \end{equation}
+
+\noindent This scheme is numerically stable as long as the following conditions are satisfied:
+\begin{equation}
+C \leq \sqrt{2su} \mbox{ and } s \leq \frac{1}{2}.
+\end{equation}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.4\textwidth]{figure/FTCS.png}
+\caption{The 1-D FTCS scheme interpolates between the two nearby grid points}
+\label{FTCS_scheme}
+\end{center}
+\end{figure}
 
 \begin{figure}[thb]
 \begin{center}
@@ -170,37 +179,37 @@ The following cases are considered:
 \begin{equation}
 \begin{split}
 \begin{bmatrix}
-   { m } & { u } & {   }  & {   }  & { l } \\
-   { l } & { m } & { u }  & {   }  & {   } \\
-   {   } & { l } & { m }  & \ddots & {   } \\
-   {   } & {   } & \ddots & \ddots & { u }\\
-   { u } & {   } & {   }  &  { l }  & { m }\\
+   { b } & { c } & {   }  & {   }  & { a } \\
+   { a } & { b } & { c }  & {   }  & {   } \\
+   {   } & { a } & { b }  & \ddots & {   } \\
+   {   } & {   } & \ddots & \ddots & { c }\\
+   { c } & {   } & {   }  &  { a }  & { b }\\
 \end{bmatrix}
 \begin{bmatrix}
-   {b_0^{f} }  \\
-   {b_1^{f} }  \\
-   {b_2^{f} }  \\
+   {\phi_1^{f} }  \\
+   {\phi_2^{f} }  \\
+   {\phi_3^{f} }  \\
    \vdots   \\
-   {b_{i}^{f} }  \\
+   {\phi_{i}^{f} }  \\
 \end{bmatrix}
 & =
 \begin{bmatrix}
-   {\phi_0^f }  \\
-   {\phi_1^f }  \\
-   {\phi_2^f }  \\
+   {RHS_1^{f} }  \\
+   {RHS_2^{f} }  \\
+   {RHS_3^{f} }  \\
    \vdots   \\
-   {\phi_{i}^f }  \\
+   {RHS_{i}^{f} }  \\
 \end{bmatrix},
 \end{split}
 \end{equation}
-where $u = A + B$, $m = 1 + 2 A $, and $l = A - B$, where
+where $c = A + B$, $b = 1 + 2 A $, and $a = A - B$, where
 \begin{equation}
 A = -\frac{D \Delta t }{2 \Delta x^2} \mbox{ and } B = \frac{u \Delta t }{4 \Delta x},
 \end{equation}
 and
 \begin{equation}
 \begin{split}
-b_i^f = & A (\phi_{i+1}^{f-1} - 2 \phi_i^{f-1} + \phi_{i-1}^{f-1}) - \\
+RHS_i^f = & A (\phi_{i+1}^{f-1} - 2 \phi_i^{f-1} + \phi_{i-1}^{f-1}) - \\
         & B (\phi_{i+1}^{f-1} - \phi_{i-1}^{f-1}) + \\
         & \phi_i^{f-1}
 \end{split}.
