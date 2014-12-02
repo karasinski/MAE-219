@@ -103,6 +103,7 @@ for $x$ $\in$ $[0, L]$ and $t$ $\in$ $[0, \tau ]$ (where $\tau = 1/k^2D$) subjec
 
 This problem has an analytical solution \cite{analytic_citation},
 \begin{equation}
+\label{analytic_solution}
 \Phi(x, t) = exp(-k^2Dt) sin[k(x-ut)].
 \end{equation}
 
@@ -124,8 +125,116 @@ The following cases are considered:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.4\textwidth]{figure/FTCS.png}
+\caption{FTCS scheme}
+\label{FTCS_scheme}
+\end{center}
+\end{figure}
+
+\begin{equation}
+\label{ftcs_eqn}
+\begin{split}
+\phi_i ^f = & \left(1-\frac{2 D\Delta t}{h^2}\right) \phi_i ^{f-1} + \\
+            & \left(\frac{D \Delta t}{h^2} + \frac{u \Delta t}{2h}\right) \phi_{i-1} ^{f-1} + \\
+            & \left(\frac{D \Delta t}{h^2} - \frac{u \Delta t}{2h}\right) \phi_{i+1} ^{f-1}
+\end{split}
+\end{equation}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.4\textwidth]{figure/Upwind.png}
+\caption{Upwind scheme}
+\label{Upwind_scheme}
+\end{center}
+\end{figure}
+
+\begin{equation}
+\label{upwind_eqn}
+\begin{split}
+\phi_i ^f = & \left( \frac{D \Delta t}{\Delta x^2} \right) \left[ \phi_{i+1} ^{f-1} - 2 \phi_{i} ^{f-1} + \phi_{i-1} ^{f-1} \right] - \\
+            & \left( \frac{u \Delta t}{2 \Delta x} \right) \left[ 3 \phi_{i} ^{f-1} - 4 \phi_{i-1} ^{f-1} + \phi_{i-2} ^{f-1} \right] + \\
+            & \phi_i ^{f-1}
+\end{split}
+\end{equation}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.4\textwidth]{figure/Trapezoidal (time derivative).png}
+\caption{Trapezoidal scheme}
+\label{Trapezoidal_scheme}
+\end{center}
+\end{figure}
+
+\begin{equation}
+\begin{split}
+\begin{bmatrix}
+   { m } & { u } & {   }  & {   }  & { l } \\
+   { l } & { m } & { u }  & {   }  & {   } \\
+   {   } & { l } & { m }  & \ddots & {   } \\
+   {   } & {   } & \ddots & \ddots & { u }\\
+   { u } & {   } & {   }  &  { l }  & { m }\\
+\end{bmatrix}
+\begin{bmatrix}
+   {b_0^{f} }  \\
+   {b_1^{f} }  \\
+   {b_2^{f} }  \\
+   \vdots   \\
+   {b_{i}^{f} }  \\
+\end{bmatrix}
+& =
+\begin{bmatrix}
+   {\phi_0^f }  \\
+   {\phi_1^f }  \\
+   {\phi_2^f }  \\
+   \vdots   \\
+   {\phi_{i}^f }  \\
+\end{bmatrix},
+\end{split}
+\end{equation}
+where $u = A + B$, $m = 1 + 2 A $, and $l = A - B$, where
+\begin{equation}
+A = -\frac{D \Delta t }{2 \Delta x^2} \mbox{ and } B = \frac{u \Delta t }{4 \Delta x},
+\end{equation}
+and
+\begin{equation}
+\begin{split}
+b_i^f = & A (\phi_{i+1}^{f-1} - 2 \phi_i^{f-1} + \phi_{i-1}^{f-1}) - \\
+        & B (\phi_{i+1}^{f-1} - \phi_{i-1}^{f-1}) + \\
+        & \phi_i^{f-1}
+\end{split}.
+\end{equation}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.4\textwidth]{figure/QUICK.png}
+\caption{QUICK scheme}
+\label{QUICK_scheme}
+\end{center}
+\end{figure}
+
+\begin{equation}
+\label{quick_eqn}
+\begin{split}
+\phi_i ^f = & \left( \frac{D \Delta t}{\Delta x^2} \right) \left[ \phi_{i+1} ^{f-1} - 2 \phi_{i} ^{f-1} + \phi_{i-1} ^{f-1} \right] - \\
+            & \left( \frac{u \Delta t}{8 \Delta x} \right) \left[ 3 \phi_{i+1} ^{f-1}  + 3 \phi_{i} ^{f-1}  + \phi_{i-2} ^{f-1} - 7 \phi_{i-1} ^{f-1} \right] + \\
+            & \phi_i ^{f-1}
+\end{split}
+\end{equation}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
+
+The computational result for the 1-D linear convection-diffusion equation can be compared to the analytical result above, Equation~\ref{analytic_solution}. The Root Mean Square error,
+\begin{equation}
+RMSE = \sqrt{\frac{1}{N}\sum\limits_{i=1}^N[\phi_i - \phi^*_i]^2},
+\end{equation}
+and the Normalized Root Mean Square error,
+\begin{equation}
+NRMS = \dfrac{RMSE}{max(\phi^*)-min(\phi^*)},
+\end{equation}
+can be calculated. Here $\phi_i$ is the computational result for the the transported scalar for each point on the 1-D domain, $\phi^*_i$ is the analytical solution, and $N$ is the number of points on the 1-D domain. The $NRMS$ for each case is expressed as a percentage, where lower values indicate a result closer to the analytic solution.
 
 \begin{table}[htb]
 \begin{center}
@@ -170,38 +279,6 @@ Case & FTCS & Upwind & Trap & QUICK  \\
 \nocite{*}
 \bibliographystyle{asmems4}
 \bibliography{asme2e}
-
-\begin{figure}[thb]
-\begin{center}
-\includegraphics[width=0.45\textwidth]{figure/FTCS.png}
-\caption{FTCS scheme}
-\label{FTCS_scheme}
-\end{center}
-\end{figure}
-
-\begin{figure}[thb]
-\begin{center}
-\includegraphics[width=0.45\textwidth]{figure/Upwind.png}
-\caption{Upwind scheme}
-\label{Upwind_scheme}
-\end{center}
-\end{figure}
-
-\begin{figure}[thb]
-\begin{center}
-\includegraphics[width=0.45\textwidth]{figure/Trapezoidal (time derivative).png}
-\caption{Trapezoidal scheme}
-\label{Trapezoidal_scheme}
-\end{center}
-\end{figure}
-
-\begin{figure}[thb]
-\begin{center}
-\includegraphics[width=0.45\textwidth]{figure/QUICK.png}
-\caption{QUICK scheme}
-\label{QUICK_scheme}
-\end{center}
-\end{figure}
 
 \begin{figure}[thb]
 \begin{center}
