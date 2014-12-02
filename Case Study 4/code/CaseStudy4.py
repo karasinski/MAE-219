@@ -50,17 +50,20 @@ def FTCS(Phi, c):
     Phi = np.array(Phi)
     Phi_old = np.array(Phi)
 
+    A = D * dt / dx ** 2
+    B = u * dt / (2 * dx)
+
     t = 0
     while t < tau:
         for i in range(1, N - 1):
-            Phi[i] = ((1 - 2 * D * dt / dx ** 2) * Phi_old[i] +
-                      (D * dt / dx ** 2 + u * dt / (2 * dx)) * Phi_old[i - 1] +
-                      (D * dt / dx ** 2 - u * dt / (2 * dx)) * Phi_old[i + 1])
+            Phi[i] = ((A + B) * Phi_old[i - 1] +
+                      (1 - 2 * A) * Phi_old[i] +
+                      (A - B) * Phi_old[i + 1])
 
         # Enforce our periodic boundary condition
-        Phi[-1] = ((1 - 2 * D * dt / dx ** 2) * Phi_old[-1] +
-                   (D * dt / dx ** 2 + u * dt / (2 * dx)) * Phi_old[-2] +
-                   (D * dt / dx ** 2 - u * dt / (2 * dx)) * Phi_old[1])
+        Phi[-1] = ((A + B) * Phi_old[-2] +
+                   (1 - 2 * A) * Phi_old[-1] +
+                   (A - B) * Phi_old[1])
         Phi[0] = Phi[-1]
 
         Phi_old = np.array(Phi)
@@ -82,24 +85,23 @@ def Upwind(Phi, c):
     Phi = np.array(Phi)
     Phi_old = np.array(Phi)
 
+    A = D * dt / dx ** 2
+    B = u * dt / (2 * dx)
+
     t = 0
     while t <= tau:
-        Phi[0] = (D * dt / dx ** 2 * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[-1]) -
-                  u * dt / (2 * dx) * (3 * Phi_old[0] - 4 * Phi_old[-1] + Phi_old[-2]) +
-                  Phi_old[0])
-
-        Phi[1] = (D * dt / dx ** 2 * (Phi_old[2] - 2 * Phi_old[1] + Phi_old[0]) -
-                  u * dt / (2 * dx) * (3 * Phi_old[1] - 4 * Phi_old[0] + Phi_old[-1]) +
-                  Phi_old[1])
-
         for i in range(2, N - 1):
-            Phi[i] = (D * dt / dx ** 2 * (Phi_old[i + 1] - 2 * Phi_old[i] + Phi_old[i - 1]) -
-                      u * dt / (2 * dx) * (3 * Phi_old[i] - 4 * Phi_old[i - 1] + Phi_old[i - 2]) +
+            Phi[i] = (A * (Phi_old[i + 1] - 2 * Phi_old[i] + Phi_old[i - 1]) -
+                      B * (3 * Phi_old[i] - 4 * Phi_old[i - 1] + Phi_old[i - 2]) +
                       Phi_old[i])
 
-        Phi[-1] = (D * dt / dx ** 2 * (Phi_old[0] - 2 * Phi_old[-1] + Phi_old[-2]) -
-                   u * dt / (2 * dx) * (3 * Phi_old[-1] - 4 * Phi_old[-2] + Phi_old[-3]) +
+        Phi[-1] = (A * (Phi_old[1] - 2 * Phi_old[-1] + Phi_old[-2]) -
+                   B * (3 * Phi_old[-1] - 4 * Phi_old[-2] + Phi_old[-3]) +
                    Phi_old[-1])
+        Phi[0] = Phi[-1]
+        Phi[1] = (A * (Phi_old[2] - 2 * Phi_old[1] + Phi_old[-1]) -
+                  B * (3 * Phi_old[1] - 4 * Phi_old[-1] + Phi_old[-2]) +
+                  Phi_old[1])
 
         Phi_old = np.array(Phi)
         t += dt
@@ -114,41 +116,44 @@ def Trapezoidal(Phi, c):
     Phi = np.array(Phi)
     Phi_old = np.array(Phi)
 
+    A = dt * D / (2 * dx**2)
+    B = dt * u / (4 * dx)
+
     # Create Coefficient Matrix
-    upper = [-(dt * D) / (2 * dx ** 2) + dt * u / (4 * dx) for _ in range(0, N)]
-    main = [1 + (dt * D / (dx ** 2)) for _ in range(0, N)]
-    lower = [-(dt * D) / (2 * dx ** 2) - dt * u / (4 * dx) for _ in range(0, N)]
+    upper = [-A + B for _ in range(0, N)]
+    main = [1 + 2 * A for _ in range(0, N)]
+    lower = [-A - B for _ in range(0, N)]
 
     data = lower, main, upper
     diags = np.array([-1, 0, 1])
     matrix = sparse.spdiags(data, diags, N, N).todense()
 
-    # Set values for cyclic boundary conditions
-    matrix[0, N - 1] = -(dt * D) / (2 * dx ** 2) - dt * u / (4 * dx)
-    matrix[N - 1, 0] = -(dt * D) / (2 * dx ** 2) + dt * u / (4 * dx)
+    # Set values for periodic boundary conditions
+    matrix[0, N - 1] = -A - B
+    matrix[N - 1, 0] = -A + B
 
-    # create blank b array
-    b = np.array(Phi_old)
+    # Initialize RHS
+    RHS = np.array(Phi_old)
 
     t = 0
     while t <= tau:
         # Enforce our periodic boundary condition
-        b[0] = ((dt * D / (2 * dx ** 2)) * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[-1]) -
-                (u * dt / (4 * dx)) * (Phi_old[1] - Phi_old[-1]) +
-                Phi_old[0])
+        RHS[0] = (A * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[-1]) -
+                  B * (Phi_old[1] - Phi_old[-1]) +
+                  Phi_old[0])
 
         for i in range(1, N - 1):
-            b[i] = ((dt * D / (2 * dx ** 2)) * (Phi_old[i + 1] - 2 * Phi_old[i] + Phi_old[i - 1]) -
-                    (u * dt / (4 * dx)) * (Phi_old[i + 1] - Phi_old[i - 1]) +
-                    Phi_old[i])
+            RHS[i] = (A * (Phi_old[i + 1] - 2 * Phi_old[i] + Phi_old[i - 1]) -
+                      B * (Phi_old[i + 1] - Phi_old[i - 1]) +
+                      Phi_old[i])
 
         # Enforce our periodic boundary condition
-        b[-1] = ((dt * D / (2 * dx ** 2)) * (Phi_old[0] - 2 * Phi_old[-1] + Phi_old[-2]) -
-                 (u * dt / (4 * dx)) * (Phi_old[0] - Phi_old[-2]) +
-                 Phi_old[-1])
+        RHS[-1] = (A * (Phi_old[0] - 2 * Phi_old[-1] + Phi_old[-2]) -
+                   B * (Phi_old[0] - Phi_old[-2]) +
+                   Phi_old[-1])
 
         # Solve matrix
-        Phi = np.linalg.solve(matrix, b)
+        Phi = np.linalg.solve(matrix, RHS)
 
         Phi_old = np.array(Phi)
         t += dt
@@ -163,23 +168,23 @@ def QUICK(Phi, c):
     Phi = np.array(Phi)
     Phi_old = np.array(Phi)
 
+    A = D * dt / dx**2
+    B = u * dt / (8 * dx)
+
     t = 0
     while t <= tau:
-        Phi[0] = (dt * D / dx ** 2 * (Phi_old[1] - 2 * Phi_old[0] + Phi_old[N - 1]) -
-                  dt * u / (8 * dx) * (3 * Phi_old[1] + Phi_old[-2] - 7 * Phi_old[N - 1] + 3 * Phi_old[0]) +
-                  Phi_old[0])
-        Phi[1] = (dt * D / dx ** 2 * (Phi_old[2] - 2 * Phi_old[1] + Phi_old[0]) -
-                  dt * u / (8 * dx) * (3 * Phi_old[2] + Phi_old[N - 1] - 7 * Phi_old[0] + 3 * Phi_old[1]) +
-                  Phi_old[1])
-
         for i in range(2, N - 1):
-            Phi[i] = (dt * D / dx ** 2 * (Phi_old[i + 1] - 2 * Phi_old[i] + Phi_old[i - 1]) -
-                      dt * u / (8 * dx) * (3 * Phi_old[i + 1] + Phi_old[i - 2] - 7 * Phi_old[i - 1] + 3 * Phi_old[i]) +
+            Phi[i] = (A * (Phi_old[i + 1] - 2 * Phi_old[i] + Phi_old[i - 1]) -
+                      B * (3 * Phi_old[i + 1] + Phi_old[i - 2] - 7 * Phi_old[i - 1] + 3 * Phi_old[i]) +
                       Phi_old[i])
 
-        Phi[-1] = (dt * D / dx ** 2 * (Phi_old[0] - 2 * Phi_old[-1] + Phi_old[-2]) -
-                   dt * u / (8 * dx) * (3 * Phi_old[0] + Phi_old[-3] - 7 * Phi_old[-2] + 3 * Phi_old[-1]) +
+        Phi[-1] = (A * (Phi_old[1] - 2 * Phi_old[-1] + Phi_old[-2]) -
+                   B * (3 * Phi_old[1] + Phi_old[-3] - 7 * Phi_old[-2] + 3 * Phi_old[-1]) +
                    Phi_old[-1])
+        Phi[0] = Phi[-1]
+        Phi[1] = (A * (Phi_old[2] - 2 * Phi_old[1] + Phi_old[0]) -
+                  B * (3 * Phi_old[2] + Phi_old[-2] - 7 * Phi_old[0] + 3 * Phi_old[1]) +
+                  Phi_old[1])
 
         # Increment
         Phi_old = np.array(Phi)
@@ -444,7 +449,7 @@ def main():
     calc_stability(C, s, 'FTCS')
 
     C = [0.1, 0.2, 0.3, 0.05, 0.1]
-    s = [0.4, 0.3, 0.2, 0.15, 0.1]
+    s = [0.4, 0.3, 0.2,  0.1, 0.1]
     calc_stability(C, s, 'Upwind')
 
     C = [0.5, 0.6, 0.7, 0.8, 0.9]
