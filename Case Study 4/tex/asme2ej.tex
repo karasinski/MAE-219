@@ -125,8 +125,9 @@ The following cases are considered:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
-Four schemes were developed to deal with the five considered cases. These are an explicit FTCS scheme, an upwind finite volume scheme, an implicit trapezoidal scheme, and a QUICK finite volume scheme.
+Four schemes were developed to deal with the five considered cases. These are an explicit FTCS scheme, an upwind finite volume scheme, an implicit trapezoidal scheme, and a QUICK finite volume scheme. Each case makes use of $C$ and $s$ to to compute the spatial ($\Delta x = C D / u s$) and temporal ($\Delta t = C \Delta x / u$) discretizations.
 
+\subsection{FTCS Scheme}
 The first scheme involves using forward-time and central differencing (FTCS) for both the convective flux and the diffusive flux and yields second-order convergence in space and first-order convergence in time. In order to implement this method, the domain of the problem must be discretized. This method calculates the state of the system at a later time from the state of the system at the current time, and is thus an explicit method. For the 1-D transport equation on a uniform grid, the state $\phi$ at grid point $i$ and timestep $f$ can be calculated by the following equation,
 
 \begin{equation}
@@ -140,10 +141,11 @@ The first scheme involves using forward-time and central differencing (FTCS) for
 
 \noindent This scheme is numerically stable as long as the following conditions are satisfied:
 \begin{equation}
+\label{FTCS_stability}
 C \leq \sqrt{2su} \mbox{ and } s \leq \frac{1}{2}.
 \end{equation}
 
-\begin{figure}[thb]
+\begin{figure}[t]
 \begin{center}
 \includegraphics[width=0.4\textwidth]{figure/FTCS.png}
 \caption{The 1-D FTCS scheme interpolates between the two nearby grid points}
@@ -151,23 +153,33 @@ C \leq \sqrt{2su} \mbox{ and } s \leq \frac{1}{2}.
 \end{center}
 \end{figure}
 
-\begin{figure}[thb]
-\begin{center}
-\includegraphics[width=0.4\textwidth]{figure/Upwind.png}
-\caption{Upwind scheme}
-\label{Upwind_scheme}
-\end{center}
-\end{figure}
+\subsection{Upwind Scheme}
+The second scheme is an explicit upwind finite volume method. For this method the convective flux is treated using the basic upwind method and the diffusive flux treated using central differencing. This is a second-order scheme which uses a three point backward difference, as described below
 
 \begin{equation}
 \label{upwind_eqn}
 \begin{split}
 \phi_i ^f = & \left( \frac{D \Delta t}{\Delta x^2} \right) \left[ \phi_{i+1} ^{f-1} - 2 \phi_{i} ^{f-1} + \phi_{i-1} ^{f-1} \right] - \\
             & \left( \frac{u \Delta t}{2 \Delta x} \right) \left[ 3 \phi_{i} ^{f-1} - 4 \phi_{i-1} ^{f-1} + \phi_{i-2} ^{f-1} \right] + \\
-            & \phi_i ^{f-1}
+            & \phi_i ^{f-1}.
 \end{split}
 \end{equation}
 
+\noindent The upwind method is more stable than the FTCS scheme. Unlike the FTCS scheme, the stability of the Upwind scheme does not depend on $u$. This scheme is numerically stable as long as the following condition is satisfied:
+\begin{equation}
+\label{Upwind_stability}
+C + 2s \leq 1.
+\end{equation}
+
+\begin{figure}[tbh]
+\begin{center}
+\includegraphics[width=0.4\textwidth]{figure/Upwind.png}
+\caption{Upwind scheme's interpolation for the diffusive flux}
+\label{Upwind_scheme}
+\end{center}
+\end{figure}
+
+\subsection{Trapezoidal (Crank-Nicholson) Scheme}
 \begin{figure}[thb]
 \begin{center}
 \includegraphics[width=0.4\textwidth]{figure/Trapezoidal (time derivative).png}
@@ -215,6 +227,9 @@ RHS_i^f = & A (\phi_{i+1}^{f-1} - 2 \phi_i^{f-1} + \phi_{i-1}^{f-1}) - \\
 \end{split}.
 \end{equation}
 
+The trapezoidal scheme is always stable.
+
+\subsection{QUICK Scheme}
 \begin{figure}[thb]
 \begin{center}
 \includegraphics[width=0.4\textwidth]{figure/QUICK.png}
@@ -232,18 +247,15 @@ RHS_i^f = & A (\phi_{i+1}^{f-1} - 2 \phi_i^{f-1} + \phi_{i-1}^{f-1}) - \\
 \end{split}
 \end{equation}
 
+\begin{equation}
+\label{QUICK_stability}
+C \leq min(2 - 4 s, \sqrt{2s})
+\end{equation}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
 
-The computational result for the 1-D linear convection-diffusion equation can be compared to the analytical result above, Equation~\ref{analytic_solution}. The Root Mean Square error,
-\begin{equation}
-RMSE = \sqrt{\frac{1}{N}\sum\limits_{i=1}^N[\phi_i - \phi^*_i]^2},
-\end{equation}
-and the Normalized Root Mean Square error,
-\begin{equation}
-NRMS = \dfrac{RMSE}{max(\phi^*)-min(\phi^*)},
-\end{equation}
-can be calculated. Here $\phi_i$ is the computational result for the the transported scalar for each point on the 1-D domain, $\phi^*_i$ is the analytical solution, and $N$ is the number of points on the 1-D domain. The $NRMS$ for each case is expressed as a percentage, where lower values indicate a result closer to the analytic solution.
+For the results below, cases 1, 2, 3, 4, 5 refer to $(C, s) = (0.1, 0.25), (0.5, 0.25), (2, 0.25), (0.5, 0.5), (0.5, 1)$, respectively. The stability for each scheme was investigated for each case. The stability criteria for the FTCS, Upwind, and QUICK schemes can be found as Equations~\ref{FTCS_stability},~\ref{Upwind_stability}, and~\ref{QUICK_stability}. For the cases considered, FTCS was least stable, the Upwind and QUICK schemes were equally stable, and the Trapezoidal scheme is always stable. For the full results, see Table~\ref{stability_table}.
 
 \begin{table}[htb]
 \begin{center}
@@ -262,6 +274,16 @@ Case & FTCS & Upwind & Trap & QUICK  \\
 \label{stability_table}
 \end{center}
 \end{table}
+
+The computational result for the 1-D linear convection-diffusion equation can be compared to the analytical result above, Equation~\ref{analytic_solution}. The Root Mean Square error,
+\begin{equation}
+RMSE = \sqrt{\frac{1}{N}\sum\limits_{i=1}^N[\phi_i - \phi^*_i]^2},
+\end{equation}
+and the Normalized Root Mean Square error,
+\begin{equation}
+NRMS = \dfrac{RMSE}{max(\phi^*)-min(\phi^*)},
+\end{equation}
+can be calculated. Here $\phi_i$ is the computational result for the the transported scalar for each point on the 1-D domain, $\phi^*_i$ is the analytical solution, and $N$ is the number of points on the 1-D domain. The $NRMS$ for each case is expressed as a percentage, where lower values indicate a result closer to the analytic solution.
 
 \begin{table}[htb]
 \begin{center}
