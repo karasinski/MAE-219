@@ -90,7 +90,7 @@
 \section{Problem Description}
 The transport of various scalar quantities (e.g species mass fraction, temperature) in flows can be modeled using a linear convection-diffusion equation (presented here in a 1-D form),
 \begin{equation}
-\frac{\partial \phi}{\partial t} + u \frac{\partial \phi}{\partial x} = D \frac{\partial \phi^2}{\partial x^2}
+\frac{\partial \phi}{\partial t} + u \frac{\partial \phi}{\partial x} = D \frac{\partial \phi^2}{\partial x^2},
 \end{equation}
 $\phi$ is the transported scalar, $u$ and $D$ are known parameters (flow velocity and diffusion coefficient respectively). The purpose of this case study is to investigate the behavior of various numerical solutions of this equation.
 
@@ -125,7 +125,7 @@ The following cases are considered:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
-Four schemes were developed to deal with the five considered cases. These are an explicit FTCS scheme, an upwind finite volume scheme, an implicit trapezoidal scheme, and a QUICK finite volume scheme. Each case makes use of $C$ and $s$ to to compute the spatial ($\Delta x = C D / u s$) and temporal ($\Delta t = C \Delta x / u$) discretizations.
+Four schemes were developed to investigate the five considered cases. These are an explicit FTCS scheme, an upwind finite volume scheme, an implicit trapezoidal scheme, and a QUICK finite volume scheme. Each case makes use of $C$ and $s$ to to compute the spatial ($\Delta x = C D / u s$) and temporal ($\Delta t = C \Delta x / u$) discretizations.
 
 \subsection{FTCS Scheme}
 The first scheme involves using forward-time and central differencing (FTCS) for both the convective flux and the diffusive flux and yields second-order convergence in space and first-order convergence in time. In order to implement this method, the domain of the problem must be discretized. This method calculates the state of the system at a later time from the state of the system at the current time, and is thus an explicit method. For the 1-D transport equation on a uniform grid, the state $\phi$ at grid point $i$ and timestep $f$ can be calculated by the following equation,
@@ -139,7 +139,7 @@ The first scheme involves using forward-time and central differencing (FTCS) for
 \end{split}
 \end{equation}
 
-\noindent This scheme is numerically stable as long as the following conditions are satisfied:
+\noindent To impose the periodic boundary condition, the last node in the domain reaches around to the first node. This scheme is numerically stable as long as the following conditions are satisfied:
 \begin{equation}
 \label{FTCS_stability}
 C \leq \sqrt{2su} \mbox{ and } s \leq \frac{1}{2}.
@@ -148,8 +148,24 @@ C \leq \sqrt{2su} \mbox{ and } s \leq \frac{1}{2}.
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=0.4\textwidth]{figure/FTCS.png}
-\caption{The 1-D FTCS scheme interpolates between the two nearby grid points}
+\caption{The 1-D FTCS scheme interpolates between the two nearby grid points \cite{analytic_citation}}
 \label{FTCS_scheme}
+\end{center}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.4\textwidth]{figure/Upwind.png}
+\caption{Upwind scheme's interpolation for the diffusive flux \cite{analytic_citation}}
+\label{Upwind_scheme}
+\end{center}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.4\textwidth]{figure/Trapezoidal (time derivative).png}
+\caption{Trapezoidal scheme's interpolation for the time derivative \cite{analytic_citation}}
+\label{Trapezoidal_scheme}
 \end{center}
 \end{figure}
 
@@ -165,79 +181,66 @@ The second scheme is an explicit upwind finite volume method. For this method th
 \end{split}
 \end{equation}
 
-\noindent The upwind method is more stable than the FTCS scheme. Unlike the FTCS scheme, the stability of the Upwind scheme does not depend on $u$. This scheme is numerically stable as long as the following condition is satisfied:
+\noindent The upwind method is more stable than the FTCS scheme, and unlike the FTCS scheme, the stability of the Upwind scheme does not depend on $u$. To impose the periodic boundary condition, the first two nodes in domain reach back to the other side of the domain. This scheme is numerically stable as long as the following condition is satisfied:
 \begin{equation}
 \label{Upwind_stability}
 C + 2s \leq 1.
 \end{equation}
 
-\begin{figure}[tbh]
-\begin{center}
-\includegraphics[width=0.4\textwidth]{figure/Upwind.png}
-\caption{Upwind scheme's interpolation for the diffusive flux}
-\label{Upwind_scheme}
-\end{center}
-\end{figure}
-
 \subsection{Trapezoidal (Crank-Nicholson) Scheme}
-\begin{figure}[thb]
-\begin{center}
-\includegraphics[width=0.4\textwidth]{figure/Trapezoidal (time derivative).png}
-\caption{Trapezoidal scheme}
-\label{Trapezoidal_scheme}
-\end{center}
-\end{figure}
+The Trapezoidal scheme is a finite difference method which is implicit and unconditionally stable. This method is an equally weighted average of the explicit and implicit central difference solutions. As this is an implicit method, a system of algebraic equations must be solved to find values of the transported scalar for the next timestep. This problem requires the solution of a nearly tridiagonal matrix, with the exception of the top right and bottom left corners, which are set to impose the periodic boundary condition~\cite{hogarth1990comparative}.
 
+The following set of equations must be solved to advance the solution to the next timestep:
 \begin{equation}
 \begin{split}
 \begin{bmatrix}
    { b } & { c } & {   }  & {   }  & { a } \\
    { a } & { b } & { c }  & {   }  & {   } \\
    {   } & { a } & { b }  & \ddots & {   } \\
-   {   } & {   } & \ddots & \ddots & { c }\\
-   { c } & {   } & {   }  &  { a }  & { b }\\
+   {   } & {   } & \ddots & \ddots & { c } \\
+   { c } & {   } & {   }  & { a }  & { b } \\
 \end{bmatrix}
 \begin{bmatrix}
-   {\phi_1^{f} }  \\
-   {\phi_2^{f} }  \\
-   {\phi_3^{f} }  \\
+   {\phi_1^{f} }   \\
+   {\phi_2^{f} }   \\
+   {\phi_3^{f} }   \\
    \vdots   \\
-   {\phi_{i}^{f} }  \\
+   {\phi_{i}^{f} } \\
 \end{bmatrix}
 & =
 \begin{bmatrix}
-   {RHS_1^{f} }  \\
-   {RHS_2^{f} }  \\
-   {RHS_3^{f} }  \\
+   {RHS_1^{f} }   \\
+   {RHS_2^{f} }   \\
+   {RHS_3^{f} }   \\
    \vdots   \\
-   {RHS_{i}^{f} }  \\
+   {RHS_{i}^{f} } \\
 \end{bmatrix},
 \end{split}
 \end{equation}
-where $c = A + B$, $b = 1 + 2 A $, and $a = A - B$, where
+where $a = A - B$, $b = 1 + 2 A $, and $c = A + B$, and where
 \begin{equation}
 A = -\frac{D \Delta t }{2 \Delta x^2} \mbox{ and } B = \frac{u \Delta t }{4 \Delta x},
 \end{equation}
-and
+\noindent The right hand side of the equation is a linear combination of the solutions from the previous timestep,
 \begin{equation}
 \begin{split}
 RHS_i^f = & A (\phi_{i+1}^{f-1} - 2 \phi_i^{f-1} + \phi_{i-1}^{f-1}) - \\
         & B (\phi_{i+1}^{f-1} - \phi_{i-1}^{f-1}) + \\
-        & \phi_i^{f-1}
-\end{split}.
+        & \phi_i^{f-1}.
+\end{split}
 \end{equation}
 
-The trapezoidal scheme is always stable.
-
 \subsection{QUICK Scheme}
-\begin{figure}[thb]
+
+\begin{figure}[b]
 \begin{center}
 \includegraphics[width=0.4\textwidth]{figure/QUICK.png}
-\caption{QUICK scheme}
+\caption{The QUICK scheme interpolates between two quadratic equations \cite{analytic_citation}}
 \label{QUICK_scheme}
 \end{center}
 \end{figure}
 
+The Quadratic Upstream Interpolation for Convective Kinematics (QUICK) method is an explicit method which uses three point upstream weighted quadratic interpolation for cell phase values (see Figure~\ref{QUICK_scheme}). Here the convective flux is treated using the QUICK method, while the diffusive flux treated using central differencing. This scheme is second-order accurate for the finite difference model \cite{chen1992advection}. This can be implemented with the following equation:
 \begin{equation}
 \label{quick_eqn}
 \begin{split}
@@ -247,15 +250,16 @@ The trapezoidal scheme is always stable.
 \end{split}
 \end{equation}
 
+To impose the periodic boundary condition, the first two nodes in domain reach back to the other side of the domain. This scheme is numerically stable under the following condition:
 \begin{equation}
 \label{QUICK_stability}
-C \leq min(2 - 4 s, \sqrt{2s})
+C \leq min(2 - 4 s, \sqrt{2s}).
 \end{equation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
 
-For the results below, cases 1, 2, 3, 4, 5 refer to $(C, s) = (0.1, 0.25), (0.5, 0.25), (2, 0.25), (0.5, 0.5), (0.5, 1)$, respectively. The stability for each scheme was investigated for each case. The stability criteria for the FTCS, Upwind, and QUICK schemes can be found as Equations~\ref{FTCS_stability},~\ref{Upwind_stability}, and~\ref{QUICK_stability}. For the cases considered, FTCS was least stable, the Upwind and QUICK schemes were equally stable, and the Trapezoidal scheme is always stable. For the full results, see Table~\ref{stability_table}.
+For the results below, cases 1, 2, 3, 4, 5 refer to $(C, s) = (0.1, 0.25), (0.5, 0.25), (2, 0.25), (0.5, 0.5), (0.5, 1)$, respectively. The stability for each scheme was investigated for each case. The stability criteria for the FTCS, Upwind, and QUICK schemes can be found as Equations~\ref{FTCS_stability},~\ref{Upwind_stability}, and~\ref{QUICK_stability}~\cite{LectureA}. For the cases considered, FTCS was least stable, the Upwind and QUICK schemes were equally stable, and the Trapezoidal scheme is always stable. For the full results, see Table~\ref{stability_table}.
 
 \begin{table}[htb]
 \begin{center}
