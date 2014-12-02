@@ -120,9 +120,9 @@ def Trapezoidal(Phi, c):
     B = dt * u / (4 * dx)
 
     # Create Coefficient Matrix
-    upper = [-A + B for _ in range(0, N)]
-    main = [1 + 2 * A for _ in range(0, N)]
     lower = [-A - B for _ in range(0, N)]
+    main = [1 + 2 * A for _ in range(0, N)]
+    upper = [-A + B for _ in range(0, N)]
 
     data = lower, main, upper
     diags = np.array([-1, 0, 1])

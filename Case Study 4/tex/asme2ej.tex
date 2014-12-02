@@ -133,13 +133,13 @@ The first scheme involves using forward-time and central differencing (FTCS) for
 \begin{equation}
 \label{ftcs_eqn}
 \begin{split}
-\phi_i ^f = & \left(1-\frac{2 D\Delta t}{\Delta x^2}\right) \phi_i ^{f-1} + \\
-            & \left(\frac{D \Delta t}{\Delta x^2} + \frac{u \Delta t}{2 \Delta x}\right) \phi_{i-1} ^{f-1} + \\
+\phi_i ^f = & \left(\frac{D \Delta t}{\Delta x^2} + \frac{u \Delta t}{2 \Delta x}\right) \phi_{i-1} ^{f-1} + \\
+            & \left(1-\frac{2 D\Delta t}{\Delta x^2}\right) \phi_i ^{f-1} + \\
             & \left(\frac{D \Delta t}{\Delta x^2} - \frac{u \Delta t}{2 \Delta x}\right) \phi_{i+1} ^{f-1}.
 \end{split}
 \end{equation}
 
-\noindent To impose the periodic boundary condition, the last node in the domain reaches around to the first node. This scheme is numerically stable as long as the following conditions are satisfied:
+\noindent To impose the periodic boundary condition, the last node in the domain reaches around to the second node, while the first node is set equivalent to the last node. This scheme is numerically stable as long as the following conditions are satisfied:
 \begin{equation}
 \label{FTCS_stability}
 C \leq \sqrt{2su} \mbox{ and } s \leq \frac{1}{2}.
@@ -181,7 +181,7 @@ The second scheme is an explicit upwind finite volume method. For this method th
 \end{split}
 \end{equation}
 
-\noindent The upwind method is more stable than the FTCS scheme, and unlike the FTCS scheme, the stability of the Upwind scheme does not depend on $u$. To impose the periodic boundary condition, the first two nodes in domain reach back to the other side of the domain. This scheme is numerically stable as long as the following condition is satisfied:
+\noindent The upwind method is more stable than the FTCS scheme, and unlike the FTCS scheme, the stability of the Upwind scheme does not depend on $u$. To impose the periodic boundary condition, the last node and the second node in the domain reach across the edge of the domain, while the first node is set equivalent to the last node. This scheme is numerically stable as long as the following condition is satisfied:
 \begin{equation}
 \label{Upwind_stability}
 C + 2s \leq 1.
@@ -217,9 +217,9 @@ The following set of equations must be solved to advance the solution to the nex
 \end{bmatrix},
 \end{split}
 \end{equation}
-where $a = A - B$, $b = 1 + 2 A $, and $c = A + B$, and where
+where $a = -A - B$, $b = 1 + 2 A $, and $c = -A + B$, and where
 \begin{equation}
-A = -\frac{D \Delta t }{2 \Delta x^2} \mbox{ and } B = \frac{u \Delta t }{4 \Delta x},
+A = \frac{D \Delta t }{2 \Delta x^2} \mbox{ and } B = \frac{u \Delta t }{4 \Delta x},
 \end{equation}
 \noindent The right hand side of the equation is a linear combination of the solutions from the previous timestep,
 \begin{equation}
@@ -250,7 +250,7 @@ The Quadratic Upstream Interpolation for Convective Kinematics (QUICK) method is
 \end{split}
 \end{equation}
 
-To impose the periodic boundary condition, the first two nodes in domain reach back to the other side of the domain. This scheme is numerically stable under the following condition:
+To impose the periodic boundary condition, the last node and the second node in the domain reach across the edge of the domain, while the first node is set equivalent to the last node. This scheme is numerically stable under the following condition:
 \begin{equation}
 \label{QUICK_stability}
 C \leq min(2 - 4 s, \sqrt{2s}).
@@ -296,11 +296,11 @@ can be calculated. Here $\phi_i$ is the computational result for the the transpo
 \hline
 Case & FTCS & Upwind & Trap & QUICK  \\
 \hline
-1 & 7.23E-3  & 2.20E-2   & 2.42E-2 & 2.45E-2  \\
-2 & 2.23E-1  & 2.34E+10  & 1.30E-1 & 2.59E-1  \\
-3 & 8.26E+0  & 1.18E+2   & 7.72E-1 & 9.40E+0  \\
-4 & 1.06E-1  & 4.22E+36  & 4.56E-2 & 8.73E+11 \\
-5 & 1.10E+61 & 8.22E+110 & 2.14E-2 & 4.70E+85 \\
+1 & 7.23E-03 & 9.68E-03 & 2.42E-02 & 7.67E-03 \\
+2 & 2.23E-01 & 2.89E-01 & 1.30E-01 & 2.32E-01 \\
+3 & 8.26E+00 & 3.64E+01 & 7.72E-01 & 1.24E+01 \\
+4 & 1.06E-01 & 6.99E+22 & 4.56E-02 & 1.10E-01 \\
+5 & 1.10E+61 & 1.28E+97 & 2.14E-02 & 7.37E+71 \\
 \hline
 \end{tabular}
 \caption{NRMS results for each case and method}
@@ -308,7 +308,7 @@ Case & FTCS & Upwind & Trap & QUICK  \\
 \end{center}
 \end{table}
 
-The lowest NRMS error is found by using the FTCS scheme under Case 1. Despite this, the FTCS case quickly blows up for Cases 3 and 5 due to numerical instability. The Trapezoidal method's unconditionable stability leads to it performing best for all cases aside from Case 1.
+The lowest NRMS error is found by using the FTCS scheme under Case 1. Despite this, the FTCS case quickly blows up for Cases 3 and 5 due to numerical instability. The QUICK method performs similarly, with approximately the same error for all cases. The Trapezoidal method's unconditionable stability leads to it performing best for all cases aside from Case 1.
 
 The cases of large NRMS arise from the loss of stability in the scheme. The effect of instability can be seen quite clearly in Figure~\ref{QUICK_transition}. Making use of Equation~\ref{QUICK_stability} with values $C=0.5$ and $s=1$, for instance, one can see that
 \begin{equation}
@@ -330,16 +330,16 @@ is false. This leads to the instability and resultant large NRMS of 4.70E+85.
 \end{figure}
 The effective order of each method was calculated by fitting the NRMS for cases within the stability region of each method. The effective order was found by fitting with a linear function against a log log plot of the NRMS versus the $\Delta x$ and $\Delta t$, see Figure~\ref{QUICK_order} for an example. The slope of the fit estimates the order of accuracy of the method. The effective orders of accuracy for the FTCS, Trapezoidal, and QUICK methods are approximately 2 for the spatial dimension and approximately 1 for the temporal dimension. The Upwind method is approximately first order accurate in the spatial dimension. For full results, see Table~\ref{effective_order_table}.
 
-\begin{table}[htb]
+\begin{table}[tb]
 \begin{center}
 \begin{tabular}{|r | r | r |}
 \hline
 Method & $\Delta x$ & $\Delta t$ \\
 \hline
 FTCS    & 2.06 & 1.06 \\
-Upwind  & 1.00 & 0.53 \\
+Upwind  & 1.08 & 0.55 \\
 Trap    & 1.97 & 0.99 \\
-QUICK   & 2.06 & 1.03 \\
+QUICK   & 2.32 & 1.16 \\
 \hline
 \end{tabular}
 \caption{Effective order of each method for $\Delta x$ and $\Delta t$}
@@ -349,9 +349,9 @@ QUICK   & 2.06 & 1.03 \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
-Only the first case led to stable solutions for each scheme. The results from this case can be seen in Figure~\ref{case_1_results}. The error between each scheme's result and the analytic solution can be seen in Figure~\ref{case_1_error}. The error suggests thats the primary error from the FTCS scheme is in the ampltitude of the solution, while the primary error in the Upwind, Trapezoidal, and QUICK schemes is in the wave speed.
+Only the first case led to stable solutions for each scheme. The results from this case can be seen in Figure~\ref{case_1_results}. The error between each scheme's result and the analytic solution can be seen in Figure~\ref{case_1_error}. This error shows that the three explicit methods can perform better than the implicit method for low CFL numbers, though for larger CFL numbers the opposite is true.
 
-While the FTCS scheme produced the lowest error in the majority of the considered cases, the unconditional stability of the Trapezoidal method makes it the more reliable method if the $C$ and $s$ values cannot be chosen freely.
+While the FTCS and QUICK schemes produced the lowest error in the majority of the considered cases, the unconditional stability of the Trapezoidal method makes it the more reliable method if the $C$ and $s$ values cannot be chosen freely.
 
 \begin{figure}[thb]
 \begin{center}
