@@ -121,7 +121,6 @@ The following cases are considered:
 \end{equation*}
 \noindent where $C = u\Delta t/\Delta x$ and $s = D\Delta t/\Delta x^2$. A uniform mesh for all solvers and cases. The stability and accuracy of these schemes was investigated.
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
@@ -130,25 +129,42 @@ The following cases are considered:
 
 \begin{table}[htb]
 \begin{center}
-\begin{tabular}{|r | r r r r r|}
+\begin{tabular}{|r | l l l l|}
 \hline
-C           & 0.10   & 0.50   & 2.00  & 0.50  & 0.50  \\
-s           & 0.25   & 0.25   & 0.25  & 0.50  & 1.00  \\
+Case & FTCS & Upwind & Trap & QUICK  \\
 \hline
-FTCS        &  True  & False  & False & False & False \\
-Upwind      & True   & True   & False & False & False \\
-Trapezoidal & True   & True   & True  & True  & True  \\
-QUICK       & True   & True   & False & False & False \\
+1 & True  & True  & True & True  \\
+2 & False & True  & True & True  \\
+3 & False & False & True & False \\
+4 & False & False & True & False \\
+5 & False & False & True & False \\
 \hline
 \end{tabular}
 \caption{Stability results for each case and method}
-\label{length_table}
+\label{stability_table}
+\end{center}
+\end{table}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|r | l l l l|}
+\hline
+Case & FTCS & Upwind & Trap & QUICK  \\
+\hline
+1 & 7.23E-3  & 2.20E-2   & 2.42E-2 & 2.45E-2  \\
+2 & 2.23E-1  & 2.34E+10  & 1.30E-1 & 2.59E-1  \\
+3 & 8.26E+0  & 1.18E+2   & 7.72E-1 & 9.40E+0  \\
+4 & 1.06E-1  & 4.22E+36  & 4.56E-2 & 8.73E+11 \\
+5 & 1.10E+61 & 8.22E+110 & 2.14E-2 & 4.70E+85 \\
+\hline
+\end{tabular}
+\caption{NRMS results for each case and method}
+\label{rms_table}
 \end{center}
 \end{table}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \nocite{*}
@@ -191,7 +207,7 @@ QUICK       & True   & True   & False & False & False \\
 \begin{center}
 \includegraphics[width=0.5\textwidth]{../code/figures/C=0.1 s=0.25.pdf}
 \caption{Results of first case}
-\label{base_study}
+\label{case_1_results}
 \end{center}
 \end{figure}
 
@@ -199,18 +215,7 @@ QUICK       & True   & True   & False & False & False \\
 \begin{center}
 \includegraphics[width=0.5\textwidth]{../code/figures/Error C=0.1 s=0.25.pdf}
 \caption{Error for first case}
-\label{base_study}
-\end{center}
-\end{figure}
-
-\begin{figure}[thb]
-\begin{center}
-\includegraphics[width=0.5\textwidth]{../code/figures/Order FTCS.pdf}
-% \includegraphics[width=0.5\textwidth]{../code/figures/Order Upwind.pdf}
-% \includegraphics[width=0.5\textwidth]{../code/figures/Order Trapezoidal.pdf}
-\includegraphics[width=0.5\textwidth]{../code/figures/Order QUICK.pdf}
-\caption{Effective order of accuracy}
-\label{base_study}
+\label{case_1_error}
 \end{center}
 \end{figure}
 
@@ -220,7 +225,7 @@ QUICK       & True   & True   & False & False & False \\
 \includegraphics[width=0.5\textwidth]{../code/figures/FTCS 0.5 0.25.pdf}
 \includegraphics[width=0.5\textwidth]{../code/figures/FTCS 0.5 1.pdf}
 \caption{FTCS method's transition into instability}
-\label{base_study}
+\label{FTCS_transition}
 \end{center}
 \end{figure}
 
@@ -230,10 +235,9 @@ QUICK       & True   & True   & False & False & False \\
 \includegraphics[width=0.5\textwidth]{../code/figures/QUICK 0.5 0.25.pdf}
 \includegraphics[width=0.5\textwidth]{../code/figures/QUICK 0.5 1.pdf}
 \caption{QUICK method's transition into instability}
-\label{base_study}
+\label{QUICK_transition}
 \end{center}
 \end{figure}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
