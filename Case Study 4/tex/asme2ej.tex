@@ -128,22 +128,23 @@ The following cases are considered:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
 
-%\begin{table}[htb]
-%\begin{center}
-%\begin{tabular}{|r r | r r|}
-%\hline
-%$x (m)$ & $n$ & $NRMS_{xx}$ & $NRMS_{yy}$ \\
-%\hline
-%3   & 1000 & 14.58\% & 28.29\% \\
-%4   & 1000 & 9.01\% & 17.43\% \\
-%5   & 1000 & 6.04\% & 8.82\% \\
-%100 & 1000 & 4.06\% & 4.19\% \\
-%\hline
-%\end{tabular}
-%\caption{$NRMS$ results from the numerical simulations for the effect of plate length study}
-%\label{length_table}
-%\end{center}
-%\end{table}
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|r | r r r r r|}
+\hline
+C           & 0.10   & 0.50   & 2.00  & 0.50  & 0.50  \\
+s           & 0.25   & 0.25   & 0.25  & 0.50  & 1.00  \\
+\hline
+FTCS        &  True  & False  & False & False & False \\
+Upwind      & True   & True   & False & False & False \\
+Trapezoidal & True   & True   & True  & True  & True  \\
+QUICK       & True   & True   & False & False & False \\
+\hline
+\end{tabular}
+\caption{Stability results for each case and method}
+\label{length_table}
+\end{center}
+\end{table}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
@@ -156,7 +157,7 @@ The following cases are considered:
 
 \begin{figure}[thb]
 \begin{center}
-\includegraphics[width=0.4\textwidth]{figures/CDS.pdf}
+\includegraphics[width=0.45\textwidth]{figure/FTCS.png}
 \caption{FTCS scheme}
 \label{FTCS_scheme}
 \end{center}
@@ -164,7 +165,7 @@ The following cases are considered:
 
 \begin{figure}[thb]
 \begin{center}
-\includegraphics[width=0.4\textwidth]{figures/upwind.pdf}
+\includegraphics[width=0.45\textwidth]{figure/Upwind.png}
 \caption{Upwind scheme}
 \label{Upwind_scheme}
 \end{center}
@@ -172,7 +173,15 @@ The following cases are considered:
 
 \begin{figure}[thb]
 \begin{center}
-\includegraphics[width=0.4\textwidth]{figures/quick.pdf}
+\includegraphics[width=0.45\textwidth]{figure/Trapezoidal (time derivative).png}
+\caption{Trapezoidal scheme}
+\label{Trapezoidal_scheme}
+\end{center}
+\end{figure}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.45\textwidth]{figure/QUICK.png}
 \caption{QUICK scheme}
 \label{QUICK_scheme}
 \end{center}

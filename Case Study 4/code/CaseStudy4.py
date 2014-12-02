@@ -321,9 +321,9 @@ def stability(c):
     C, s, u = c.C, c.s, c.u
 
     FTCS = C <= np.sqrt(2 * s * u) and s <= 0.5
-    Upwind = C + 2*s < 1
+    Upwind = C + 2*s <= 1
     Trapezoidal = True
-    QUICK = C < min(2-4*s, np.sqrt(2*s))
+    QUICK = C <= min(2 - 4 * s, np.sqrt(2 * s))
 
     # print('C = ', C, ' s = ', s)
     # print('FTCS: ' + str(FTCS))
