@@ -88,11 +88,11 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem Description}
-The transport of various scalar quantities (e.g species mass fraction, temperature) in flows can be modeled using a linear convection-diffusion equation (presented here in a 1-D form),
+The transport of various scalar quantities in flows (e.g. species mass fraction, temperature) can be modeled using a linear convection-diffusion equation (presented here in a 1-D form),
 \begin{equation}
 \frac{\partial \phi}{\partial t} + u \frac{\partial \phi}{\partial x} = D \frac{\partial \phi^2}{\partial x^2},
 \end{equation}
-$\phi$ is the transported scalar, $u$ and $D$ are known parameters (flow velocity and diffusion coefficient respectively). The purpose of this case study is to investigate the behavior of various numerical solutions of this equation.
+where $\phi$ is the transported scalar, $u$ and $D$ are known parameters (flow velocity and diffusion coefficient respectively). The purpose of this case study is to investigate the behavior of various numerical solutions of this equation.
 
 This case study focuses on the solution of the 1-D linear transport equation (above)
 for $x$ $\in$ $[0, L]$ and $t$ $\in$ $[0, \tau ]$ (where $\tau = 1/k^2D$) subject to periodic boundary conditions and the following initial condition
@@ -109,26 +109,26 @@ This problem has an analytical solution \cite{analytic_citation},
 
 Numerical solutions of this problem were created using the following schemes:
 \begin{enumerate}
-\item FTCS (Explicit) — Forward-Time and central differencing for both the convective flux and the diffusive flux.
-\item Upwind — Finite Volume method: Explicit (forward Euler), with the convective flux treated using
+\item FTCS (Explicit) - Forward-Time and central differencing for both the convective flux and the diffusive flux.
+\item Upwind - Finite Volume method: Explicit (forward Euler), with the convective flux treated using
 the basic upwind method and the diffusive flux treated using central differencing.
-\item Trapezoidal — (AKA Crank-Nicholson).
-\item QUICK — Finite Volume method: Explicit, with the convective flux treated using the QUICK method and the diffusive flux treated using central differencing.
+\item Trapezoidal - (AKA Crank-Nicholson).
+\item QUICK - Finite Volume method: Explicit, with the convective flux treated using the QUICK method and the diffusive flux treated using central differencing.
 \end{enumerate}
 
 The following cases are considered:
 \begin{equation*}
 (C, s) \in \{(0.1, 0.25), (0.5, 0.25), (2, 0.25), (0.5, 0.5), (0.5, 1)\}
 \end{equation*}
-\noindent where $C = u\Delta t/\Delta x$ and $s = D\Delta t/\Delta x^2$. A uniform mesh for all solvers and cases. The stability and accuracy of these schemes was investigated.
+\noindent where $C = u\Delta t/\Delta x$ and $s = D\Delta t/\Delta x^2$. A uniform mesh was generated with spacing $\Delta x$ for all solvers and cases. The stability and accuracy of these schemes was investigated.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
-Four schemes were developed to investigate the five considered cases. These are an explicit FTCS scheme, an upwind finite volume scheme, an implicit trapezoidal scheme, and a QUICK finite volume scheme. Each case makes use of $C$ and $s$ to to compute the spatial ($\Delta x = C D / u s$) and temporal ($\Delta t = C \Delta x / u$) discretizations.
+Three explicit schemes and one implicit scheme were developed to investigate the five considered cases. These are an explicit FTCS scheme, an upwind finite volume scheme, an implicit trapezoidal scheme, and a QUICK finite volume scheme. Each case makes use of $C$ and $s$ to to compute the spatial ($\Delta x = C D / u s$) and temporal ($\Delta t = C \Delta x / u$) discretizations.
 
 \subsection{FTCS Scheme}
-The first scheme involves using forward-time and central differencing (FTCS) for both the convective flux and the diffusive flux and yields second-order convergence in space and first-order convergence in time. In order to implement this method, the domain of the problem must be discretized. This method calculates the state of the system at a later time from the state of the system at the current time, and is thus an explicit method. For the 1-D transport equation on a uniform grid, the state $\phi$ at grid point $i$ and timestep $f$ can be calculated by the following equation,
+The first scheme involves using forward-time and central differencing (FTCS) for both the convective flux and the diffusive flux and yields second-order convergence in space and first-order convergence in time. In order to implement this method, the domain of the problem must be discretized. This method calculates the state of the system at a later time from the state of the system at the current time, and is thus an explicit method. For the 1-D transport equation on a uniform grid, the state $\phi$ at grid point $i$ and time step $f$ can be calculated by the following equation,
 
 \begin{equation}
 \label{ftcs_eqn}
@@ -148,7 +148,7 @@ C \leq \sqrt{2su} \mbox{ and } s \leq \frac{1}{2}.
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=0.4\textwidth]{figure/FTCS.png}
-\caption{The 1-D FTCS scheme interpolates between the two nearby grid points \cite{analytic_citation}}
+\caption{The 1-D FTCS scheme interpolates between the two nearby grid points~\cite{analytic_citation}}
 \label{FTCS_scheme}
 \end{center}
 \end{figure}
@@ -156,7 +156,7 @@ C \leq \sqrt{2su} \mbox{ and } s \leq \frac{1}{2}.
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=0.4\textwidth]{figure/Upwind.png}
-\caption{Upwind scheme's interpolation for the diffusive flux \cite{analytic_citation}}
+\caption{Upwind scheme's interpolation for the diffusive flux~\cite{analytic_citation}}
 \label{Upwind_scheme}
 \end{center}
 \end{figure}
@@ -164,7 +164,7 @@ C \leq \sqrt{2su} \mbox{ and } s \leq \frac{1}{2}.
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=0.4\textwidth]{figure/Trapezoidal (time derivative).png}
-\caption{Trapezoidal scheme's interpolation for the time derivative \cite{analytic_citation}}
+\caption{Trapezoidal scheme's interpolation for the time derivative~\cite{analytic_citation}}
 \label{Trapezoidal_scheme}
 \end{center}
 \end{figure}
@@ -188,16 +188,25 @@ C + 2s \leq 1.
 \end{equation}
 
 \subsection{Trapezoidal (Crank-Nicholson) Scheme}
-The Trapezoidal scheme is a finite difference method which is implicit and unconditionally stable. This method is an equally weighted average of the explicit and implicit central difference solutions. As this is an implicit method, a system of algebraic equations must be solved to find values of the transported scalar for the next timestep. This problem requires the solution of a nearly tridiagonal matrix, with the exception of the top right and bottom left corners, which are set to impose the periodic boundary condition~\cite{hogarth1990comparative}.
+The Trapezoidal scheme is a finite difference method which is implicit and unconditionally stable. This method is an equally weighted average of the explicit and implicit central difference solutions. This is accomplished by setting $\theta = \frac{1}{2}$ in the following equation:
+\begin{equation*}
+\begin{split}
+\theta & \left[\left(C-s\right)\phi^{f+1}_{i+1} + \left(\frac{1}{\theta}+2s\right)\phi^{f+1}_{i} - \left(s+C\right)\phi^{f+1}_{i-1}\right] = \\
+(1-\theta) & \left[\left(-C+s\right)\phi^{f}_{i+1} + \left(\frac{1}{1-\theta}-2s\right)\phi^{f}_{i} + \left(s+C\right)\phi^{f}_{i-1}\right].
+\end{split}
+\end{equation*}
 
-The following set of equations must be solved to advance the solution to the next timestep:
+\noindent This leads to an implicit method, a system of algebraic equations must be solved to find values of the transported scalar for the next time step. This problem requires the solution of a nearly tridiagonal matrix, with the exception of the top right and bottom left corners, which are set to impose the periodic boundary condition~\cite{hogarth1990comparative}.
+
+The following set of equations must be solved to advance the solution to the next time step:
 \begin{equation}
 \begin{split}
 \begin{bmatrix}
    { b } & { c } & {   }  & {   }  & { a } \\
    { a } & { b } & { c }  & {   }  & {   } \\
-   {   } & { a } & { b }  & \ddots & {   } \\
-   {   } & {   } & \ddots & \ddots & { c } \\
+   {   } & { a } & { b }  & { c }  & {   } \\
+   {   } & \ddots & \ddots & \ddots & {  } \\
+   {   } & {   } & { a }  & { b } & { c } \\
    { c } & {   } & {   }  & { a }  & { b } \\
 \end{bmatrix}
 \begin{bmatrix}
@@ -205,6 +214,7 @@ The following set of equations must be solved to advance the solution to the nex
    {\phi_2^{f} }   \\
    {\phi_3^{f} }   \\
    \vdots   \\
+   {\phi_{i-1}^{f} } \\
    {\phi_{i}^{f} } \\
 \end{bmatrix}
 & =
@@ -213,6 +223,7 @@ The following set of equations must be solved to advance the solution to the nex
    {RHS_2^{f} }   \\
    {RHS_3^{f} }   \\
    \vdots   \\
+   {RHS_{i-1}^{f} } \\
    {RHS_{i}^{f} } \\
 \end{bmatrix},
 \end{split}
@@ -221,7 +232,7 @@ where $a = -A - B$, $b = 1 + 2 A $, and $c = -A + B$, and where
 \begin{equation}
 A = \frac{D \Delta t }{2 \Delta x^2} \mbox{ and } B = \frac{u \Delta t }{4 \Delta x},
 \end{equation}
-\noindent The right hand side of the equation is a linear combination of the solutions from the previous timestep,
+\noindent The right hand side of the equation is a linear combination of the solutions from the previous time step,
 \begin{equation}
 \begin{split}
 RHS_i^f = & A (\phi_{i+1}^{f-1} - 2 \phi_i^{f-1} + \phi_{i-1}^{f-1}) - \\
@@ -259,7 +270,7 @@ C \leq min(2 - 4 s, \sqrt{2s}).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
 \subsection{Stability}
-For the results below, cases 1, 2, 3, 4, 5 refer to $(C, s) = (0.1, 0.25), (0.5, 0.25), (2, 0.25), (0.5, 0.5), (0.5, 1)$, respectively. The stability for each scheme was investigated for each case. The stability criteria for the FTCS, Upwind, and QUICK schemes can be found as Equations~\ref{FTCS_stability},~\ref{Upwind_stability}, and~\ref{QUICK_stability}~\cite{LectureA}. For the cases considered, FTCS was least stable, the Upwind and QUICK schemes were effectively equally stable, and the Trapezoidal scheme is always stable. For the full results, see Table~\ref{stability_table}.
+For the results below, cases 1, 2, 3, 4, 5 refer to $(C, s) = (0.1, 0.25), (0.5, 0.25), (2, 0.25), (0.5, 0.5), (0.5, 1)$, respectively. The stability for each scheme was investigated for each case. The stability criteria for the FTCS, Upwind, and QUICK schemes can be found as Equations~\ref{FTCS_stability},~\ref{Upwind_stability}, and~\ref{QUICK_stability}~\cite{LectureA}. For the cases considered, FTCS was least stable, the Upwind and QUICK schemes were effectively equally stable, while the Trapezoidal scheme is inherently stable. For the full results, see Table~\ref{stability_table}.
 
 \begin{table}[tb]
 \begin{center}
@@ -303,12 +314,12 @@ Case & FTCS & Upwind & Trap & QUICK  \\
 5 & 1.10E+61 & 1.28E+97 & 2.14E-02 & 7.37E+71 \\
 \hline
 \end{tabular}
-\caption{NRMS results for each case and method}
+\caption{NRMS results for each case and method (each value is expressed as a percentage)}
 \label{rms_table}
 \end{center}
 \end{table}
 
-The lowest NRMS error is found by using the FTCS scheme under Case 1. Despite this, the FTCS case quickly blows up for Cases 3 and 5 due to numerical instability. The QUICK method performs similarly, with approximately the same error for all cases. The Trapezoidal method's unconditionable stability leads to it performing best for all cases aside from Case 1.
+The lowest NRMS error is found by using the FTCS scheme under Case 1. Despite this, the FTCS case quickly blows up for Cases 3 and 5 due to numerical instability. The QUICK method performs similarly, with approximately the same error for all cases. The Trapezoidal method's unconditional stability leads to it performing best for all cases aside from Case 1.
 
 The cases of large NRMS arise from the loss of stability in the scheme. The effect of instability can be seen quite clearly in Figure~\ref{QUICK_transition}. Making use of Equation~\ref{QUICK_stability} with values $C=0.5$ and $s=1$, for instance, one can see that
 \begin{equation}
@@ -349,9 +360,9 @@ QUICK   & 2.32 & 1.16 \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
-Only the first case led to stable solutions for each scheme. The results from this case can be seen in Figure~\ref{case_1_results}. The error between each scheme's result and the analytic solution can be seen in Figure~\ref{case_1_error}. This error shows that the three explicit methods can perform better than the implicit method for low CFL numbers, though for larger CFL numbers the opposite is true.
+Only the first case led to stable solutions for each scheme. The results from this case can be seen in Figure~\ref{case_1_results}. The error between each scheme's result and the analytic solution can be seen in Figure~\ref{case_1_error}. This error shows that the three explicit methods can perform better than the implicit method for low CFL numbers, though for larger CFL numbers the opposite is also true.
 
-While the FTCS and QUICK schemes produced the lowest error in the majority of the considered cases, the unconditional stability of the Trapezoidal method makes it the more reliable method if the $C$ and $s$ values cannot be chosen freely.
+While the FTCS and QUICK schemes produced the lowest error in the majority of the considered cases, the unconditional stability of the Trapezoidal method makes it the more reliable method if the $C$ and $s$ values cannot be chosen freely. The spatial accuracy of the schemes implemented here can be improved by including more data points in their derivation, which would offer a more accurate finite difference stencil for the approximation of spatial derivative.
 
 \begin{figure}[thb]
 \begin{center}
