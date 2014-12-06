@@ -1,26 +1,30 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import ode
+from time import clock
+
+
+def K(z):
+    return 10E-8 * np.exp(z / 5.)
 
 
 def gamma(z):
-    return 1. - ((z-40.)/10.) ** 2 + 1./2 * ((z-40.)/10.) ** 4
+    return 1. - ((z - 40.) / 10.) ** 2 + (1. / 2.) * ((z - 40.) / 10.) ** 4
 
 
-def K(x):
-    return 30 + x * dz
-
-
-def R(n, c, t):
+def R(y_1, y_2, t):
     '''
-    Find the reaction rate of the system at state c and time t. It returns R_1
-    or R_2, depending on the first input parameter.
+    Find the reaction rate of the system at state c and time t.
     '''
 
-    k_1 = 1.63E-16
-    k_2 = 4.66E-16
+    y_3 = 3.7e16          # Concentration of O_2 (constant)
 
-    a_3 = 22.62
-    a_4 = 7.601
-    w = np.pi / 43200
+    k_1 = 1.63E-16       # Reaction rate [O + O_2 ->     O_3]
+    k_2 = 4.66E-16       # Reaction rate [O + O_3 -> 2 * O_2]
+
+    a_3 = 22.62          # Constant used in calculation of k_3
+    a_4 = 7.601          # Constant used in calculation of k_4
+    w = np.pi / 43200    # Cycle (half a day) [1/sec]
 
     if np.sin(w * t) > 0:
         k_3 = np.exp(-a_3 / np.sin(w * t))
@@ -29,68 +33,91 @@ def R(n, c, t):
         k_3 = 0
         k_4 = 0
 
-    if n == 1:
-        return (-k_1 * c[0] * c[2]
-                - k_2 * c[0] * c[1]
-                + 2 * k_3 * c[2]
-                + k_4 * c[1])
-
-    elif n == 2:
-        return (k_1 * c[0] * c[2]
-                - k_2 * c[0] * c[1]
-                - k_4 * c[1])
-    else:
-        raise IndexError('First argument can only be 1 or 2.')
+    R_1 = -k_1 * y_1 * y_3 - k_2 * y_1 * y_2 + 2. * k_3 * y_3 + k_4 * y_2
+    R_2 = +k_1 * y_1 * y_3 - k_2 * y_1 * y_2 - k_4 * y_2
+    return R_1, R_2
 
 
-# not sure if these should be c_dot and c or y_dot and y
-def solve():
-    # print(0, 1)
-    c_dot[0] = (dz ** -2 * (K(3/2) * c[2]
-                            - (K(3/2) + K(1/2)) * c[0]
-                            + K(1/2) * c[2])
-                + R(1, c, t))
+def system(t, y):
+    f = np.zeros(len(y))
 
-    c_dot[1] = (dz ** -2 * (K(3/2) * c[3]
-                            - (K(3/2) + K(1/2)) * c[1]
-                            + K(1/2) * c[3])
-                + R(2, c, t))
+    R1, R2 = R(y[0], y[1], t)
+    f[0] = (dz ** -2 * (K(3. / 2.) * y[2] - (K(3. / 2.) + K(1. / 2.)) * y[0] + K(1. / 2.) * y[2]) + R1)
+    f[1] = (dz ** -2 * (K(3. / 2.) * y[3] - (K(3. / 2.) + K(1. / 2.)) * y[1] + K(1. / 2.) * y[3]) + R2)
 
-    for l in range(1, M - 1):
-        print(2 * l, 2 * l + 1)
+    for i in range(1, M - 1, 2):
+        R1, R2 = R(y[2 * i], y[2 * i + 1], t)
+        f[2 * i] =     (dz ** -2 * (K(i + 1 + 1. / 2.) * y[2 * i + 2] - (K(i + 1 + 1. / 2.) + K(i + 1 - 1. / 2.)) * y[2 * i]     + K(i + 1 - 1. / 2.) * y[2 * i - 2]) + R1)
+        f[2 * i + 1] = (dz ** -2 * (K(i + 1 + 1. / 2.) * y[2 * i + 3] - (K(i + 1 + 1. / 2.) + K(i + 1 - 1. / 2.)) * y[2 * i + 1] + K(i + 1 - 1. / 2.) * y[2 * i - 1]) + R2)
 
-        # the values passed into c on the RHS of these equations is likely wrong
-        c_dot[2 * l] = (dz ** -2 * ((K[l + 1./2.] * c[2 * l + 1]
-                                    - (K[l + 1./2.] + K[l - 1./2.]) * c[2 * l - 1]
-                                    + K[l - 1./2.] * c[2 * l - 3]))
-                        + R(1, c[2 * l - 1], c[2 * l], t))
+    R1, R2 = R(y[2 * M - 2], y[2 * M - 1], t)
+    f[2 * M - 2] = (dz ** -2 * (K(M - 1. / 2.) * y[2 * M - 4] - (K(M - 1. / 2.) + K(M - 3. / 2.)) * y[2 * M - 2] + K(M - 3. / 2.) * y[2 * M - 4]) + R1)
+    f[2 * M - 1] = (dz ** -2 * (K(M - 1. / 2.) * y[2 * M - 3] - (K(M - 1. / 2.) + K(M - 3. / 2.)) * y[2 * M - 1] + K(M - 3. / 2.) * y[2 * M - 3]) + R2)
 
-        c_dot[2 * l + 1] = (dz ** -2 * ((K[l + 1./2.] * c[2 * l + 2]
-                                        - (K[l + 1./2.] + K[l - 1./2.]) * c[2 * l]
-                                        + K[l - 1./2.] * c[2 * l - 2]))
-                            + R(2, c[2 * l - 1], c[2 * l], t))
-
-    # print(2*M-2, 2*M-1)
-
+    return f
 
 # Basic parameters
 M = 50
 dz = 20. / M
-z = [30. + (j + 1.) * dz for j in range(M)]
-
-# y_1 = 10E6
-# y_2 = 10E12
-# y_3 = 3.7E16
-# y = [y_1, y_2, y_3]
+z = [30. + j * dz for j in range(M + 1)]
 
 # This generates the initial conditions
-c = [0] * (2 * M)
-for i in range(M):
-    c[2*i] = 10E6 * gamma(30 + (i + 1) * dz)
-    c[2*i + 1] = 10E12 * gamma(30 + (i + 1) * dz)
+c = np.zeros(len(2*z))
+for i, _ in enumerate(z):
+    c[2 * i] = 1E6 * gamma(z[i])
+    c[2 * i + 1] = 1E12 * gamma(z[i])
 
-    print(c[2*i], c[2*i + 1])
+# Time array
+times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 24.])
+dt = 120.
 
+# Create result arrays
+c1, c2 = [], []
 
-c_dot = np.zeros(2 * M)
-t = 0
+# Set up ODE solver
+solver = ode(system)
+
+for i in range(0, len(times) - 1):
+    # Initial and final time
+    t_0 = times[i]
+    t_f = times[i + 1]
+
+    # Solver setup
+    t = []
+    sol = []
+    solver.set_initial_value(c, t_0)
+    # solver.set_integrator('dop853')
+    # solver.set_integrator('dopri5')
+    solver.set_integrator('vode', method='bdf')
+    # with_jacobian=True
+    start_time = clock()
+    while solver.successful() and solver.t < t_f:
+        solver.integrate(solver.t + dt)
+        t.append(solver.t)
+        sol.append(solver.y)
+    print clock() - start_time, "seconds process time"
+
+    t = np.array(t)
+    sol = np.array(sol)
+
+    # Set c1, c2 values
+    y_sol = sol[-1]
+    c1.append(y_sol[0::2])
+    c2.append(y_sol[1::2])
+
+    #Update IC for next iteration
+    c = y_sol
+
+fig = plt.figure()
+ax1 = fig.add_subplot(2, 1, 1)
+for i in range(0, len(c1)):
+    plt.plot(z, c1[i])
+plt.ylabel('$c_1$')
+ax1.set_xticklabels([])
+
+ax2 = fig.add_subplot(2, 1, 2)
+for i in range(0, len(c2)):
+    plt.plot(z, c2[i])
+plt.xlabel('z')
+plt.ylabel('$c_2$')
+plt.show()
