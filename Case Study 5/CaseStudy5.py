@@ -45,16 +45,62 @@ def system(t, y):
     f[0] = (dz ** -2 * (K(3. / 2.) * y[2] - (K(3. / 2.) + K(1. / 2.)) * y[0] + K(1. / 2.) * y[2]) + R1)
     f[1] = (dz ** -2 * (K(3. / 2.) * y[3] - (K(3. / 2.) + K(1. / 2.)) * y[1] + K(1. / 2.) * y[3]) + R2)
 
-    for i in range(1, M - 1, 2):
+    for i in range(1, M):
         R1, R2 = R(y[2 * i], y[2 * i + 1], t)
-        f[2 * i] =     (dz ** -2 * (K(i + 1 + 1. / 2.) * y[2 * i + 2] - (K(i + 1 + 1. / 2.) + K(i + 1 - 1. / 2.)) * y[2 * i]     + K(i + 1 - 1. / 2.) * y[2 * i - 2]) + R1)
-        f[2 * i + 1] = (dz ** -2 * (K(i + 1 + 1. / 2.) * y[2 * i + 3] - (K(i + 1 + 1. / 2.) + K(i + 1 - 1. / 2.)) * y[2 * i + 1] + K(i + 1 - 1. / 2.) * y[2 * i - 1]) + R2)
+        f[2 * i] =     (dz ** -2 * (K(i + 1. + 1. / 2.) * y[2 * i + 2] - (K(i + 1. + 1. / 2.) + K(i + 1 - 1. / 2.)) * y[2 * i]     + K(i + 1 - 1. / 2.) * y[2 * i - 2]) + R1)
+        f[2 * i + 1] = (dz ** -2 * (K(i + 1. + 1. / 2.) * y[2 * i + 3] - (K(i + 1. + 1. / 2.) + K(i + 1 - 1. / 2.)) * y[2 * i + 1] + K(i + 1 - 1. / 2.) * y[2 * i - 1]) + R2)
 
     R1, R2 = R(y[2 * M - 2], y[2 * M - 1], t)
-    f[2 * M - 2] = (dz ** -2 * (K(M - 1. / 2.) * y[2 * M - 4] - (K(M - 1. / 2.) + K(M - 3. / 2.)) * y[2 * M - 2] + K(M - 3. / 2.) * y[2 * M - 4]) + R1)
-    f[2 * M - 1] = (dz ** -2 * (K(M - 1. / 2.) * y[2 * M - 3] - (K(M - 1. / 2.) + K(M - 3. / 2.)) * y[2 * M - 1] + K(M - 3. / 2.) * y[2 * M - 3]) + R2)
+    f[-2] = (dz ** -2 * (K(M - 1. / 2.) * y[2 * M - 4] - (K(M - 1. / 2.) + K(M - 3. / 2.)) * y[2 * M - 2] + K(M - 3. / 2.) * y[2 * M - 4]) + R1)
+    f[-1] = (dz ** -2 * (K(M - 1. / 2.) * y[2 * M - 3] - (K(M - 1. / 2.) + K(M - 3. / 2.)) * y[2 * M - 1] + K(M - 3. / 2.) * y[2 * M - 3]) + R2)
 
     return f
+
+
+def jacobian(t, y):
+    main  = np.zeros(len(y))
+    sub_1 = np.zeros(len(y))
+    sub_2 = np.zeros(len(y))
+    sup_1 = np.zeros(len(y))
+    sup_2 = np.zeros(len(y))
+
+    y_3 = 3.7e16          # Concentration of O_2 (constant)
+
+    k_1 = 1.63E-16       # Reaction rate [O + O_2 ->     O_3]
+    k_2 = 4.66E-16       # Reaction rate [O + O_3 -> 2 * O_2]
+
+    a_4 = 7.601          # Constant used in calculation of k_4
+    w = np.pi / 43200    # Cycle (half a day) [1/sec]
+
+    if np.sin(w * t) > 0:
+        k_4 = np.exp(-a_4 / np.sin(w * t))
+    else:
+        k_4 = 0
+
+    for i in range(0, M + 1, 2):
+        main[2 * i] =     -dz ** -2 * (K(i + 1. + 1./2.) + K(i + 1 - 1./2.)) - k_1 * y_3 - k_2 * y[2 * i + 1]
+        main[2 * i + 1] =                                                                - k_2 * y[2 * i]     - k_4
+
+    for i in range(1, M + 1):
+        sup_1[2 * i]     = -k_2 * y[2 * i] + k_4
+        sup_1[2 * i + 1] = 0
+
+    for i in range(0, M + 1):
+        sub_1[2 * i]     = k_1 * y_3 - k_2 * y[2 * i + 1]
+        sub_1[2 * i + 1] = 0
+
+    sup_2[-2] = dz ** -2 * (K(i + 1. + 1./2.) + K(i + 1 - 1./2.))
+    sup_2[-1] = dz ** -2 * (K(i + 1. + 1./2.) + K(i + 1 - 1./2.))
+    for i in range(2, 2 * M):
+        sup_2[i] = dz ** -2 *  K(i + 1. + 1./2.)
+
+    sub_2[0:2] = dz ** -2 *  K(i + 1. - 1./2.)
+    for i in range(2, 2 * M):
+        sub_2[i] = dz ** -2 * (K(i + 1. + 1./2.) + K(i + 1 - 1./2.))
+
+    jac = np.vstack((sup_2, sup_1, main, sub_1, sub_2))
+    print(jac)
+
 
 # Basic parameters
 M = 50
@@ -76,6 +122,9 @@ c1, c2 = [], []
 
 # Set up ODE solver
 solver = ode(system)
+
+jacobian(0, c)
+
 
 for i in range(0, len(times) - 1):
     # Initial and final time
@@ -110,14 +159,14 @@ for i in range(0, len(times) - 1):
 
 fig = plt.figure()
 ax1 = fig.add_subplot(2, 1, 1)
-for i in range(0, len(c1)):
-    plt.plot(z, c1[i])
+for solution in c1:
+    plt.plot(z, solution)
 plt.ylabel('$c_1$')
 ax1.set_xticklabels([])
 
 ax2 = fig.add_subplot(2, 1, 2)
-for i in range(0, len(c2)):
-    plt.plot(z, c2[i])
-plt.xlabel('z')
+for solution in c2:
+    plt.plot(z, solution)
 plt.ylabel('$c_2$')
+plt.xlabel('z (km)')
 plt.show()
