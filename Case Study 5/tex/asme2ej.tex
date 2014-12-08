@@ -95,12 +95,45 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
 
+
+\begin{table}[tbh]
+\begin{center}
+\begin{tabular}{| l | r |}
+\hline
+Solver & Time (s) \\
+\hline
+dop853 & 11092 \\
+dopri5 & 10069 \\
+bdf    & 13237 \\
+\hline
+\end{tabular}
+\caption{10 days solution}
+\label{10_days}
+\end{center}
+\end{table}
+
+\begin{table}[tbh]
+\begin{center}
+\begin{tabular}{| l | r |}
+\hline
+Solver & Time (s) \\
+\hline
+dop853 & 1120 \\
+dopri5 & 1025 \\
+bdf    & 1318 \\
+\hline
+\end{tabular}
+\caption{24 hours solution}
+\label{24_hours}
+\end{center}
+\end{table}
+
 \begin{figure}[thb]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figure/bdf c1.pdf}
 \includegraphics[width=0.5\textwidth]{figure/dop853 c1.pdf}
 \includegraphics[width=0.5\textwidth]{figure/dopri5 c1.pdf}
-\caption{$c_1$}
+\caption{Results from bdf, dop853, and dopri5 solvers of $c_1$ vs. z at $t = $ 0, 2, 4, 6, 7, and 9 hours}
 \label{c1}
 \end{center}
 \end{figure}
@@ -110,7 +143,7 @@
 \includegraphics[width=0.5\textwidth]{figure/bdf c2.pdf}
 \includegraphics[width=0.5\textwidth]{figure/dop853 c2.pdf}
 \includegraphics[width=0.5\textwidth]{figure/dopri5 c2.pdf}
-\caption{$c_2$}
+\caption{Results from bdf, dop853, and dopri5 solvers of $c_2$ vs. z at $t = $ 0, 2, 4, 6, 7, 9, 12, 18, and 24 hours}
 \label{c2}
 \end{center}
 \end{figure}
@@ -120,7 +153,7 @@
 \includegraphics[width=0.5\textwidth]{figure/bdf time.pdf}
 \includegraphics[width=0.5\textwidth]{figure/dop853 time.pdf}
 \includegraphics[width=0.5\textwidth]{figure/dopri5 time.pdf}
-\caption{10 days}
+\caption{Results from bdf, dop853, and dopri5 solvers of $c_1$ and $c_2$ vs. time (from 0 to 10 days) at $z = 40$ km}
 \label{10 days}
 \end{center}
 \end{figure}
