@@ -66,24 +66,24 @@ def jacobian(t, y):
     else:
         k_4 = 0
 
-    for i in range(0, M + 1):
-        main[2 * i] =     -dz ** -2 * (K(i + 1. + 1./2.) + K(i + 1 - 1./2.)) - k_1 * y_3 - k_2 * y[2 * i + 1]
-        main[2 * i + 1] =                                                                - k_2 * y[2 * i]     - k_4
+    sup_2[-2] = dz ** -2 * (K(M + 1./2.) + K(M - 1./2.))
+    sup_2[-1] = sup_2[-2]
+    for i in range(2, 2 * M):
+        sup_2[i] = dz ** -2 * K(i + 1. + 1./2.)
 
     for i in range(1, M + 1):
         sup_1[2 * i]     = -k_2 * y[2 * i] + k_4
         sup_1[2 * i + 1] = 0
 
     for i in range(0, M + 1):
+        main[2 * i] =     -dz ** -2 * (K(i + 1. + 1./2.) + K(i + 1 - 1./2.)) - k_1 * y_3 - k_2 * y[2 * i + 1]
+        main[2 * i + 1] =                                                                - k_2 * y[2 * i]     - k_4
+
+    for i in range(0, M):
         sub_1[2 * i]     = k_1 * y_3 - k_2 * y[2 * i + 1]
         sub_1[2 * i + 1] = 0
 
-    sup_2[-2] = dz ** -2 * (K(i + 1. + 1./2.) + K(i + 1 - 1./2.))
-    sup_2[-1] = sup_2[-2]
-    for i in range(2, 2 * M):
-        sup_2[i] = dz ** -2 * K(i + 1. + 1./2.)
-
-    sub_2[0:2] = dz ** -2 * K(i + 1. - 1./2.)
+    sub_2[0:2] = dz ** -2 * K(1. - 1./2.)
     for i in range(2, 2 * M):
         sub_2[i] = dz ** -2 * (K(i + 1. + 1./2.) + K(i + 1 - 1./2.))
 
@@ -96,7 +96,7 @@ def jacobian(t, y):
 
 def solve(solver, c, integrator):
     # Create result arrays
-    c1, c2 = [], []
+    c1, c2, c1_40km, c2_40km, t = [], [], [], [], []
 
     start_time = clock()
     for i in range(0, len(times) - 1):
@@ -105,29 +105,30 @@ def solve(solver, c, integrator):
         t_f = times[i + 1]
 
         # Solver setup
-        t = []
         sol = []
         solver.set_initial_value(c, t_0)
         while solver.successful() and solver.t < t_f:
             solver.integrate(solver.t + dt)
-            t.append(solver.t)
             sol.append(solver.y)
 
-        t = np.array(t)
-        sol = np.array(sol)
+            # keep time history for 40km point
+            one, two = sol[-1][0::2], sol[-1][1::2]
+            mid_one, mid_two = one[M / 2], two[M / 2]
+            c1_40km.append(mid_one), c2_40km.append(mid_two)
+            t.append(solver.t)
+
+            print "{0:3.2f}%".format(clock(), 100. * t[-1] / times[-1])
 
         # Save c1, c2 solutions
-        y_sol = sol[-1]
-        c1.append(y_sol[0::2])
-        c2.append(y_sol[1::2])
+        c1.append(one), c2.append(two)
 
         #Update initial conditions for next iteration
-        c = y_sol
+        c = sol[-1]
 
     elapsed_time = clock() - start_time
     print(elapsed_time, "seconds process time")
 
-    output = [c1, c2]
+    output = [c1, c2, c1_40km, c2_40km, t]
     return output
 
 
@@ -146,21 +147,23 @@ def run_trials():
         elif trial == 2:
             solver = ode(system)
             integrator = 'bdf'
-            solver.set_integrator('vode', method=integrator, atol=1E-1, rtol=1E-3)
-        elif trial == 4:
+            solver.set_integrator('vode', method=integrator, atol=1E-1, rtol=1E-3, nsteps=1000)
+        elif trial == 3:
             solver = ode(system, jacobian)
             integrator = 'bdf Jacobian'
-            solver.set_integrator('vode', method=integrator.split(' ')[0], atol=1E-1, rtol=1E-3, with_jacobian=True)
+            solver.set_integrator('vode', method=integrator.split(' ')[0], atol=1E-1, rtol=1E-3, nsteps=1000, with_jacobian=True)
 
         print("Starting solver: ", integrator)
-        c1, c2 = solve(solver, c, integrator)
+        c1, c2, c1_40km, c2_40km, t = solve(solver, c, integrator)
 
+        # And plot some things
         plot_c1(z, c, c1, labels, integrator)
         plot_c2(z, c, c2, labels, integrator)
+        plot_40km(t, c1_40km, c2_40km, integrator)
 
 # Basic problem parameters
-M = 50
-dz = 20. / M
+M = 50               # Number of sections
+dz = 20. / M         # 20km divided by M subsections
 z = [30. + j * dz for j in range(M + 1)]
 
 y_3 = 3.7E16         # Concentration of O_2 (constant)
@@ -177,7 +180,7 @@ for i, _ in enumerate(z):
     c[2 * i + 1] = 1E12 * gamma(z[i])
 
 # Time array
-times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 24.])
+times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 24., 240.])
 dt = 60.
 
 labels = [str(int(x / 3600.)) + " hours" for x in times[1:]]

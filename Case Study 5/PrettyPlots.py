@@ -46,10 +46,25 @@ def plot_c2(z, initial, c2, labels, integrator):
     plt.figure(figsize=fig_dims)
     plt.plot(z, initial[1::2], label='0 hours')
     for solution, label in zip(c2, labels):
+        if "240" in label:
+            break
         plt.plot(z, solution, label=label)
     plt.ylabel('$c_2$')
     plt.xlabel('z (km)')
-    # plt.yscale('log')
     plt.legend()
     save_name = integrator + ' c2.pdf'
+    save_plot(save_name)
+
+
+def plot_40km(t, c1_40km, c2_40km, integrator):
+    c2_40km_scaled = [1E-4 * val for val in c2_40km]
+
+    plt.figure(figsize=fig_dims)
+    plt.plot(t, c1_40km, label='$c_1$')
+    plt.plot(t, c2_40km_scaled, label='$c_2$ * 1E-4')
+    plt.xlabel('t (s)')
+    plt.legend()
+    plt.xlim([0, t[-1]])
+
+    save_name = integrator + ' time.pdf'
     save_plot(save_name)
