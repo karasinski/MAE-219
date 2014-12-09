@@ -94,15 +94,15 @@ def jacobian(t, y):
     return jac
 
 
-def solve(solver, c, integrator):
+def solve(solver, c, time, integrator):
     # Create result arrays
     c1, c2, c1_40km, c2_40km, t = [], [], [], [], []
 
     start_time = clock()
-    for i in range(0, len(times) - 1):
+    for i in range(0, len(time) - 1):
         # Initial and final time
-        t_0 = times[i]
-        t_f = times[i + 1]
+        t_0 = time[i]
+        t_f = time[i + 1]
 
         # Solver setup
         sol = []
@@ -117,7 +117,7 @@ def solve(solver, c, integrator):
             c1_40km.append(mid_one), c2_40km.append(mid_two)
             t.append(solver.t)
 
-            print "{0:3.2f}%".format(clock(), 100. * t[-1] / times[-1])
+            print "{0:03.2f}%".format(100. * solver.t / time[-1])
 
         # Save c1, c2 solutions
         c1.append(one), c2.append(two)
@@ -132,31 +132,68 @@ def solve(solver, c, integrator):
     return output
 
 
-def run_trials():
-    number_of_solvers = 4
-    for trial in range(number_of_solvers):
-        # Set up ODE solver
-        if trial == 0:
+def save_variables(integrator, times, z, c1, c2, t, c1_40km, c2_40km):
+    try:
+        os.mkdir('data')
+    except Exception:
+        pass
+
+    try:
+        os.mkdir('data/' + integrator + str(times))
+    except Exception:
+        pass
+
+    np.savetxt('data/' + integrator + str(times) + '/z.csv', z)
+    np.savetxt('data/' + integrator + str(times) + '/c1.csv', c1)
+    np.savetxt('data/' + integrator + str(times) + '/c2.csv', c2)
+
+    np.savetxt('data/' + integrator + str(times) + '/t.csv', t)
+    np.savetxt('data/' + integrator + str(times) + '/c1_40km.csv', c1_40km)
+    np.savetxt('data/' + integrator + str(times) + '/c2_40km.csv', c2_40km)
+
+
+def load_variables(integrator, times):
+    z = np.loadtxt('data/' + integrator + str(times) + '/z.csv')
+    c1 = np.loadtxt('data/' + integrator + str(times) + '/c1.csv')
+    c2 = np.loadtxt('data/' + integrator + str(times) + '/c2.csv')
+
+    t = np.loadtxt('data/' + integrator + str(times) + '/t.csv')
+    c1_40km = np.loadtxt('data/' + integrator + str(times) + '/c1_40km.csv')
+    c2_40km = np.loadtxt('data/' + integrator + str(times) + '/c2_40km.csv')
+
+    return z, c1, c2, t, c1_40km, c2_40km
+
+
+def run_trials(z, sols, times):
+    # Set up ODE solver
+    for sol in sols:
+        if sol == 'dop853':
             solver = ode(system)
             integrator = 'dop853'
             solver.set_integrator(integrator, atol=1E-1, rtol=1E-3)
-        elif trial == 1:
+        elif sol == 'dopri5':
             solver = ode(system)
             integrator = 'dopri5'
             solver.set_integrator(integrator, atol=1E-1, rtol=1E-3)
-        elif trial == 2:
+        elif sol == 'bdf':
             solver = ode(system)
             integrator = 'bdf'
-            solver.set_integrator('vode', method=integrator, atol=1E-1, rtol=1E-3, nsteps=1000)
-        elif trial == 3:
+            solver.set_integrator('vode', method=integrator, atol=1E-1, rtol=1E-3, nsteps=2000)
+        elif sol == 'bdf Jacobian':
             solver = ode(system, jacobian)
             integrator = 'bdf Jacobian'
-            solver.set_integrator('vode', method=integrator.split(' ')[0], atol=1E-1, rtol=1E-3, nsteps=1000, with_jacobian=True)
+            solver.set_integrator('vode', method=integrator.split(' ')[0], atol=1E-1, rtol=1E-3, nsteps=2000, with_jacobian=True)
 
-        print("Starting solver: ", integrator)
-        c1, c2, c1_40km, c2_40km, t = solve(solver, c, integrator)
+        try:
+            print "Loading data for solver: ", integrator, "with times", times
+            z, c1, c2, t, c1_40km, c2_40km = load_variables(integrator, times)
+        except:
+            print("Starting solver: ", integrator, "with times", times)
+            c1, c2, c1_40km, c2_40km, t = solve(solver, c, times, integrator)
+            save_variables(integrator, times, z, c1, c2, t, c1_40km, c2_40km)
 
         # And plot some things
+        labels = [str(int(x / 3600.)) + " hours" for x in times[1:]]
         plot_c1(z, c, c1, labels, integrator)
         plot_c2(z, c, c2, labels, integrator)
         plot_40km(t, c1_40km, c2_40km, integrator)
@@ -180,9 +217,13 @@ for i, _ in enumerate(z):
     c[2 * i + 1] = 1E12 * gamma(z[i])
 
 # Time array
-times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 24., 240.])
 dt = 60.
 
-labels = [str(int(x / 3600.)) + " hours" for x in times[1:]]
+# Run the trials
+# solvers = ['dopri5', 'bdf']
+# times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 24.])
+# run_trials(z, solvers, times)
 
-run_trials()
+solvers = ['dopri5', 'bdf', 'dop853']
+times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 240.])
+run_trials(z, solvers, times)
