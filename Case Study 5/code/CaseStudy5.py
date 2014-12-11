@@ -1,13 +1,12 @@
 import numpy as np
 from scipy.integrate import ode
 from time import clock
-from scipy.sparse import spdiags
-import json
 from PrettyPlots import *
 
 
 def K(z):
-    return 10E-8 * np.exp(z / 5.)
+    zz = 30. + z * dz
+    return 1E-8 * np.exp(zz / 5.)
 
 
 def gamma(z):
@@ -19,12 +18,12 @@ def R(y_1, y_2, t):
     Find the reaction rates, R_1 and R_2, of the system at state c and time t.
     '''
 
-    if np.sin(w * t) > 0:
+    if np.sin(w * t) > 0.:
         k_3 = np.exp(-a_3 / np.sin(w * t))
         k_4 = np.exp(-a_4 / np.sin(w * t))
     else:
-        k_3 = 0
-        k_4 = 0
+        k_3 = 0.
+        k_4 = 0.
 
     R_1 = -k_1 * y_1 * y_3 - k_2 * y_1 * y_2 + 2. * k_3 * y_3 + k_4 * y_2
     R_2 = +k_1 * y_1 * y_3 - k_2 * y_1 * y_2 - k_4 * y_2
@@ -42,56 +41,18 @@ def system(t, y):
 
     for i in range(1, M):
         R1, R2 = R(y[2 * i], y[2 * i + 1], t)
-        l_p, l_m = i + 3. / 2., i + 1. / 2.
+        l_p, l_m = 1. * i + 3. / 2., 1. * i + 1. / 2.
 
         f[2 * i] =     (dz ** -2 * (K(l_p) * y[2 * i + 2] - (K(l_p) + K(l_m)) * y[2 * i]     + K(l_m) * y[2 * i - 2]) + R1)
         f[2 * i + 1] = (dz ** -2 * (K(l_p) * y[2 * i + 3] - (K(l_p) + K(l_m)) * y[2 * i + 1] + K(l_m) * y[2 * i - 1]) + R2)
 
-    R1, R2 = R(y[2 * M - 2], y[2 * M - 1], t)
-    l_p, l_m = M + 1. / 2., M - 1. / 2.
+    R1, R2 = R(y[2 * M], y[2 * M + 1], t)
+    l_p, l_m = 1. * M + 1. / 2., 1. * M - 1. / 2.
 
-    f[-2] = (dz ** -2 * (K(l_p) * y[2 * M - 4] - (K(l_p) + K(l_m)) * y[2 * M - 2] + K(l_m) * y[2 * M - 4]) + R1)
-    f[-1] = (dz ** -2 * (K(l_p) * y[2 * M - 3] - (K(l_p) + K(l_m)) * y[2 * M - 1] + K(l_m) * y[2 * M - 3]) + R2)
+    f[2 * M]     = (dz ** -2 * (K(l_p) * y[2 * M - 2] - (K(l_p) + K(l_m)) * y[2 * M]     + K(l_m) * y[2 * M - 2]) + R1)
+    f[2 * M + 1] = (dz ** -2 * (K(l_p) * y[2 * M - 1] - (K(l_p) + K(l_m)) * y[2 * M + 1] + K(l_m) * y[2 * M - 1]) + R2)
 
     return f
-
-
-def jacobian(t, y):
-    main = np.zeros(len(y))
-    sub_1, sub_2 = np.zeros(len(y)), np.zeros(len(y))
-    sup_1, sup_2 = np.zeros(len(y)), np.zeros(len(y))
-
-    if np.sin(w * t) > 0:
-        k_4 = np.exp(-a_4 / np.sin(w * t))
-    else:
-        k_4 = 0
-
-    sup_2[-2] = dz ** -2 * (K(M + 1./2.) + K(M - 1./2.))
-    sup_2[-1] = sup_2[-2]
-    for i in range(2, 2 * M):
-        sup_2[i] = dz ** -2 * K(i + 1. + 1./2.)
-
-    for i in range(1, M + 1):
-        sup_1[2 * i]     = -k_2 * y[2 * i] + k_4
-        sup_1[2 * i + 1] = 0
-
-    for i in range(0, M + 1):
-        main[2 * i] =     -dz ** -2 * (K(i + 1. + 1./2.) + K(i + 1 - 1./2.)) - k_1 * y_3 - k_2 * y[2 * i + 1]
-        main[2 * i + 1] =                                                                - k_2 * y[2 * i]     - k_4
-
-    for i in range(0, M):
-        sub_1[2 * i]     = k_1 * y_3 - k_2 * y[2 * i + 1]
-        sub_1[2 * i + 1] = 0
-
-    sub_2[0:2] = dz ** -2 * K(1. - 1./2.)
-    for i in range(2, 2 * M):
-        sub_2[i] = dz ** -2 * (K(i + 1. + 1./2.) + K(i + 1 - 1./2.))
-
-    diag_rows = np.array([sup_2, sup_1, main, sub_1, sub_2])
-    positions = [2, 1, 0, -1, -2]
-    jac = spdiags(diag_rows, positions, len(y), len(y)).todense()
-
-    return jac
 
 
 def solve(solver, c, time, integrator):
@@ -164,36 +125,26 @@ def load_variables(integrator, times):
     return z, c1, c2, t, c1_40km, c2_40km
 
 
-def run_trials(z, sols, times):
+def run_trials(z, integrators, times):
     # Set up ODE solver
-    for sol in sols:
-        if sol == 'dop853':
+    for integrator in integrators:
+        if integrator == 'dop853' or integrator == 'dopri5':
             solver = ode(system)
-            integrator = 'dop853'
             solver.set_integrator(integrator, atol=1E-1, rtol=1E-3)
-        elif sol == 'dopri5':
+        elif integrator == 'bdf':
             solver = ode(system)
-            integrator = 'dopri5'
-            solver.set_integrator(integrator, atol=1E-1, rtol=1E-3)
-        elif sol == 'bdf':
-            solver = ode(system)
-            integrator = 'bdf'
             solver.set_integrator('vode', method=integrator, atol=1E-1, rtol=1E-3, nsteps=2000)
-        elif sol == 'bdf Jacobian':
-            solver = ode(system, jacobian)
-            integrator = 'bdf Jacobian'
-            solver.set_integrator('vode', method=integrator.split(' ')[0], atol=1E-1, rtol=1E-3, nsteps=2000, with_jacobian=True)
 
         try:
-            print "Loading data for solver: ", integrator, "with times", times
             z, c1, c2, t, c1_40km, c2_40km = load_variables(integrator, times)
+            print "Loaded data for solver: ", integrator, "with times", times
         except:
             print("Starting solver: ", integrator, "with times", times)
             c1, c2, c1_40km, c2_40km, t = solve(solver, c, times, integrator)
             save_variables(integrator, times, z, c1, c2, t, c1_40km, c2_40km)
 
         # And plot some things
-        labels = [str(int(x / 3600.)) + " hours" for x in times[1:]]
+        labels = [str(int(time / 3600.)) + " hours" for time in times[1:]]
         plot_c1(z, c, c1, labels, integrator)
         plot_c2(z, c, c2, labels, integrator)
         plot_40km(t, c1_40km, c2_40km, integrator)
@@ -201,7 +152,6 @@ def run_trials(z, sols, times):
 # Basic problem parameters
 M = 50               # Number of sections
 dz = 20. / M         # 20km divided by M subsections
-z = [30. + j * dz for j in range(M + 1)]
 
 y_3 = 3.7E16         # Concentration of O_2 (constant)
 k_1 = 1.63E-16       # Reaction rate [O + O_2 ->     O_3]
@@ -211,8 +161,10 @@ a_4 = 7.601          # Constant used in calculation of k_4
 w = np.pi / 43200.   # Cycle (half a day) [1/sec]
 
 # This generates the initial conditions
-c = np.zeros(len(2 * z))
-for i, _ in enumerate(z):
+c = np.zeros(2 * (M + 1))
+z = np.zeros(M + 1)
+for i in range(0, M + 1):
+    z[i] = 30. + i * dz
     c[2 * i]     = 1E6  * gamma(z[i])
     c[2 * i + 1] = 1E12 * gamma(z[i])
 
@@ -220,9 +172,9 @@ for i, _ in enumerate(z):
 dt = 60.
 
 # Run the trials
-# solvers = ['dopri5', 'bdf']
-# times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 24.])
-# run_trials(z, solvers, times)
+solvers = ['dopri5']
+times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 24.])
+run_trials(z, solvers, times)
 
 solvers = ['dopri5', 'bdf', 'dop853']
 times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 240.])

@@ -51,7 +51,6 @@ def plot_c2(z, initial, c2, labels, integrator):
         plt.plot(z, solution, label=label)
     plt.ylabel('$c_2$')
     plt.xlabel('z (km)')
-    plt.yscale('log')
     plt.ylim([4.E11, 1.2E12])
     plt.legend()
     save_name = integrator + ' c2.pdf'
@@ -65,7 +64,7 @@ def plot_40km(t, c1_40km, c2_40km, integrator):
     plt.plot(t, c1_40km, label='$c_1$')
     plt.plot(t, c2_40km_scaled, label='$c_2$ * 1E-4')
     plt.xlabel('t (s)')
-    plt.yscale('log')
+    # plt.yscale('log')
     plt.legend()
     plt.xlim([0, t[-1]])
 
