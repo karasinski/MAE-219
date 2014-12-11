@@ -66,6 +66,7 @@ def plot_40km(t, c1_40km, c2_40km, integrator):
     plt.xlabel('t (s)')
     # plt.yscale('log')
     plt.legend()
+    plt.ylim([2.E7, 2E8])
     plt.xlim([0, t[-1]])
 
     save_name = integrator + ' time.pdf'

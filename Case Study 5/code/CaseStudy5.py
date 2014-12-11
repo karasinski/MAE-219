@@ -93,39 +93,37 @@ def solve(solver, c, time, integrator):
     return output
 
 
-def save_variables(integrator, times, z, c1, c2, t, c1_40km, c2_40km):
+def save_variables(name, z, c1, c2, t, c1_40km, c2_40km):
     try:
         os.mkdir('data')
     except Exception:
         pass
 
     try:
-        os.mkdir('data/' + integrator + str(times))
+        os.mkdir('data/' + name)
     except Exception:
         pass
 
-    np.savetxt('data/' + integrator + str(times) + '/z.csv', z)
-    np.savetxt('data/' + integrator + str(times) + '/c1.csv', c1)
-    np.savetxt('data/' + integrator + str(times) + '/c2.csv', c2)
+    np.savetxt('data/' + name + '/z.csv', z)
+    np.savetxt('data/' + name + '/c1.csv', c1)
+    np.savetxt('data/' + name + '/c2.csv', c2)
+    np.savetxt('data/' + name + '/t.csv', t)
+    np.savetxt('data/' + name + '/c1_40km.csv', c1_40km)
+    np.savetxt('data/' + name + '/c2_40km.csv', c2_40km)
 
-    np.savetxt('data/' + integrator + str(times) + '/t.csv', t)
-    np.savetxt('data/' + integrator + str(times) + '/c1_40km.csv', c1_40km)
-    np.savetxt('data/' + integrator + str(times) + '/c2_40km.csv', c2_40km)
 
-
-def load_variables(integrator, times):
-    z = np.loadtxt('data/' + integrator + str(times) + '/z.csv')
-    c1 = np.loadtxt('data/' + integrator + str(times) + '/c1.csv')
-    c2 = np.loadtxt('data/' + integrator + str(times) + '/c2.csv')
-
-    t = np.loadtxt('data/' + integrator + str(times) + '/t.csv')
-    c1_40km = np.loadtxt('data/' + integrator + str(times) + '/c1_40km.csv')
-    c2_40km = np.loadtxt('data/' + integrator + str(times) + '/c2_40km.csv')
+def load_variables(name):
+    z       = np.loadtxt('data/' + name + '/z.csv')
+    c1      = np.loadtxt('data/' + name + '/c1.csv')
+    c2      = np.loadtxt('data/' + name + '/c2.csv')
+    t       = np.loadtxt('data/' + name + '/t.csv')
+    c1_40km = np.loadtxt('data/' + name + '/c1_40km.csv')
+    c2_40km = np.loadtxt('data/' + name + '/c2_40km.csv')
 
     return z, c1, c2, t, c1_40km, c2_40km
 
 
-def run_trials(z, integrators, times):
+def run_trials(z, integrators, times, M):
     # Set up ODE solver
     for integrator in integrators:
         if integrator == 'dop853' or integrator == 'dopri5':
@@ -135,30 +133,81 @@ def run_trials(z, integrators, times):
             solver = ode(system)
             solver.set_integrator('vode', method=integrator, atol=1E-1, rtol=1E-3, nsteps=2000)
 
+        name = integrator + ' ' + str(times[-1]) + ' ' + str(M)
         try:
-            z, c1, c2, t, c1_40km, c2_40km = load_variables(integrator, times)
-            print "Loaded data for solver: ", integrator, "with times", times
+            z, c1, c2, t, c1_40km, c2_40km = load_variables(name)
+            print "Loaded data for: " + name
         except:
-            print("Starting solver: ", integrator, "with times", times)
+            print "Starting solver: ", integrator, "with times", times
             c1, c2, c1_40km, c2_40km, t = solve(solver, c, times, integrator)
-            save_variables(integrator, times, z, c1, c2, t, c1_40km, c2_40km)
+            save_variables(name, z, c1, c2, t, c1_40km, c2_40km)
 
         # And plot some things
-        labels = [str(int(time / 3600.)) + " hours" for time in times[1:]]
-        plot_c1(z, c, c1, labels, integrator)
-        plot_c2(z, c, c2, labels, integrator)
-        plot_40km(t, c1_40km, c2_40km, integrator)
+        # labels = [str(int(time / 3600.)) + " hours" for time in times[1:]]
+        # plot_c1(z, c, c1, labels, name)
+        # plot_c2(z, c, c2, labels, name)
+        # plot_40km(t, c1_40km, c2_40km, name)
+
+
+def sensitivity_analysis(integrators, times, meshes):
+    plt.figure()
+    for integrator in integrators:
+
+        z_M, c1_M, c2_M = [], [], []
+        for M in meshes:
+            name = integrator + ' ' + str(times[-1]) + ' ' + str(M)
+            try:
+                z, c1, c2, _, _, _ = load_variables(name)
+            except Exception:
+                print Exception
+            z_M.append(list(z))
+            c1_M.append(list(c1[-1]))
+            c2_M.append(list(c2[-1]))
+
+        best_z = z_M[-1]
+        best_c1, best_c2 = c1_M[-1], c2_M[-1]
+        NRMS1, NRMS2 = [], []
+        for j, mesh in enumerate(z_M):
+            if j + 1 == len(z_M): break     # RMS with yourself is silly
+            best1, best2, curr1, curr2 = [], [], [], []
+            for i, element in enumerate(best_z):
+                if element in mesh:
+                    best1.append(best_c1[i])
+                    best2.append(best_c2[i])
+                    curr1.append(c1_M[j][mesh.index(element)])
+                    curr2.append(c2_M[j][mesh.index(element)])
+
+            best1, best2 = np.array(best1), np.array(best2)
+            curr1, curr2 = np.array(curr1), np.array(curr2)
+
+            err1, err2 = curr1 - best1, curr2 - best2
+            NRMS1.append(np.sqrt(np.mean(np.square(err1)))/(max(best1) - min(best1)))
+            NRMS2.append(np.sqrt(np.mean(np.square(err2)))/(max(best2) - min(best2)))
+            # print meshes[j], NRMS1, NRMS2
+
+        plt.plot([mesh for mesh in meshes][0:-1], NRMS1, ':', label= integrator + ' $c_1$')
+        plt.plot([mesh for mesh in meshes][0:-1], NRMS2, '--', label= integrator + ' $c_2$')
+
+    plt.ylabel('NRMS')
+    plt.xlabel('M')
+    plt.xlim([meshes[0] - 1, meshes[-2] + 1])
+    plt.legend()
+    save_name = str(meshes) + '.pdf'
+    save_plot(save_name)
+
 
 # Basic problem parameters
-M = 50               # Number of sections
-dz = 20. / M         # 20km divided by M subsections
-
 y_3 = 3.7E16         # Concentration of O_2 (constant)
 k_1 = 1.63E-16       # Reaction rate [O + O_2 ->     O_3]
 k_2 = 4.66E-16       # Reaction rate [O + O_3 -> 2 * O_2]
 a_3 = 22.62          # Constant used in calculation of k_3
 a_4 = 7.601          # Constant used in calculation of k_4
 w = np.pi / 43200.   # Cycle (half a day) [1/sec]
+dt = 60.
+
+# Base Case
+M = 50               # Number of sections
+dz = 20. / M         # 20km divided by M subsections
 
 # This generates the initial conditions
 c = np.zeros(2 * (M + 1))
@@ -168,14 +217,33 @@ for i in range(0, M + 1):
     c[2 * i]     = 1E6  * gamma(z[i])
     c[2 * i + 1] = 1E12 * gamma(z[i])
 
-# Time array
-dt = 60.
-
 # Run the trials
-solvers = ['dopri5']
+integrators = ['dopri5']
 times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 24.])
-run_trials(z, solvers, times)
+run_trials(z, integrators, times)
 
-solvers = ['dopri5', 'bdf', 'dop853']
+integrators = ['dopri5', 'bdf']
 times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 240.])
-run_trials(z, solvers, times)
+run_trials(z, integrators, times)
+
+# Mesh Analysis
+meshes = [5, 10, 20, 40, 50, 80, 160]
+for M in meshes:
+    dz = 20. / M         # 20km divided by M subsections
+
+    # This generates the initial conditions
+    c = np.zeros(2 * (M + 1))
+    z = np.zeros(M + 1)
+    for i in range(0, M + 1):
+        z[i] = 30. + i * dz
+        c[2 * i]     = 1E6  * gamma(z[i])
+        c[2 * i + 1] = 1E12 * gamma(z[i])
+
+    # Time array
+    dt = 60.
+
+    integrators = ['dopri5', 'bdf']
+    times = 3600. * np.array([0., 2., 4.])
+    run_trials(z, integrators, times, M)
+
+sensitivity_analysis(integrators, times, meshes)
