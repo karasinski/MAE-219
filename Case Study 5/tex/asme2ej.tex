@@ -36,6 +36,7 @@
 \usepackage{listings}
 \usepackage{framed}
 \usepackage{caption}
+\usepackage{bm}
 \captionsetup[lstlisting]{font={small,tt}}
 
 \definecolor{mygreen}{rgb}{0,0.6,0}
@@ -89,24 +90,65 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem Description}
 
-Chang et al.~\cite{chang1974simulation, byrne1987stiff} have proposed approximate models to describe the chemical kinetics and transport phenomena associated with the dissociation of oxygen (O$_2$) into ozone (O$_3$) and monatomic oxygen (O) in the upper atmosphere. We are considering a one-dimensional version of such a model. The ambient oxygen concentration, $c_3$, is constant, while the concentrations of the two minor species, O and O$_3$, are $c_1(z, t)$ and $c_2(z, t)$, where $z$ is the elevation above the earth's surface in km (here $30 \leq z \leq 50$) and $t$ is time in seconds. Their transport is modeled using a reaction-diffusion equation,
+Chang et al.~\cite{chang1974simulation, byrne1987stiff} have proposed approximate models to describe the chemical kinetics and transport phenomena associated with the dissociation of oxygen (O$_2$) into ozone (O$_3$) and monatomic oxygen (O) in the upper atmosphere. A one-dimensional version of such a model is considered here. The ambient oxygen concentration, $c_3$, is constant, while the concentrations of the two minor species, O and O$_3$, are $c_1(z, t)$ and $c_2(z, t)$, where $z$ is the elevation above the earth's surface in km (here $30 \leq z \leq 50$) and $t$ is time in seconds. Their transport is modeled using a reaction-diffusion equation,
 \begin{equation}
-\frac{\partial c_i}{\partial t} = \frac{\partial}{\partial z} \left[K(z) \frac{\partial c_i}{dz} \right] + R_i (\vec{c}, t).
+\label{reaction_diffusion}
+\frac{\partial c_i}{\partial t} = \frac{\partial}{\partial z} \left[K(z) \frac{\partial c_i}{dz} \right] + R_i (\vec{c}, t) \qquad i = 1, 2, 3.
 \end{equation}
 The diffusive term is meant to represent the turbulent vertical transport with
 \begin{equation}
-K(z) = 10^{-8} \cdot exp(z/5) \quad [\mbox{km}/\mbox{s}],
+K(z) = 10^{-8} \cdot exp(z/5) \qquad [\mbox{km}/\mbox{s}],
 \end{equation}
- and the chemistry is described using the Chapman mechanism [2].
-
-
+ and the chemistry is described using the Chapman mechanism~\cite{byrne1987stiff}. The reaction rates, $R_i(c, t)$, are given by
+\begin{equation}
+\begin{split}
+R_1(c_1, c_2, t) = & -k_1 c_1 c_3 - k_2 c_1 c_2 + 2 k_3(t) c_3 + k_4(t) c_2 \\
+R_2(c_1, c_2, t) = &  k_1 c_1 c_3 - k_2 c_1 c_2 - k_4(t) c_2
+\end{split}
+\end{equation}
+with,
+\begin{equation*}
+\begin{split}
+k_1 = & 1.63 x 10^{−16} \\
+k_2 = & 4.66 x 10^{−16} \\
+k_l = & \mbox{exp} [−a_l/ \mbox{sin}~\omega t]~\mbox{if sin}~\omega~t~>~0,~\mbox{else}~0~(l = 3, 4)
+\end{split}
+\end{equation*}
+and with $a_3$ = 22.62, $a_4$ = 7.601, and $\omega = \pi/43200$. This system is subject to the initial conditions,
+\begin{equation}
+\begin{split}
+c_1(z, 0) = & 10^6    \cdot \gamma(z)     \\
+c_2(z, 0) = & 10^{12} \cdot \gamma(z),
+\end{split}
+\end{equation}
+where
+\begin{equation}
+\gamma(z) = 1 - \left(\frac{z-40}{10} \right)^2 + \frac{1}{2} \left(\frac{z-40}{10} \right)^4,
+\end{equation}
+and a boundary condition of no flux at the top and bottom of the vertical atmospheric layer considered.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
+To generate a system of ordinary differential equations, all the spatial derivatives in Equation~\ref{reaction_diffusion} are replaced with centered finite differences. For the base case considered, the domain is discretized into $M = 50$ partitions, $\Delta z = 20/M$, and $z_j = 30 + j(\Delta z)$ for $0 \leq j \leq M$.
+
+The function $c^i(z_j,t)$ can then be approximated as
+\begin{equation}
+\begin{split}
+\dot c^i_j = (\Delta z)^{-2} [& K_{j+1/2} c^i_{j+1} - (K_{j+1/2} +  K_{j-1/2}) c^i_{j} + \\
+& K_{j-1/2} c^i_{j-1}] + R^i(\boldsymbol{c}, t),
+\end{split}
+\end{equation}
+
+\noindent where $K_{j \pm 1/2} = K(30+[j \pm 1/2] \Delta z)$. A system of $2M$ ODEs is then specified by setting $\boldsymbol{y}(t)=[c^1_1(t), c^2_1(t), c^1_2(t), c^2_2(t), \ldots, c^1_M(t),c^2_M(t)]^T$, with boundary conditions $c^i_0 = c^i_2$ and $c^i_{M-1} = c^i_{M+1}$. The two parabolic PDEs are then reduced to a system of 2M ODEs of the form $\dot{\boldsymbol{y}} = \boldsymbol{f} (t, \boldsymbol{y})$.
+
+Two solvers are called from scipy version 0.11.0 to solve this system of ODEs. A stiff solver, "vode", is an implicit method based on the backward differentiation formulas, and a non-stiff solver, "dopri5", is an explicit Runge-Kutta method of order (4,5) are used. Both methods required an absolute tolerance of 1E-1 and a relative tolerance 1E-3 for convergence.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
 
+\subsection{Comparison to Published Results}
+\subsection{Sensitivity to Mesh Density}
 
 \begin{table}[tbh]
 \begin{center}
@@ -129,12 +171,12 @@ bdf    & 1318     & 13237   \\
 \hline
 M & $c_{1}$ & $c_{2}$ \\
 \hline
-  5 & 1.628e-02 & 1.648e-02 \\
- 10 & 9.766e-03 & 9.829e-03 \\
- 25 & 4.178e-03 & 4.110e-03 \\
- 50 & 1.879e-03 & 1.811e-03 \\
- 75 & 1.031e-03 & 9.806e-04 \\
-100 & 6.923e-04 & 6.098e-04 \\
+  5 & 1.628E-2 & 1.648E-2 \\
+ 10 & 9.766E-3 & 9.829E-3 \\
+ 25 & 4.178E-3 & 4.110E-3 \\
+ 50 & 1.879E-3 & 1.811E-3 \\
+ 75 & 1.031E-3 & 9.806E-4 \\
+100 & 6.923E-4 & 6.098E-4 \\
 \hline
 \end{tabular}
 \caption{NRMS of results at $t=4$ hours compared to results at M = 200 (dopri5 solver)}
@@ -148,12 +190,12 @@ M & $c_{1}$ & $c_{2}$ \\
 \hline
 M & $c_{1}$ & $c_{2}$ \\
 \hline
-  5 & 1.654e-02 & 1.648e-02 \\
- 10 & 9.796e-03 & 9.829e-03 \\
- 25 & 4.091e-03 & 4.110e-03 \\
- 50 & 1.802e-03 & 1.811e-03 \\
- 75 & 9.436e-04 & 9.806e-04 \\
-100 & 5.982e-04 & 6.098e-04 \\
+  5 & 1.654E-2 & 1.648E-2 \\
+ 10 & 9.796E-3 & 9.829E-3 \\
+ 25 & 4.091E-3 & 4.110E-3 \\
+ 50 & 1.802E-3 & 1.811E-3 \\
+ 75 & 9.436E-4 & 9.806E-4 \\
+100 & 5.982E-4 & 6.098E-4 \\
 \hline
 \end{tabular}
 \caption{NRMS of results at $t=4$ hours compared to results at M = 200 (bdf solver)}
