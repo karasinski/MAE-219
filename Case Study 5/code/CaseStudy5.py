@@ -190,7 +190,6 @@ def sensitivity_analysis(integrators, times, meshes):
         x = [mesh for mesh in meshes][0:-1]
         plt.plot(x, NRMS1, '-', label=integrator + ' $c_1$')
         plt.plot(x, NRMS2, '--', label=integrator + ' $c_2$')
-        make_tex_table(integrator, x, NRMS1, NRMS2)
 
     plt.ylabel('NRMS')
     plt.xlabel('M')
@@ -198,39 +197,6 @@ def sensitivity_analysis(integrators, times, meshes):
     plt.legend()
     save_name = str(meshes) + '.pdf'
     save_plot(save_name)
-
-
-def make_tex_table(integrator, *args):
-    matrix = args[0]
-    try:
-        for arg in args[1:]:
-            addition = np.array(arg)
-            matrix = np.vstack((matrix, addition))
-    except Exception as e:
-        print e
-
-    print '''
-\\begin{table}[tbh]
-\\begin{center}
-\\begin{tabular}{| r | r r |}
-\hline
-M & NRMS_{$c_1$} & NRMS_{$c_2$} \\\
-\\hline
-'''
-
-    matrix = matrix.T
-    print integrator
-    for row in matrix:
-        print "{0:3.0f} & {1:1.3e} & {2:1.3e} \\\ ".format(*row)
-
-    print '''
-\hline
-\end{tabular}
-\caption{''' + str(integrator) + ''' solver NRMS for several mesh sizes}
-\label{''' + str(integrator) + '''_nrms_table}
-\end{center}
-\end{table}
-'''
 
 
 # Basic problem parameters
