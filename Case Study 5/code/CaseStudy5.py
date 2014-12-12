@@ -154,8 +154,8 @@ def run_trials(z, integrators, times, M):
 def sensitivity_analysis(integrators, times, meshes):
     plt.figure()
     for integrator in integrators:
-
         z_M, c1_M, c2_M = [], [], []
+
         for M in meshes:
             name = integrator + ' ' + str(times[-1]) + ' ' + str(M)
             try:
@@ -187,8 +187,10 @@ def sensitivity_analysis(integrators, times, meshes):
             NRMS2.append(np.sqrt(np.mean(np.square(err2)))/(max(best2) - min(best2)))
             # print meshes[j], NRMS1, NRMS2
 
-        plt.plot([mesh for mesh in meshes][0:-1], NRMS1, '-', label= integrator + ' $c_1$')
-        plt.plot([mesh for mesh in meshes][0:-1], NRMS2, '--', label= integrator + ' $c_2$')
+        x = [mesh for mesh in meshes][0:-1]
+        plt.plot(x, NRMS1, '-', label=integrator + ' $c_1$')
+        plt.plot(x, NRMS2, '--', label=integrator + ' $c_2$')
+        make_tex_table(integrator, x, NRMS1, NRMS2)
 
     plt.ylabel('NRMS')
     plt.xlabel('M')
@@ -196,6 +198,39 @@ def sensitivity_analysis(integrators, times, meshes):
     plt.legend()
     save_name = str(meshes) + '.pdf'
     save_plot(save_name)
+
+
+def make_tex_table(integrator, *args):
+    matrix = args[0]
+    try:
+        for arg in args[1:]:
+            addition = np.array(arg)
+            matrix = np.vstack((matrix, addition))
+    except Exception as e:
+        print e
+
+    print '''
+\\begin{table}[tbh]
+\\begin{center}
+\\begin{tabular}{| r | r r |}
+\hline
+M & NRMS_{$c_1$} & NRMS_{$c_2$} \\\
+\\hline
+'''
+
+    matrix = matrix.T
+    print integrator
+    for row in matrix:
+        print "{0:3.0f} & {1:1.3e} & {2:1.3e} \\\ ".format(*row)
+
+    print '''
+\hline
+\end{tabular}
+\caption{''' + str(integrator) + ''' solver NRMS for several mesh sizes}
+\label{''' + str(integrator) + '''_nrms_table}
+\end{center}
+\end{table}
+'''
 
 
 # Basic problem parameters
@@ -220,7 +255,7 @@ for i in range(0, M + 1):
     c[2 * i + 1] = 1E12 * gamma(z[i])
 
 # Run the trials
-integrators = ['dopri5']
+integrators = ['dopri5', 'bdf']
 times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 24.])
 run_trials(z, integrators, times, M)
 
