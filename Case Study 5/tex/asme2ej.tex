@@ -89,6 +89,18 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem Description}
 
+Chang et al.~\cite{chang1974simulation, byrne1987stiff} have proposed approximate models to describe the chemical kinetics and transport phenomena associated with the dissociation of oxygen (O$_2$) into ozone (O$_3$) and monatomic oxygen (O) in the upper atmosphere. We are considering a one-dimensional version of such a model. The ambient oxygen concentration, $c_3$, is constant, while the concentrations of the two minor species, O and O$_3$, are $c_1(z, t)$ and $c_2(z, t)$, where $z$ is the elevation above the earth's surface in km (here $30 \leq z \leq 50$) and $t$ is time in seconds. Their transport is modeled using a reaction-diffusion equation,
+\begin{equation}
+\frac{\partial c_i}{\partial t} = \frac{\partial}{\partial z} \left[K(z) \frac{\partial c_i}{dz} \right] + R_i (\vec{c}, t).
+\end{equation}
+The diffusive term is meant to represent the turbulent vertical transport with
+\begin{equation}
+K(z) = 10^{-8} \cdot exp(z/5) \quad [\mbox{km}/\mbox{s}],
+\end{equation}
+ and the chemistry is described using the Chapman mechanism [2].
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
@@ -98,63 +110,86 @@
 
 \begin{table}[tbh]
 \begin{center}
-\begin{tabular}{| l | r |}
+\begin{tabular}{| l | r r |}
 \hline
-Solver & Time (s) \\
+Solver & 24 hours & 10 days \\
 \hline
-dop853 & 11092 \\
-dopri5 & 10069 \\
-bdf    & 13237 \\
+dopri5 & 1025     & 10069   \\
+bdf    & 1318     & 13237   \\
 \hline
 \end{tabular}
-\caption{10 days solution}
-\label{10_days}
+\caption{Wall clock time, in seconds, to solve to $t=24$ hours and $t=10$ days}
+\label{run_time}
 \end{center}
 \end{table}
 
 \begin{table}[tbh]
 \begin{center}
-\begin{tabular}{| l | r |}
+\begin{tabular}{| r | r r |}
 \hline
-Solver & Time (s) \\
+M & $c_{1}$ & $c_{2}$ \\
 \hline
-dop853 & 1120 \\
-dopri5 & 1025 \\
-bdf    & 1318 \\
+  5 & 1.628e-02 & 1.648e-02 \\
+ 10 & 9.766e-03 & 9.829e-03 \\
+ 25 & 4.178e-03 & 4.110e-03 \\
+ 50 & 1.879e-03 & 1.811e-03 \\
+ 75 & 1.031e-03 & 9.806e-04 \\
+100 & 6.923e-04 & 6.098e-04 \\
 \hline
 \end{tabular}
-\caption{24 hours solution}
-\label{24_hours}
+\caption{NRMS of results at $t=4$ hours compared to results at M = 200 (dopri5 solver)}
+\label{dopri5_nrms_table}
+\end{center}
+\end{table}
+
+\begin{table}[tbh]
+\begin{center}
+\begin{tabular}{| r | r r |}
+\hline
+M & $c_{1}$ & $c_{2}$ \\
+\hline
+  5 & 1.654e-02 & 1.648e-02 \\
+ 10 & 9.796e-03 & 9.829e-03 \\
+ 25 & 4.091e-03 & 4.110e-03 \\
+ 50 & 1.802e-03 & 1.811e-03 \\
+ 75 & 9.436e-04 & 9.806e-04 \\
+100 & 5.982e-04 & 6.098e-04 \\
+\hline
+\end{tabular}
+\caption{NRMS of results at $t=4$ hours compared to results at M = 200 (bdf solver)}
+\label{bdf_nrms_table}
 \end{center}
 \end{table}
 
 \begin{figure}[thb]
 \begin{center}
-\includegraphics[width=0.5\textwidth]{figure/bdf c1.pdf}
-\includegraphics[width=0.5\textwidth]{figure/dop853 c1.pdf}
-\includegraphics[width=0.5\textwidth]{figure/dopri5 c1.pdf}
-\caption{Results from bdf, dop853, and dopri5 solvers of $c_1$ vs. z at $t = $ 0, 2, 4, 6, 7, and 9 hours}
-\label{c1}
+\includegraphics[width=0.5\textwidth]{../code/figures/bdf 86400.0 50 c1.pdf}
+\caption{$c_1$ vs. z at $t = $ 0, 2, 4, 6, 7, and 9 hours}
+\label{c1_plot}
 \end{center}
 \end{figure}
 
 \begin{figure}[thb]
 \begin{center}
-\includegraphics[width=0.5\textwidth]{figure/bdf c2.pdf}
-\includegraphics[width=0.5\textwidth]{figure/dop853 c2.pdf}
-\includegraphics[width=0.5\textwidth]{figure/dopri5 c2.pdf}
-\caption{Results from bdf, dop853, and dopri5 solvers of $c_2$ vs. z at $t = $ 0, 2, 4, 6, 7, 9, 12, 18, and 24 hours}
-\label{c2}
+\includegraphics[width=0.5\textwidth]{../code/figures/bdf 86400.0 50 c2.pdf}
+\caption{$c_2$ vs. z at $t = $ 0, 2, 4, 6, 7, 9, 12, 18, and 24 hours}
+\label{c2_plot}
 \end{center}
 \end{figure}
 
 \begin{figure}[thb]
 \begin{center}
-\includegraphics[width=0.5\textwidth]{figure/bdf time.pdf}
-\includegraphics[width=0.5\textwidth]{figure/dop853 time.pdf}
-\includegraphics[width=0.5\textwidth]{figure/dopri5 time.pdf}
-\caption{Results from bdf, dop853, and dopri5 solvers of $c_1$ and $c_2$ vs. time (from 0 to 10 days) at $z = 40$ km}
-\label{10 days}
+\includegraphics[width=0.5\textwidth]{../code/figures/bdf 864000.0 50 time.pdf}
+\caption{$c_1$ and $c_2$ vs. time (from 0 to 10 days) at $z = 40$ km}
+\label{40km_plot}
+\end{center}
+\end{figure}
+
+\begin{figure}[thb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../code/figures/[5, 10, 25, 50, 75, 100, 200].pdf}
+\caption{NRMS for M = 5, 10, 25, 50, 75, and 100 compared against M = 200 for both solvers and $c_1$ and $c_2$}
+\label{NRMS_plot}
 \end{center}
 \end{figure}
 

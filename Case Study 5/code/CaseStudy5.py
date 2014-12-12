@@ -43,14 +43,18 @@ def system(t, y):
         R1, R2 = R(y[2 * i], y[2 * i + 1], t)
         l_p, l_m = 1. * i + 3. / 2., 1. * i + 1. / 2.
 
-        f[2 * i] =     (dz ** -2 * (K(l_p) * y[2 * i + 2] - (K(l_p) + K(l_m)) * y[2 * i]     + K(l_m) * y[2 * i - 2]) + R1)
-        f[2 * i + 1] = (dz ** -2 * (K(l_p) * y[2 * i + 3] - (K(l_p) + K(l_m)) * y[2 * i + 1] + K(l_m) * y[2 * i - 1]) + R2)
+        f[2 * i] =     (dz ** -2 * (K(l_p) * y[2 * i + 2] -
+                        (K(l_p) + K(l_m)) * y[2 * i]     + K(l_m) * y[2 * i - 2]) + R1)
+        f[2 * i + 1] = (dz ** -2 * (K(l_p) * y[2 * i + 3] -
+                        (K(l_p) + K(l_m)) * y[2 * i + 1] + K(l_m) * y[2 * i - 1]) + R2)
 
     R1, R2 = R(y[2 * M], y[2 * M + 1], t)
     l_p, l_m = 1. * M + 1. / 2., 1. * M - 1. / 2.
 
-    f[2 * M]     = (dz ** -2 * (K(l_p) * y[2 * M - 2] - (K(l_p) + K(l_m)) * y[2 * M]     + K(l_m) * y[2 * M - 2]) + R1)
-    f[2 * M + 1] = (dz ** -2 * (K(l_p) * y[2 * M - 1] - (K(l_p) + K(l_m)) * y[2 * M + 1] + K(l_m) * y[2 * M - 1]) + R2)
+    f[2 * M]     = (dz ** -2 * (K(l_p) * y[2 * M - 2] -
+                    (K(l_p) + K(l_m)) * y[2 * M]     + K(l_m) * y[2 * M - 2]) + R1)
+    f[2 * M + 1] = (dz ** -2 * (K(l_p) * y[2 * M - 1] -
+                    (K(l_p) + K(l_m)) * y[2 * M + 1] + K(l_m) * y[2 * M - 1]) + R2)
 
     return f
 
@@ -188,8 +192,8 @@ def sensitivity_analysis(integrators, times, meshes):
             # print meshes[j], NRMS1, NRMS2
 
         x = [mesh for mesh in meshes][0:-1]
-        plt.plot(x, NRMS1, '-', label=integrator + ' $c_1$')
-        plt.plot(x, NRMS2, '--', label=integrator + ' $c_2$')
+        plt.plot(x, NRMS1, '+', label='$c_1$ ' + integrator)
+        plt.plot(x, NRMS2, 'x', label='$c_2$ ' + integrator)
 
     plt.ylabel('NRMS')
     plt.xlabel('M')
