@@ -143,10 +143,12 @@ def run_trials(z, integrators, times, M):
             save_variables(name, z, c1, c2, t, c1_40km, c2_40km)
 
         # And plot some things
-        # labels = [str(int(time / 3600.)) + " hours" for time in times[1:]]
-        # plot_c1(z, c, c1, labels, name)
-        # plot_c2(z, c, c2, labels, name)
-        # plot_40km(t, c1_40km, c2_40km, name)
+        if times[-1] == 86400.0:
+            labels = [str(int(time / 3600.)) + " hours" for time in times[1:]]
+            plot_c1(z, c, c1, labels, name)
+            plot_c2(z, c, c2, labels, name)
+        elif times[-1] == 864000.0:
+            plot_40km(t, c1_40km, c2_40km, name)
 
 
 def sensitivity_analysis(integrators, times, meshes):
@@ -185,7 +187,7 @@ def sensitivity_analysis(integrators, times, meshes):
             NRMS2.append(np.sqrt(np.mean(np.square(err2)))/(max(best2) - min(best2)))
             # print meshes[j], NRMS1, NRMS2
 
-        plt.plot([mesh for mesh in meshes][0:-1], NRMS1, ':', label= integrator + ' $c_1$')
+        plt.plot([mesh for mesh in meshes][0:-1], NRMS1, '-', label= integrator + ' $c_1$')
         plt.plot([mesh for mesh in meshes][0:-1], NRMS2, '--', label= integrator + ' $c_2$')
 
     plt.ylabel('NRMS')
@@ -220,14 +222,14 @@ for i in range(0, M + 1):
 # Run the trials
 integrators = ['dopri5']
 times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 24.])
-run_trials(z, integrators, times)
+run_trials(z, integrators, times, M)
 
 integrators = ['dopri5', 'bdf']
 times = 3600. * np.array([0., 2., 4., 6., 7., 9., 12., 18., 240.])
-run_trials(z, integrators, times)
+run_trials(z, integrators, times, M)
 
 # Mesh Analysis
-meshes = [5, 10, 20, 40, 50, 80, 160]
+meshes = [5, 10, 25, 50, 75, 100, 200]
 for M in meshes:
     dz = 20. / M         # 20km divided by M subsections
 
