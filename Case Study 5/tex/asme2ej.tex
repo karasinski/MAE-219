@@ -179,7 +179,7 @@ In particular the ordering of the $c_1$ concentrations are the same from $t = $ 
 The results for concentrations of $c_1$ and $c_2$ as a function of altitude, and the results for the concentrations of $c_1$ and $c_2$ at 40 km as a function of time agree with the results in both reference papers.
 
 \subsection{Difference in convergence time}
-\begin{table}[tbh]
+\begin{table}[tb]
 \begin{center}
 \begin{tabular}{| l | r r |}
 \hline
@@ -227,7 +227,7 @@ M & $c_{1}$ & $c_{2}$ \\
 100 & 6.923E-4 & 6.098E-4 \\
 \hline
 \end{tabular}
-\caption{NRMS of results at $t=4$ hours compared to results at M = 200 (dopri5 solver)}
+\caption{NRMS of results at $t=4$ hours compared to results at M = 200 for the dopri5 solver}
 \label{dopri5_nrms_table}
 \end{center}
 \end{table}
@@ -246,7 +246,7 @@ M & $c_{1}$ & $c_{2}$ \\
 100 & 5.982E-4 & 6.098E-4 \\
 \hline
 \end{tabular}
-\caption{NRMS of results at $t=4$ hours compared to results at M = 200 (bdf solver)}
+\caption{NRMS of results at $t=4$ hours compared to results at M = 200 for the bdf solver}
 \label{bdf_nrms_table}
 \end{center}
 \end{table}
@@ -254,13 +254,16 @@ M & $c_{1}$ & $c_{2}$ \\
 \begin{figure}[tb]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{../code/figures/[5, 10, 25, 50, 75, 100, 200].pdf}
-\caption{NRMS for M = 5, 10, 25, 50, 75, and 100 compared against M = 200 for both solvers and $c_1$ and $c_2$}
+\caption{NRMS for M = 5, 10, 25, 50, 75, and 100 compared against M = 200 for both solvers and concentrations}
 \label{NRMS_plot}
 \end{center}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
+A previously developed model to describe the chemical kinetics and transport phenomena associated with the dissociation of oxygen in the upper atmosphere was investigated and the results were compared to previously published results. A numerical solution of the system was discretized using the method of lines and central differencing for the diffusion term on a uniform mesh with M nodes.
+
+A Python script was created and scipy was used to call both a stiff and non-stiff ODE solver to investigate the concentrations of two species of oxygen as a function of altitude and time. This script can be seen as Appendix~1. The results of these two solvers both compared well to previously published results, though the stiff solver took approximately 31\% longer to converge. A mesh sensitivity study was also performed, and confirmed that the base mesh resulting from M = 50 was adequate for the values investigated here.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \nocite{*}
