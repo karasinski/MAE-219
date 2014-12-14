@@ -111,7 +111,7 @@ with,
 \begin{split}
 k_1 = & 1.63 x 10^{−16} \\
 k_2 = & 4.66 x 10^{−16} \\
-k_l = & \mbox{exp} [−a_l/ \mbox{sin}~\omega t]~\mbox{if sin}~\omega~t~>~0,~\mbox{else}~0~(l = 3, 4)
+k_l = & \mbox{exp} [−a_l/ \mbox{sin}~\omega~t]~\mbox{if sin}~\omega~t~>~0,~\mbox{else}~0~(l = 3, 4)
 \end{split}
 \end{equation*}
 and with $a_3$ = 22.62, $a_4$ = 7.601, and $\omega = \pi/43200$. This system is subject to the initial conditions,
@@ -142,14 +142,43 @@ The function $c^i(z_j,t)$ can then be approximated as
 
 \noindent where $K_{j \pm 1/2} = K(30+[j \pm 1/2] \Delta z)$. A system of $2M$ ODEs is then specified by setting $\boldsymbol{y}(t)=[c^1_1(t), c^2_1(t), c^1_2(t), c^2_2(t), \ldots, c^1_M(t),c^2_M(t)]^T$, with boundary conditions $c^i_0 = c^i_2$ and $c^i_{M-1} = c^i_{M+1}$. The two parabolic PDEs are then reduced to a system of 2M ODEs of the form $\dot{\boldsymbol{y}} = \boldsymbol{f} (t, \boldsymbol{y})$.
 
-Two solvers are called from scipy version 0.11.0 to solve this system of ODEs. A stiff solver, "vode", is an implicit method based on the backward differentiation formulas, and a non-stiff solver, "dopri5", is an explicit Runge-Kutta method of order (4,5) are used. Both methods required an absolute tolerance of 1E-1 and a relative tolerance 1E-3 for convergence.
+Two solvers are called from scipy version 0.11.0 to solve this system of ODEs. A stiff solver, ``vode", is an implicit method based on the backward differentiation formulas, and a non-stiff solver, ``dopri5", is an explicit Runge-Kutta method of order (4,5) are used.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
 
 \subsection{Comparison to Published Results}
-\subsection{Sensitivity to Mesh Density}
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../code/figures/bdf 86400.0 50 c1.pdf}
+\caption{$c_1$ vs. z at $t = $ 0, 2, 4, 6, 7, and 9 hours}
+\label{c1_plot}
+\end{center}
+\end{figure}
 
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../code/figures/bdf 86400.0 50 c2.pdf}
+\caption{$c_2$ vs. z at $t = $ 0, 2, 4, 6, 7, 9, 12, 18, and 24 hours}
+\label{c2_plot}
+\end{center}
+\end{figure}
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../code/figures/bdf 864000.0 50 time.pdf}
+\caption{$c_1$ and $c_2$ vs. time (from 0 to 10 days) at $z = 40$ km, $c_2$ is scaled by 1E-4}
+\label{40km_plot}
+\end{center}
+\end{figure}
+
+Both methods required an absolute tolerance of 1E-1 and a relative tolerance 1E-3 for convergence. The results found for both the bdf and dopri5 solvers are effectively the save when plotted on a logarithmic scale. The results from the dopri5 solver can be seen in Figures~\ref{c1_plot},~\ref{c2_plot}, and~\ref{40km_plot}, and compare well with published results~\cite{chang1974simulation, byrne1987stiff}.
+
+In particular the ordering of the $c_1$ concentrations are the same from $t = $ 0 to $t = $ 9 hours. From highest to lowest concentrations, the ordering is $t = $ 6, 7, 4, 9, 0, and 2 hours. The ordering of the $c_2$ concentrations also agree over the time range of $t = $ 0 to $t = $ 24 hours. From highest to lowest concentrations at the upper boundary of 50 km, the ordering is $t = $ 24, 18, 12, 9, 7, 6, 4, 2, and 0 hours. Additionally, the concentrations of both species were investigated at a height of 40 km as a function of time. A peak is seen in the concentration of $c_1$ during each day. This peak grows slightly as time elapses. The concentration of $c_2$ acts as a step function, stepping up each day at approximately the same time as the $c_1$ concentration peaks.
+
+The results for concentrations of $c_1$ and $c_2$ as a function of altitude, and the results for the concentrations of $c_1$ and $c_2$ at 40 km as a function of time agree with the results in both reference papers.
+
+\subsection{Difference in convergence time}
 \begin{table}[tbh]
 \begin{center}
 \begin{tabular}{| l | r r |}
@@ -160,12 +189,31 @@ dopri5 & 1025     & 10069   \\
 bdf    & 1318     & 13237   \\
 \hline
 \end{tabular}
-\caption{Wall clock time, in seconds, to solve to $t=24$ hours and $t=10$ days}
+\caption{Wall clock time, in seconds, for each solver to solve to $t=24$ hours and $t=10$ days}
 \label{run_time}
 \end{center}
 \end{table}
 
-\begin{table}[tbh]
+For stiff problems such as this, stiff solvers should take longer to convergence than non-stiff solvers. Table~\ref{run_time} shows the wall clock time, in seconds, to converge for the 24 hour and 10 day cases. The bdf solver takes about 31\% longer to converge than the dopri5 solver, suggesting that this problem is indeed stiff.
+
+\subsection{Sensitivity to Mesh Density}
+
+The effect of varying the mesh size was also investigated. The solution was found for the concentrations of both species for both solvers at $t = $ 4 hours using meshes resultant from M = 5, 10, 25, 50, 75, 100, and 200. The solution with the mesh resulting from M = 200 was taken to be effectively equivalent to the analytical solution, and was used as the basis for comparison between the solutions found with the other meshes.
+
+The Root Mean Square error,
+\begin{equation}
+RMSE = \sqrt{\frac{1}{N}\sum\limits_{i=1}^N[c_i - c^*_i]^2},
+\end{equation}
+and the Normalized Root Mean Square error,
+\begin{equation}
+NRMS = \dfrac{RMSE}{max(c^*_i)-min(c^*_i)},
+\end{equation}
+can be calculated. Here $c_i$ is the result for the the concentration of each species $i$ at each point on the 1-D domain generated from each value for M, $c^*_i$ is the solution from the M = 200 simulation, and $N$ is the number of points on the 1-D domain. The $NRMS$ for each case is expressed as a percentage, where lower values indicate a result closer to the analytic solution. For the complete NRMS results for each solver and mesh, see Tables~\ref{dopri5_nrms_table} and~\ref{bdf_nrms_table}.
+
+These results show that the difference between the meshes decreases rapidly for larger M. At M = 50, the NRMS is around 1.8E-3 for both concentrations using both solvers. This relatively low value indicates that using a mesh from M = 50 leads to relatively good results with the benefit of a reduced solver time. A plot of these results can be seen as Figure~\ref{NRMS_plot}.
+
+
+\begin{table}[tb]
 \begin{center}
 \begin{tabular}{| r | r r |}
 \hline
@@ -184,7 +232,7 @@ M & $c_{1}$ & $c_{2}$ \\
 \end{center}
 \end{table}
 
-\begin{table}[tbh]
+\begin{table}[tb]
 \begin{center}
 \begin{tabular}{| r | r r |}
 \hline
@@ -203,31 +251,7 @@ M & $c_{1}$ & $c_{2}$ \\
 \end{center}
 \end{table}
 
-\begin{figure}[thb]
-\begin{center}
-\includegraphics[width=0.5\textwidth]{../code/figures/bdf 86400.0 50 c1.pdf}
-\caption{$c_1$ vs. z at $t = $ 0, 2, 4, 6, 7, and 9 hours}
-\label{c1_plot}
-\end{center}
-\end{figure}
-
-\begin{figure}[thb]
-\begin{center}
-\includegraphics[width=0.5\textwidth]{../code/figures/bdf 86400.0 50 c2.pdf}
-\caption{$c_2$ vs. z at $t = $ 0, 2, 4, 6, 7, 9, 12, 18, and 24 hours}
-\label{c2_plot}
-\end{center}
-\end{figure}
-
-\begin{figure}[thb]
-\begin{center}
-\includegraphics[width=0.5\textwidth]{../code/figures/bdf 864000.0 50 time.pdf}
-\caption{$c_1$ and $c_2$ vs. time (from 0 to 10 days) at $z = 40$ km}
-\label{40km_plot}
-\end{center}
-\end{figure}
-
-\begin{figure}[thb]
+\begin{figure}[tb]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{../code/figures/[5, 10, 25, 50, 75, 100, 200].pdf}
 \caption{NRMS for M = 5, 10, 25, 50, 75, and 100 compared against M = 200 for both solvers and $c_1$ and $c_2$}

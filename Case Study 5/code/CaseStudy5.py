@@ -4,9 +4,8 @@ from time import clock
 from PrettyPlots import *
 
 
-def K(z):
-    zz = 30. + z * dz
-    return 1E-8 * np.exp(zz / 5.)
+def K(j):
+    return 1E-8 * np.exp((30. + j * dz) / 5.)
 
 
 def gamma(z):
@@ -14,10 +13,6 @@ def gamma(z):
 
 
 def R(y_1, y_2, t):
-    '''
-    Find the reaction rates, R_1 and R_2, of the system at state c and time t.
-    '''
-
     if np.sin(w * t) > 0.:
         k_3 = np.exp(-a_3 / np.sin(w * t))
         k_4 = np.exp(-a_4 / np.sin(w * t))
@@ -41,7 +36,7 @@ def system(t, y):
 
     for i in range(1, M):
         R1, R2 = R(y[2 * i], y[2 * i + 1], t)
-        l_p, l_m = 1. * i + 3. / 2., 1. * i + 1. / 2.
+        l_p, l_m = i + 3. / 2., i + 1. / 2.
 
         f[2 * i] =     (dz ** -2 * (K(l_p) * y[2 * i + 2] -
                         (K(l_p) + K(l_m)) * y[2 * i]     + K(l_m) * y[2 * i - 2]) + R1)
@@ -49,7 +44,7 @@ def system(t, y):
                         (K(l_p) + K(l_m)) * y[2 * i + 1] + K(l_m) * y[2 * i - 1]) + R2)
 
     R1, R2 = R(y[2 * M], y[2 * M + 1], t)
-    l_p, l_m = 1. * M + 1. / 2., 1. * M - 1. / 2.
+    l_p, l_m = M + 1. / 2., M - 1. / 2.
 
     f[2 * M]     = (dz ** -2 * (K(l_p) * y[2 * M - 2] -
                     (K(l_p) + K(l_m)) * y[2 * M]     + K(l_m) * y[2 * M - 2]) + R1)
@@ -76,7 +71,7 @@ def solve(solver, c, time, integrator):
             solver.integrate(solver.t + dt)
             sol.append(solver.y)
 
-            # keep time history for 40km point
+            # Keep time history for 40km point
             one, two = sol[-1][0::2], sol[-1][1::2]
             mid_one, mid_two = one[M / 2], two[M / 2]
             c1_40km.append(mid_one), c2_40km.append(mid_two)
@@ -87,7 +82,7 @@ def solve(solver, c, time, integrator):
         # Save c1, c2 solutions
         c1.append(one), c2.append(two)
 
-        #Update initial conditions for next iteration
+        # Update initial conditions for next iteration
         c = sol[-1]
 
     elapsed_time = clock() - start_time
@@ -174,7 +169,7 @@ def sensitivity_analysis(integrators, times, meshes):
         best_c1, best_c2 = c1_M[-1], c2_M[-1]
         NRMS1, NRMS2 = [], []
         for j, mesh in enumerate(z_M):
-            if j + 1 == len(z_M): break     # RMS with yourself is silly
+            if j + 1 == len(z_M): break  # RMS with yourself is silly
             best1, best2, curr1, curr2 = [], [], [], []
             for i, element in enumerate(best_z):
                 if element in mesh:
@@ -189,7 +184,6 @@ def sensitivity_analysis(integrators, times, meshes):
             err1, err2 = curr1 - best1, curr2 - best2
             NRMS1.append(np.sqrt(np.mean(np.square(err1)))/(max(best1) - min(best1)))
             NRMS2.append(np.sqrt(np.mean(np.square(err2)))/(max(best2) - min(best2)))
-            # print meshes[j], NRMS1, NRMS2
 
         x = [mesh for mesh in meshes][0:-1]
         plt.plot(x, NRMS1, '+', label='$c_1$ ' + integrator)
@@ -210,7 +204,7 @@ k_2 = 4.66E-16       # Reaction rate [O + O_3 -> 2 * O_2]
 a_3 = 22.62          # Constant used in calculation of k_3
 a_4 = 7.601          # Constant used in calculation of k_4
 w = np.pi / 43200.   # Cycle (half a day) [1/sec]
-dt = 60.
+dt = 60.             # seconds
 
 # Base Case
 M = 50               # Number of sections
