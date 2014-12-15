@@ -1,5 +1,6 @@
 #### import the simple module from the paraview
 from paraview.simple import *
+import sys
 #### disable automatic camera reset on 'Show'
 paraview.simple._DisableFirstRenderCameraReset()
 
@@ -86,3 +87,4 @@ renderView1.CameraParallelScale = 0.0768830580193085
 
 #### uncomment the following to render all views
 SaveScreenshot('/Users/localmin/code/MAE-219/cavityClipped/test_image.png', magnification=1, quality=100, view=renderView1)
+sys.exit()

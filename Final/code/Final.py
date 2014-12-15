@@ -3,6 +3,19 @@ import os
 from PrettyPlots import *
 
 
+def inplace_change(filename, old_string, new_string):
+    with open(filename) as f:
+        s = f.read()
+
+    if old_string in s:
+        # print 'Changing "{old_string}" to "{new_string}"'.format(**locals())
+        s = s.replace(old_string, new_string)
+        with open(filename, 'w') as f:
+            f.write(s)
+    # else:
+        # print 'No occurances of "{old_string}" found.'.format(**locals())
+
+
 def subprocess_cmd(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
     proc_stdout = process.communicate()[0].strip()
@@ -19,130 +32,40 @@ def generate_folders(ARs, Res):
     print ('Folders generated.')
 
 
-def create_mesh_file(AR, Re):
-    mesh = 200.
+def create_mesh_file(path, AR, Re):
+    mesh = 50.  # where 40 is a mesh size that gives results at the necessary spacing
 
-    config = '''
-    /*--------------------------------*- C++ -*----------------------------------*\
-    | =========                 |                                                 |
-    | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-    |  \\    /   O peration     | Version:  2.3.0                                 |
-    |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-    |    \\/     M anipulation  |                                                 |
-    \*---------------------------------------------------------------------------*/
-    FoamFile
-    {
-        version     2.0;
-        format      ascii;
-        class       dictionary;
-        object      blockMeshDict;
-    }
-    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    YMESH    = str(int(mesh * AR))
+    INV_MESH = str(1. / mesh)
+    MESH     = str(int(mesh))
+    AR       = str(-AR)
 
-    convertToMeters 0.1;
-
-    vertices
-    (
-        (0 0 0)
-        (1 0 0)
-        (1 ''' + str(AR) + ''' 0)
-        (0 ''' + str(AR) + ''' 0)
-        (0 0 0.1)
-        (1 0 0.1)
-        (1 ''' + str(AR) + ''' 0.1)
-        (0 ''' + str(AR) + ''' 0.1)
-    );
-
-    blocks
-    (
-        hex (0 1 2 3 4 5 6 7) (''' + str(int(mesh)) + ' ' + str(int(mesh * AR)) + ''' 1) simpleGrading (1 1 1)
-    );
-
-    edges
-    (
-    );
-
-    boundary
-    (
-        movingWall
-        {
-            type wall;
-            faces
-            (
-                (3 7 6 2)
-            );
-        }
-        fixedWalls
-        {
-            type wall;
-            faces
-            (
-                (0 4 7 3)
-                (2 6 5 1)
-                (1 5 4 0)
-            );
-        }
-        frontAndBack
-        {
-            type empty;
-            faces
-            (
-                (0 3 2 1)
-                (4 5 6 7)
-            );
-        }
-    );
-
-    mergePatchPairs
-    (
-    );
-
-    // ************************************************************************* //
-    '''
-
-    return config
+    inplace_change(path, 'AR',             AR)
+    inplace_change(path, 'XMESH',       MESH)
+    inplace_change(path, 'YMESH',       YMESH)
+    inplace_change(path, 'INV_MESH', INV_MESH)
+    inplace_change(path, 'MESH',         MESH)
 
 
-def create_properties_file(AR, Re):
-    nu = 0.1 / Re
+def create_properties_file(path, AR, Re):
+    d = 12.           # depth of chasm
+    NU = str(d / Re)
 
-    config = '''
-    /*--------------------------------*- C++ -*----------------------------------*\
-    | =========                 |                                                 |
-    | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-    |  \\    /   O peration     | Version:  2.3.0                                 |
-    |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-    |    \\/     M anipulation  |                                                 |
-    \*---------------------------------------------------------------------------*/
-    FoamFile
-    {
-        version     2.0;
-        format      ascii;
-        class       dictionary;
-        location    "constant";
-        object      transportProperties;
-    }
-    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-    nu              nu [ 0 2 -1 0 0 0 0 ] ''' + str(nu) + ''';
-
-
-    // ************************************************************************* //
-    '''
-
-    return config
+    inplace_change(path, 'NU', NU)
 
 
 def update_dimensions(ARs, Res):
     for AR, Re in zip(ARs, Res):
         run = "Run" + str(AR) + '-' + str(Re)
         path = run + '/constant/polyMesh/blockMeshDict'
-        with open(path, 'w') as config_file:
-            config_file.write(create_mesh_file(AR, Re))
+        create_mesh_file(path, AR, Re)
+        # with open(path, 'w') as config_file:
+            # config_file.write(create_mesh_file(AR, Re))
 
         path = run + '/constant/transportProperties'
-        with open(path, 'w') as config_file:
-            config_file.write(create_properties_file(AR, Re))
+        create_properties_file(path, AR, Re)
+        # with open(path, 'w') as config_file:
+            # config_file.write(create_properties_file(AR, Re))
 
     print ('Config generated.')
 
@@ -157,8 +80,12 @@ def run_simulations(ARs, Res):
             command += "source $HOME/OpenFOAM/OpenFOAM-2.3.0/etc/bashrc; "
             command += "cd " + run + "; "
             command += "blockMesh; "
-            command += "icoFoam > log; "
-            command += "streamFunction"
+            command += "decomposePar; "
+            command += "mpirun -np 4 pisoFoam -parallel > log; "
+            command += "reconstructPar; "
+            command += "streamFunction; "
+            # command += 'paraFoam --script="../paraFoam.py" '
+
             subprocess_cmd(command)
         print(run + ' complete.')
 
@@ -181,10 +108,7 @@ if __name__ == "__main__":
     main(ARs, Res)
 
     # Additional cases
-    # ARs = [0.5,    0.5,   2.0,   5.0]
-    # Res = [1.0, 2000.0, 100.0, 100.0]
+    ARs = [0.5,    0.5,   2.0,   5.0]
+    Res = [1.0, 2000.0, 100.0, 100.0]
     #        x       o      o      o  Broken=x Working=o
-
     main(ARs, Res)
-
-

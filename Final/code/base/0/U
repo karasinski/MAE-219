@@ -20,7 +20,7 @@ internalField   uniform (0 0 0);
 
 boundaryField
 {
-    movingWall
+    lid
     {
         type            fixedValue;
         value           uniform (1 0 0);
@@ -35,6 +35,16 @@ boundaryField
     frontAndBack
     {
         type            empty;
+    }
+
+    inlet
+    {
+        type            zeroGradient;
+    }
+
+    outlet
+    {
+        type            zeroGradient;
     }
 }
 

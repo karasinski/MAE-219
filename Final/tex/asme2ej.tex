@@ -92,6 +92,30 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
+The pisoFoam solver from OpenFOAM 2.3.0 was used to model the solution of this problem. pisoFoam is a transient solver for incompressible flow which supports multiple forms of turbulence modelling. A Reynolds-average simulation (RAS) turbulence model is employed with a standard $k$-$\epsilon$ model.
+
+The solver is initialized with the following initial conditions:
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{| l | l | l | l | }
+\hline
+                         & internal     & lid          & fixedWalls   \\
+\hline
+U~[m/s]                  & (0 0 0)$^*$  & (1 0 0)$^*$  & (0 0 0)$^*$  \\
+p~[m$^2$/s$^2$]          & 0$^*$        & zeroGradient & zeroGradient \\
+$\epsilon$~[m$^2$/s$^3$] & 0.000765$^*$ & 0.000765$^*$ & 0.000765$^*$ \\
+k~[m$^2$/s$^2$]          & 0.00325$^*$  & 0.00325$^*$  & 0.00325$^*$  \\
+$\nu_t$~[m$^2$/s]        & 0$^*$        & 0$^*$        & 0$^*$        \\
+
+\hline
+\end{tabular}
+\caption{Initial conditions for simulation ($^*$: uniform)}
+\label{run_time}
+\end{center}
+\end{table}
+
+\noindent The boundary field for the inlet and outlet boundaries is set to ``zeroGradient'' for all of the initial fields. Additionally, the boundary field for frontAndBack is set to ``empty'' for all initial fields, turning this into a 2D problem.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
 
