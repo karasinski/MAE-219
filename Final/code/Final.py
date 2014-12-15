@@ -1,6 +1,5 @@
 import subprocess
 import os
-from PrettyPlots import *
 
 
 def inplace_change(filename, old_string, new_string):

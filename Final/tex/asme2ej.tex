@@ -89,13 +89,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem Description}
 
+Forty five years ago, Mehta and Lavan published a paper on the numerical investigation of flow over a rectangular cavity at low Reynolds numbers~\cite{mehta1969flow}. This relatively simple geometry provides tremendous insight into the physics of flow separation, an important flow feature in many applications. A numerical 2D planar model of these incompressible, laminar flows is developed here. In particular, the predicted flow structure (streamline pattern, eddies) and velocity profiles are investigated for a variety of aspect ratios (AR) and Reynolds numbers (Re).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
-The pisoFoam solver from OpenFOAM 2.3.0 was used to model the solution of this problem. pisoFoam is a transient solver for incompressible flow which supports multiple forms of turbulence modelling. A Reynolds-average simulation (RAS) turbulence model is employed with a standard $k$-$\epsilon$ model.
+The pisoFoam solver from OpenFOAM 2.3.0 was used to model the solution of this problem. pisoFoam is a transient solver for incompressible flow which supports multiple forms of turbulence modelling. A Reynolds-average simulation (RAS) turbulence model is employed with a standard $k-\epsilon$ model. The solver is initialized with the initial conditions described in Table~\ref{initial_conditions}. Additionally, the boundary field for the inlet and outlet boundaries are set to ``zeroGradient'' for all of the initial fields and, the boundary field for frontAndBack is set to ``empty'' for all initial fields, turning this into a 2D problem.
 
-The solver is initialized with the following initial conditions:
-\begin{table}[h]
+Five cases were investigated: a base case with AR=0.5 and Reynolds number (Re) of 100, and additional cases of AR=0.5 with Re=1 and 2000 for AR=0.5, and AR=2.0 and 5.0 for Re=100. A Python script was created to generate the initial conditions and geometry for each case. The script generated the nonuniform grid using the blockMesh tool. The resultant mesh for the base case can be see in Figure~\ref{grid_figure}. The domain of the problem was then split on to four CPUs using the decomposePar tool, and the pisoFoam solver was called with the MPI option. The solver than solved the system for 360 seconds and reconstructed the domain using the reconstructPar tool.
+
+\begin{table}[b]
 \begin{center}
 \begin{tabular}{| l | l | l | l | }
 \hline
@@ -109,12 +112,26 @@ $\nu_t$~[m$^2$/s]        & 0$^*$        & 0$^*$        & 0$^*$        \\
 
 \hline
 \end{tabular}
-\caption{Initial conditions for simulation ($^*$: uniform)}
-\label{run_time}
+\caption{Initial conditions for simulation ($^*$: uniform fields)}
+\label{initial_conditions}
 \end{center}
 \end{table}
 
-\noindent The boundary field for the inlet and outlet boundaries is set to ``zeroGradient'' for all of the initial fields. Additionally, the boundary field for frontAndBack is set to ``empty'' for all initial fields, turning this into a 2D problem.
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{figure/grid.png}
+\caption{Generated grid for the AR=0.5 cases}
+\label{grid_figure}
+\end{center}
+\end{figure}
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{figure/tight_grid.png}
+\caption{Closeup on the cavity generated grid for the AR=0.5 cases}
+\label{grid_figure}
+\end{center}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
@@ -134,7 +151,7 @@ $\nu_t$~[m$^2$/s]        & 0$^*$        & 0$^*$        & 0$^*$        \\
 \section*{Appendix A: Python Code}
 
 \lstinputlisting[caption=Code to create solutions, language=Python]{../code/Final.py}
-\lstinputlisting[caption=Code to generate pretty plots, language=Python]{../code/PrettyPlots.py}
+\lstinputlisting[caption=Code to generate pretty plots using paraFoam, language=Python]{../code/paraFoam.py}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{document}
