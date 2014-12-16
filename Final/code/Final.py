@@ -32,25 +32,27 @@ def generate_folders(ARs, Res):
 
 
 def create_mesh_file(path, AR, Re):
-    mesh = 50.  # where 40 is a mesh size that gives results at the necessary spacing
+    M = 50.
 
-    YMESH    = str(int(mesh * AR))
-    INV_MESH = str(1. / mesh)
-    MESH     = str(int(mesh))
-    AR       = str(-AR)
+    YMESH       = str(int(M * AR))
+    INV_GRADING = str(4. / M)
+    GRADING     = str(M / 4.)
+    MESH        = str(int(M))
+    AR          = str(-AR)
 
-    inplace_change(path, 'AR',             AR)
-    inplace_change(path, 'XMESH',       MESH)
-    inplace_change(path, 'YMESH',       YMESH)
-    inplace_change(path, 'INV_MESH', INV_MESH)
-    inplace_change(path, 'MESH',         MESH)
+    inplace_change(path, 'AR',                   AR)
+    inplace_change(path, 'XMESH',              MESH)
+    inplace_change(path, 'YMESH',             YMESH)
+    inplace_change(path, 'INV_GRADING', INV_GRADING)
+    inplace_change(path, 'GRADING',         GRADING)
+    inplace_change(path, 'MESH',               MESH)
 
 
-def create_properties_file(path, AR, Re):
-    d = 12.           # depth of chasm
+def create_properties_files(path, AR, Re):
+    d = 10.           # characteristic size of domain
     NU = str(d / Re)
 
-    inplace_change(path, 'NU', NU)
+    inplace_change(path, 'NU_VAR', NU)
 
 
 def update_dimensions(ARs, Res):
@@ -58,13 +60,9 @@ def update_dimensions(ARs, Res):
         run = "Run" + str(AR) + '-' + str(Re)
         path = run + '/constant/polyMesh/blockMeshDict'
         create_mesh_file(path, AR, Re)
-        # with open(path, 'w') as config_file:
-            # config_file.write(create_mesh_file(AR, Re))
 
         path = run + '/constant/transportProperties'
-        create_properties_file(path, AR, Re)
-        # with open(path, 'w') as config_file:
-            # config_file.write(create_properties_file(AR, Re))
+        create_properties_files(path, AR, Re)
 
     print ('Config generated.')
 
