@@ -94,13 +94,13 @@ Forty five years ago, Mehta and Lavan published a paper on the numerical investi
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
-The pisoFoam solver from OpenFOAM 2.3.0 was used to model the solution of this problem. pisoFoam is a transient solver for incompressible flow which supports multiple forms of turbulence modelling. A Reynolds-average simulation (RAS) turbulence model is employed with a standard $k-\epsilon$ model. Five cases were investigated: a base case with AR=0.5 and Reynolds number (Re) of 100, and additional cases of AR=0.5 with Re=1 and 2000 for AR=0.5, and AR=2.0 and 5.0 for Re=100. A Python script was created to generate the initial conditions and geometry for each case.
+The icoFoam solver from OpenFOAM 2.3.0 was used to model the solution of this problem. icoFoam is a transient solver for incompressible, laminar flow of Newtonian fluid. Five cases were investigated: a base case with AR=0.5 and Reynolds number (Re) of 100, and additional cases of AR=0.5 with Re=1 and 2000 for AR=0.5, and AR=2.0 and 5.0 for Re=100. A Python script was created to generate the initial conditions and geometry for each case.
 
-The solver is initialized with the initial conditions described in Table~\ref{initial_conditions}. Additionally, the boundary field for the inlet and outlet boundaries are set to ``zeroGradient'' for all of the initial fields and, the boundary field for frontAndBack is set to ``empty'' for all initial fields, turning this into a 2D problem. The geometry for this problem consists of a channel of length 10 m and height 1 m. A cavity is placed just below the channel and has a width of 1 m and a depth of AR. The script also generated the nonuniform mesh for this geometry using the blockMesh tool.
+The solver is initialized with the initial conditions described in Table~\ref{initial_conditions}. Additionally, the boundary field for the inlet and outlet boundaries are set to ``zeroGradient'' for all of the initial fields and, the boundary field for frontAndBack is set to ``empty'' for all initial fields, turning this into a 2D problem. The geometry for this problem consists of a channel of width 10 m and height 1 m. A cavity is placed just below the channel and has a width of 1 m and a depth of AR (see Figure~\ref{geometry_figure}).
 
-This mesh was divided into four regions: the left half of the channel, the right half of the channel, the center of the channel, and the cavity. For the base case, both the left and right halves of the channel were split into grids of 50x50 in the x, y direction, and also used ``simpleGrading'' to grade the meshes to make them denser near the center of the domain. The center of the channel was also split into grids of 50x50 in the x, y direction. The cavity for the base case was split into grids of 50x25 in the x, y direction and created a uniform mesh.
+The script also generated the nonuniform mesh for this geometry using the blockMesh tool. This mesh was divided into four regions: the left half of the channel, the right half of the channel, the center of the channel, and the cavity. For the base case, both the left and right halves of the channel were split into grids of 50x50 in the x, y direction, and also used ``simpleGrading'' to grade the meshes to make them denser near the center of the domain. The center of the channel was also split into grids of 50x50 in the x, y direction. The cavity for the base case was split into grids of 50x25 in the x, y direction and created a uniform mesh. A generalized version of this mesh is available in Table~\ref{mesh_generation}.
 
-The resultant mesh for the base case can be see in Figure~\ref{grid_figure}. The domain of the problem was then split on to four CPUs using the decomposePar tool, and the pisoFoam solver was called with the MPI option. The solver than solved the system for 30 seconds and reconstructed the domain using the reconstructPar tool.
+The resultant mesh for the base case can be see in Figure~\ref{grid_figure}. The domain of the problem was then split on to four CPUs using the decomposePar tool, and the icoFoam solver was called with the MPI option. The solver than solved the system for 30 seconds to insure convergence and reconstructed the domain using the reconstructPar tool.
 
 \begin{table}[bt]
 \begin{center}
@@ -108,14 +108,11 @@ The resultant mesh for the base case can be see in Figure~\ref{grid_figure}. The
 \hline
                          & internal     & lid          & fixedWalls   \\
 \hline
-U~[m/s]                  & (0 0 0)$^*$  & (1 0 0)$^*$  & (0 0 0)$^*$  \\
-p~[m$^2$/s$^2$]          & 0$^*$        & zeroGradient & zeroGradient \\
-$\epsilon$~[m$^2$/s$^3$] & 0.000765$^*$ & 0.000765$^{*e}$ & 0.000765$^{*e}$ \\
-k~[m$^2$/s$^2$]          & 0.00325$^*$  & 0.00325$^{*k}$  & 0.00325$^{*k}$  \\
-$\nu_t$~[m$^2$/s]        & 0$^*$        & 0$^*$        & 0$^*$        \\
+U~[m/s]                  & (0 0 0)$^*$  & (1 0 0)$^*$     & (0 0 0)$^*$  \\
+p~[m$^2$/s$^2$]          & 0$^*$        & zeroGradient    & zeroGradient \\
 \hline
 \end{tabular}
-\caption{Initial conditions for simulation ($^*$: uniform fields, $^e$: epsilonWallFunction, $^k$: kqRWallFunction)}
+\caption{Initial conditions for simulation ($^*$: uniform field)}
 \label{initial_conditions}
 \end{center}
 \end{table}
@@ -126,10 +123,10 @@ $\nu_t$~[m$^2$/s]        & 0$^*$        & 0$^*$        & 0$^*$        \\
 \hline
 Name          & x  &  y & simpleGrading \\
 \hline
-Left channel    & M &  M    & (M$^{-1}$ 1 1) \\
-Right channel   & M &  M    & (M        1 1) \\
-Central channel & M &  M    & (1        1 1) \\
-Cavity          & M &  M*AR & (1        1 1) \\
+Left channel    & M &  M    & (0.1 1 1) \\
+Right channel   & M &  M    & (10  1 1) \\
+Central channel & M &  M    & (1   1 1) \\
+Cavity          & M &  M*AR & (1   1 1) \\
 \hline
 \end{tabular}
 \caption{Mesh configuration algorithm (M=50, AR=0.5 for base case)}
@@ -139,19 +136,29 @@ Cavity          & M &  M*AR & (1        1 1) \\
 
 \begin{figure}[tb]
 \begin{center}
-\includegraphics[width=0.5\textwidth]{figure/grid.png}
-\caption{Generated grid for the AR=0.5 cases}
+\includegraphics[width=0.5\textwidth]{figure/geometry.pdf}
+\caption{Geometry for the AR=0.5 cases}
+\label{geometry_figure}
+\end{center}
+\end{figure}
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{figure/half_grid.pdf}
+\caption{Closeup on the left half of the mesh generated for the AR=0.5 cases, showing the gradient towards the center}
 \label{grid_figure}
 \end{center}
 \end{figure}
 
 \begin{figure}[tb]
 \begin{center}
-\includegraphics[width=0.5\textwidth]{figure/tight_grid.png}
-\caption{Closeup on the cavity generated grid for the AR=0.5 cases}
-\label{grid_figure}
+\includegraphics[width=0.5\textwidth]{figure/AR0.5-Re2000 streamFunction axis final.pdf}
+\caption{AR=0.5, Re=2000}
+\label{}
 \end{center}
 \end{figure}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
@@ -171,7 +178,6 @@ Cavity          & M &  M*AR & (1        1 1) \\
 \section*{Appendix A: Python Code}
 
 \lstinputlisting[caption=Code to create solutions, language=Python]{../code/Final.py}
-\lstinputlisting[caption=Code to generate pretty plots using paraFoam, language=Python]{../code/paraFoam.py}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{document}

@@ -32,11 +32,11 @@ def generate_folders(ARs, Res):
 
 
 def create_mesh_file(path, AR, Re):
-    M = 50.
+    M = 100.
 
     YMESH       = str(int(M * AR))
-    INV_GRADING = str(4. / M)
-    GRADING     = str(M / 4.)
+    INV_GRADING = str(0.1)
+    GRADING     = str(10.)
     MESH        = str(int(M))
     AR          = str(-AR)
 
@@ -49,7 +49,7 @@ def create_mesh_file(path, AR, Re):
 
 
 def create_properties_files(path, AR, Re):
-    d = 10.           # characteristic size of domain
+    d = 1.           # characteristic size of domain
     NU = str(d / Re)
 
     inplace_change(path, 'NU_VAR', NU)
@@ -78,10 +78,9 @@ def run_simulations(ARs, Res):
             command += "cd " + run + "; "
             command += "blockMesh; "
             command += "decomposePar; "
-            command += "mpirun -np 4 pisoFoam -parallel > log; "
+            command += "mpirun -np 4 icoFoam -parallel > log; "
             command += "reconstructPar; "
             command += "streamFunction; "
-            # command += 'paraFoam --script="../paraFoam.py" '
 
             subprocess_cmd(command)
         print(run + ' complete.')
@@ -94,7 +93,6 @@ def main(ARs, Res):
     generate_folders(ARs, Res)
     update_dimensions(ARs, Res)
     run_simulations(ARs, Res)
-    # generate_plots(ARs, Res)
     print('Done!')
 
 if __name__ == "__main__":
