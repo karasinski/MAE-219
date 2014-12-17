@@ -77,10 +77,9 @@ def run_simulations(ARs, Res):
             command += "source $HOME/OpenFOAM/OpenFOAM-2.3.0/etc/bashrc; "
             command += "cd " + run + "; "
             command += "blockMesh; "
-            command += "decomposePar; "
-            command += "mpirun -np 4 icoFoam -parallel > log; "
-            command += "reconstructPar; "
-            command += "streamFunction; "
+            # command += "decomposePar; "
+            # command += "mpirun -np 4 icoFoam -parallel > log; "
+            # command += "reconstructPar; "
 
             subprocess_cmd(command)
         print(run + ' complete.')

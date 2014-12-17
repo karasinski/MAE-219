@@ -100,16 +100,16 @@ The solver is initialized with the initial conditions described in Table~\ref{in
 
 The script also generated the nonuniform mesh for this geometry using the blockMesh tool. This mesh was divided into four regions: the left half of the channel, the right half of the channel, the center of the channel, and the cavity. For the base case, both the left and right halves of the channel were split into grids of 50x50 in the x, y direction, and also used ``simpleGrading'' to grade the meshes to make them denser near the center of the domain. The center of the channel was also split into grids of 50x50 in the x, y direction. The cavity for the base case was split into grids of 50x25 in the x, y direction and created a uniform mesh. A generalized version of this mesh is available in Table~\ref{mesh_generation}.
 
-The resultant mesh for the base case can be see in Figure~\ref{grid_figure}. The domain of the problem was then split on to four CPUs using the decomposePar tool, and the icoFoam solver was called with the MPI option. The solver than solved the system for 30 seconds to insure convergence and reconstructed the domain using the reconstructPar tool.
+The resultant mesh for the base case can be see in Figure~\ref{grid_figure}. The domain of the problem was then split on to four CPUs using the decomposePar tool, and the icoFoam solver was called with the MPI option. The solver than solved the system to convergence and reconstructed the domain using the reconstructPar tool. The system was considered converged when the flow before and after the cavity both approximated a linear function (see Figure~\ref{velocity_profile}). This accomplished by creating by sampling the flow rate at $x=$1 and $x=$-1 and plotting against y. the ``sample'' function.
 
 \begin{table}[bt]
 \begin{center}
 \begin{tabular}{| l | l | l | l | }
 \hline
-                         & internal     & lid          & fixedWalls   \\
+                & internal    & lid          & fixedWalls   \\
 \hline
-U~[m/s]                  & (0 0 0)$^*$  & (1 0 0)$^*$     & (0 0 0)$^*$  \\
-p~[m$^2$/s$^2$]          & 0$^*$        & zeroGradient    & zeroGradient \\
+U~[m/s]         & (0 0 0)$^*$ & (1 0 0)$^*$  & (0 0 0)$^*$  \\
+p~[m$^2$/s$^2$] & 0$^*$       & zeroGradient & zeroGradient \\
 \hline
 \end{tabular}
 \caption{Initial conditions for simulation ($^*$: uniform field)}
@@ -121,10 +121,10 @@ p~[m$^2$/s$^2$]          & 0$^*$        & zeroGradient    & zeroGradient \\
 \begin{center}
 \begin{tabular}{| l | r r r | }
 \hline
-Name          & x  &  y & simpleGrading \\
+Name            & x &  y    & simpleGrading \\
 \hline
-Left channel    & M &  M    & (0.1 1 1) \\
-Right channel   & M &  M    & (10  1 1) \\
+Left channel    & M &  M    & (5/M 1 1) \\
+Right channel   & M &  M    & (M/5 1 1) \\
 Central channel & M &  M    & (1   1 1) \\
 Cavity          & M &  M*AR & (1   1 1) \\
 \hline
@@ -152,12 +152,59 @@ Cavity          & M &  M*AR & (1   1 1) \\
 
 \begin{figure}[tb]
 \begin{center}
+\includegraphics[width=0.5\textwidth]{figure/Ar0.5-Re100 Ux before and after.pdf}
+\caption{Velocity profile of Ux before ($x = 1 $m) and after ($x = -1 $m) cavity, for base case}
+\label{velocity_profile}
+\end{center}
+\end{figure}
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{figure/LeftCornerLarge.pdf}
+\caption{Upstream corner eddy}
+\label{velocity_profile}
+\end{center}
+\end{figure}
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{figure/AR0.5-Re100 streamFunction axis final.pdf}
+\caption{AR=0.5, Re=100}
+\label{}
+\end{center}
+\end{figure}
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{figure/AR0.5-Re1 streamFunction axis final.pdf}
+\caption{AR=0.5, Re=1}
+\label{}
+\end{center}
+\end{figure}
+
+\begin{figure}[tb]
+\begin{center}
 \includegraphics[width=0.5\textwidth]{figure/AR0.5-Re2000 streamFunction axis final.pdf}
 \caption{AR=0.5, Re=2000}
 \label{}
 \end{center}
 \end{figure}
 
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{figure/AR2-Re100 streamFunction axis final.pdf}
+\caption{AR=2, Re=100}
+\label{}
+\end{center}
+\end{figure}
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[height=1.4\textwidth]{figure/AR5-Re100 streamFunction axis final.pdf}
+\caption{AR=5, Re=100}
+\label{}
+\end{center}
+\end{figure}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
