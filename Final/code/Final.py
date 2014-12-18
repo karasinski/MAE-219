@@ -100,11 +100,9 @@ if __name__ == "__main__":
     # Base case
     ARs = [  0.5]
     Res = [100.0]
-    #          o                      Broken=x Working=o
     main(ARs, Res)
 
     # Additional cases
     ARs = [0.5,    0.5,   2.0,   5.0]
     Res = [1.0, 2000.0, 100.0, 100.0]
-    #        x       o      o      o  Broken=x Working=o
     main(ARs, Res)
