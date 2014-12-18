@@ -26,6 +26,7 @@
 \usepackage{grffile}
 \usepackage{pdfpages}
 \usepackage{algpseudocode}
+\usepackage{subcaption}
 
 % Default fixed font does not support bold face
 \DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
@@ -94,7 +95,7 @@ Forty five years ago, Mehta and Lavan published a paper on the numerical investi
 \begin{figure}[b]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figure/geometry.pdf}
-\caption{Geometry for the AR=0.5 cases}
+\caption{Geometry for the AR=0.5 cases (width of channel = 10m, height of channel = 1m; width of cavity = 1m, height of channel = 0.5m)}
 \label{geometry_figure}
 \end{center}
 \end{figure}
@@ -102,30 +103,19 @@ Forty five years ago, Mehta and Lavan published a paper on the numerical investi
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
-The icoFoam solver from OpenFOAM 2.3.0 was used to computationally solve this problem. icoFoam is a transient solver for incompressible, laminar flow of Newtonian fluid. The geometry for this problem consists of a channel of width 10 m and height 1 m. A cavity is placed just below the center of this channel and has a width of 1 m and a depth of AR (see Figure~\ref{geometry_figure}). Five cases were investigated: a base case with AR=0.5 and Re=100, and additional cases of AR=0.5 with Re=1 and 2000 for AR=0.5, and AR=2.0 and 5.0 for Re=100. A Python script was created to generate the initial conditions, geometry, and meshes for each case.
+The icoFoam solver from OpenFOAM 2.3.0 was used to computationally solve the Navier-Stokes equations,
+\begin{equation}
+\rho \left(\frac{\partial \mathbf{v}}{\partial t} + \mathbf{v} \cdot \nabla \mathbf{v}\right) = -\nabla p + \mu \nabla^2 \mathbf{v} + \mathbf{f}.
+\end{equation}
+\noindent icoFoam is a transient solver for incompressible, laminar flow of Newtonian fluid. The geometry for this problem consists of a channel of width 10 m and height 1 m. A cavity is placed just below the center of this channel and has a width of 1 m and a depth of AR (see Figure~\ref{geometry_figure}). Five cases were investigated: a base case with AR=0.5 and Re=100, and additional cases of AR=0.5 with Re=1 and 2000 for AR=0.5, and AR=2.0 and 5.0 for Re=100. A Python script was created to generate the initial conditions, geometry, and meshes for each case.
 
 \subsection{Initial and Boundary Conditions}
-The initial velocity field is set to zero throughout the domain. Additionally, the top lid of the channel is set to move to the right at 1 m/s and the velocity at the walls is set to zero. The initial pressure field is also set to zero throughout the domain, and the lid and walls are set to a ``zeroGradient'' condition. These initial conditions are also described in Table~\ref{initial_conditions}. The boundary field for the inlet and outlet boundaries are set to ``zeroGradient'' for all of the initial fields and, the boundary field for frontAndBack is set to ``empty'' for all initial fields, turning this into a 2D problem.
+The initial velocity field is set to zero throughout the domain. Additionally, the top lid of the channel is set to move to the right at 1 m/s and the velocity at the walls is set to zero. The initial pressure field is also set to zero throughout the domain, and the lid and walls are set to a ``zeroGradient'' condition. The boundary field for the inlet and outlet boundaries are set to ``zeroGradient'' for all of the initial fields, and the boundary field for frontAndBack is set to ``empty'' for all initial fields, turning this into a 2D problem.
 
 \subsection{Geometry and Mesh}
-The script also generated the nonuniform mesh for this geometry using the blockMesh tool. This mesh was divided into four blocks: the left half of the channel, the right half of the channel, the center of the channel, and the cavity. For the base case, both the left and right halves of the channel were split into grids of 100x100 in the x, y direction, and also used ``simpleGrading'' in the x-direction to grade the meshes to be denser towards the center of the domain. The center of the channel was also split into grids of 100x100 in the x, y direction. The cavity for the base case was split into grids of 100x50 in the x, y direction. A generalized version of this mesh is available in Table~\ref{mesh_generation} (where M is some desired mesh size).
+The script also generated the nonuniform mesh for this geometry using the\lstinline{blockMesh} tool. This mesh was divided into four blocks: the left half of the channel, the right half of the channel, the center of the channel, and the cavity. For the base case, both the left and right halves of the channel were split into 100x100 points in the x, y direction, and also used ``simpleGrading'' in the x-direction to grade the meshes to be denser towards the center of the domain. The center of the channel was also split into 100x100 points in the x, y direction. The cavity for the base case was split into 100x50 points in the x, y direction. A generalized version of this mesh is available in Table~\ref{mesh_generation} (where M is some desired mesh size).
 
-The domain of the problem was then split on to four CPUs using the decomposePar tool, and the icoFoam solver was called with the MPI option. The solver than solved the system to the specified end time and reconstructed the domain and fields using the reconstructPar tool. Solving to a solution time of 10 seconds for the base case takes 92.82s on a single core and only 44.01s on four cores, leading to a speedup of 2.1.
-
-\begin{table}[tb]
-\begin{center}
-\begin{tabular}{| l | l | l | l | }
-\hline
-                & internal    & lid          & fixedWalls   \\
-\hline
-U~[m/s]         & (0 0 0)$^*$ & (1 0 0)$^*$  & (0 0 0)$^*$  \\
-p~[m$^2$/s$^2$] & 0$^*$       & zeroGradient & zeroGradient \\
-\hline
-\end{tabular}
-\caption{Initial conditions for simulation ($^*$: uniform)}
-\label{initial_conditions}
-\end{center}
-\end{table}
+The resulting mesh was then split on to four CPUs using the\lstinline{decomposePar} tool, and the icoFoam solver was called with the MPI option. The solver than solved the system to the specified end time and reconstructed the domain and fields using the\lstinline{reconstructPar} tool. Solving to a solution time of 10 seconds for the base case takes 92.82s on a single core and only 44.01s on four cores, leading to a speedup of 2.1. This speedup could likely be improved by changing the distribution of the mesh onto the processors.
 
 \begin{table}[tb]
 \begin{center}
@@ -146,22 +136,31 @@ Cavity          & M &  M*AR & (1   1 1) \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
+\subsection{Comparison to Previously Published Results}
 
-The system was considered converged when the flow before and after the cavity both approximated a linear function (see Figure~\ref{velocity_profile}). This accomplished by sampling the flow rate at x = 1 m and x = -1 m and plotting against y. the ``sample'' function.
+\subsection{Velocity Profile Convergence}
+The system was considered converged when the velocity profile before and after the cavity both approximated a linear function. This is accomplished by sampling the velocity profile at x = 1 m and x = -1 m with the\lstinline{sample} tool and plotting against y. An example of this velocity profile for the base case at $t=30$s can be seen in Figure~\ref{velocity_profile}.
+
+The NRMS as a function of time is also investigated. A linear velocity profile was taken as the exact solution, and was used as the basis for comparison between the computational solutions found at each time step. The Root Mean Square error,
+\begin{equation}
+RMSE = \sqrt{\frac{1}{N}\sum\limits_{i=1}^N[U_i - U^*]^2},
+\end{equation}
+and the Normalized Root Mean Square error,
+\begin{equation}
+NRMS = \dfrac{RMSE}{max(U^*)-min(U^*)},
+\end{equation}
+can be calculated (as $max(U^*)-min(U^*) = 1$ in this case, the $NRMS = RMS$). Here $U_i$ is the computational result at each sampled point, $U^*$ is the linear velocity profile solution, and $N$ is the number of sampled points. The $NRMS$ for each case is expressed as a percentage, where lower values indicate a result closer to the analytic solution.
+
+The results of NRMS of the base case at each time step for the velocity profiles before and after the cavity are plotted in Figure~\ref{convergence_plot}. This shows that the convergence of the velocity profile after the cavity converges to $NRMS \approx 2E-4$ at approximately $t=120$s, while the velocity profile before the cavity continues to decrease logarithmically. The convergence of the velocity profile after the cavity suggests that the vortices in the cavity are also effectively converged by this time.
 
 \begin{figure}[tbh]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figure/Ar0.5-Re100 Ux before and after.pdf}
-\caption{Velocity profile of Ux before ($x = 1 $m) and after ($x = -1 $m) cavity, for base case}
+\caption{Velocity profile of Ux before ($x = 1 $m) and after ($x = -1 $m) cavity, for base case at $t=30$s}
 \label{velocity_profile}
-\end{center}
-\end{figure}
-
-\begin{figure}[tbh]
-\begin{center}
-\includegraphics[width=0.5\textwidth]{figure/AR0.5-Re100 streamFunction axis final.pdf}
-\caption{Base case (AR=0.5, Re=100)}
-\label{}
+\includegraphics[width=0.5\textwidth]{figure/convergence.pdf}
+\caption{Convergence of velocity profile before ($x = 1 $m) and after ($x = -1 $m) cavity, for base case}
+\label{convergence_plot}
 \end{center}
 \end{figure}
 
@@ -169,41 +168,15 @@ The system was considered converged when the flow before and after the cavity bo
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figure/AR0.5-Re1 streamFunction axis final.pdf}
 \caption{AR=0.5, Re=1}
-\label{}
-\end{center}
-\end{figure}
+\label{AR0.5RE1}
 
-\begin{figure}[tbh]
-\begin{center}
+\includegraphics[width=0.5\textwidth]{figure/AR0.5-Re100 streamFunction axis final.pdf}
+\caption{AR=0.5, Re=100 (base case)}
+\label{AR0.5RE100}
+
 \includegraphics[width=0.5\textwidth]{figure/AR0.5-Re2000 streamFunction axis final.pdf}
 \caption{AR=0.5, Re=2000}
-\label{}
-\end{center}
-\end{figure}
-
-\begin{figure}[tbh]
-\begin{center}
-\includegraphics[width=0.5\textwidth]{figure/AR2-Re100 streamFunction axis final.pdf}
-\caption{AR=2, Re=100}
-\label{}
-\end{center}
-\end{figure}
-
-\begin{figure}[tbh]
-\begin{center}
-\includegraphics[width=0.5\textwidth]{figure/leftVortex.pdf}
-\caption{Upstream corner eddy}
-\includegraphics[width=0.5\textwidth]{figure/rightVortex.pdf}
-\caption{Downstream corner eddy}
-\label{velocity_profile}
-\end{center}
-\end{figure}
-
-\begin{figure}[tbh]
-\begin{center}
-\includegraphics[height=1.4\textwidth]{figure/AR5-Re100 streamFunction axis final.pdf}
-\caption{AR=5, Re=100}
-\label{}
+\label{AR0.5RE2000}
 \end{center}
 \end{figure}
 
@@ -214,6 +187,39 @@ The system was considered converged when the flow before and after the cavity bo
 \nocite{*}
 \bibliographystyle{asmems4}
 \bibliography{asme2e}
+
+\clearpage
+\begin{figure}[tbh]
+        \centering
+        \begin{subfigure}[b]{0.5\textwidth}
+                \includegraphics[width=\textwidth]{figure/AR2-Re100 streamFunction axis final.pdf}
+                \caption{Cavity eddies}
+                \label{AR2RE100_cavity}
+        \end{subfigure}%
+        \label{AR2RE100}
+
+        \begin{subfigure}[b]{0.22\textwidth}
+                \includegraphics[width=\textwidth]{figure/leftVortex.pdf}
+                \caption{Upstream corner eddy, large ticks are 0.01m (y $\in \{-1.94, -2.00\}$, x $\in \{-.50, -.44\}$)}
+                \label{AR2RE100_upstream}
+        \end{subfigure}%
+        \qquad
+        \begin{subfigure}[b]{0.22\textwidth}
+                \includegraphics[width=\textwidth]{figure/rightVortex.pdf}
+                \caption{Downstream corner eddy, large ticks are 0.01m (y $\in \{-1.94, -2.00\}$, x $\in \{.44, .50\}$)}
+                \label{AR2RE100_downstream}
+        \end{subfigure}
+        \caption{AR=2, Re=100}\label{AR2RE100}
+
+\end{figure}
+
+\begin{figure}[tbh]
+\begin{center}
+\includegraphics[height=1.4\textwidth]{figure/AR5-Re100 streamFunction axis final.pdf}
+\caption{AR=5, Re=100}
+\label{}
+\end{center}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
