@@ -102,15 +102,17 @@ Forty five years ago, Mehta and Lavan published a paper on the numerical investi
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
-The icoFoam solver from OpenFOAM 2.3.0 was used to computationally solve this problem. icoFoam is a transient solver for incompressible, laminar flow of Newtonian fluid. Five cases were investigated: a base case with AR=0.5 and Re=100, and additional cases of AR=0.5 with Re=1 and 2000 for AR=0.5, and AR=2.0 and 5.0 for Re=100. A Python script was created to generate the initial conditions and geometry for each case.
+The icoFoam solver from OpenFOAM 2.3.0 was used to computationally solve this problem. icoFoam is a transient solver for incompressible, laminar flow of Newtonian fluid. The geometry for this problem consists of a channel of width 10 m and height 1 m. A cavity is placed just below the center of this channel and has a width of 1 m and a depth of AR (see Figure~\ref{geometry_figure}). Five cases were investigated: a base case with AR=0.5 and Re=100, and additional cases of AR=0.5 with Re=1 and 2000 for AR=0.5, and AR=2.0 and 5.0 for Re=100. A Python script was created to generate the initial conditions, geometry, and meshes for each case.
 
-The solver is initialized with the initial conditions described in Table~\ref{initial_conditions}. Additionally, the boundary field for the inlet and outlet boundaries are set to ``zeroGradient'' for all of the initial fields and, the boundary field for frontAndBack is set to ``empty'' for all initial fields, turning this into a 2D problem.
+\subsection{Initial and Boundary Conditions}
+The initial velocity field is set to zero throughout the domain. Additionally, the top lid of the channel is set to move to the right at 1 m/s and the velocity at the walls is set to zero. The initial pressure field is also set to zero throughout the domain, and the lid and walls are set to a ``zeroGradient'' condition. These initial conditions are also described in Table~\ref{initial_conditions}. The boundary field for the inlet and outlet boundaries are set to ``zeroGradient'' for all of the initial fields and, the boundary field for frontAndBack is set to ``empty'' for all initial fields, turning this into a 2D problem.
 
-The geometry for this problem consists of a channel of width 10 m and height 1 m. A cavity is placed just below the center of this channel and has a width of 1 m and a depth of AR (see Figure~\ref{geometry_figure}). The script also generated the nonuniform mesh for this geometry using the blockMesh tool. This mesh was divided into four regions: the left half of the channel, the right half of the channel, the center of the channel, and the cavity. For the base case, both the left and right halves of the channel were split into grids of 50x50 in the x, y direction, and also used ``simpleGrading'' to grade the meshes to make them denser near the center of the domain. The center of the channel was also split into grids of 50x50 in the x, y direction. The cavity for the base case was split into grids of 50x25 in the x, y direction and created a uniform mesh. A generalized version of this mesh is available in Table~\ref{mesh_generation}.
+\subsection{Geometry and Mesh}
+The script also generated the nonuniform mesh for this geometry using the blockMesh tool. This mesh was divided into four blocks: the left half of the channel, the right half of the channel, the center of the channel, and the cavity. For the base case, both the left and right halves of the channel were split into grids of 100x100 in the x, y direction, and also used ``simpleGrading'' in the x-direction to grade the meshes to be denser towards the center of the domain. The center of the channel was also split into grids of 100x100 in the x, y direction. The cavity for the base case was split into grids of 100x50 in the x, y direction. A generalized version of this mesh is available in Table~\ref{mesh_generation} (where M is some desired mesh size).
 
-The resultant mesh for the base case can be see in Figure~\ref{grid_figure}. The domain of the problem was then split on to four CPUs using the decomposePar tool, and the icoFoam solver was called with the MPI option. The solver than solved the system to convergence and reconstructed the domain using the reconstructPar tool. The system was considered converged when the flow before and after the cavity both approximated a linear function (see Figure~\ref{velocity_profile}). This accomplished by sampling the flow rate at x = 1 m and x = -1 m and plotting against y. the ``sample'' function.
+The domain of the problem was then split on to four CPUs using the decomposePar tool, and the icoFoam solver was called with the MPI option. The solver than solved the system to the specified end time and reconstructed the domain and fields using the reconstructPar tool. Solving to a solution time of 10 seconds for the base case takes 92.82s on a single core and only 44.01s on four cores, leading to a speedup of 2.1.
 
-\begin{table}[b]
+\begin{table}[tb]
 \begin{center}
 \begin{tabular}{| l | l | l | l | }
 \hline
@@ -120,12 +122,12 @@ U~[m/s]         & (0 0 0)$^*$ & (1 0 0)$^*$  & (0 0 0)$^*$  \\
 p~[m$^2$/s$^2$] & 0$^*$       & zeroGradient & zeroGradient \\
 \hline
 \end{tabular}
-\caption{Initial conditions for simulation ($^*$: uniform field)}
+\caption{Initial conditions for simulation ($^*$: uniform)}
 \label{initial_conditions}
 \end{center}
 \end{table}
 
-\begin{table}[b]
+\begin{table}[tb]
 \begin{center}
 \begin{tabular}{| l | r r r | }
 \hline
@@ -137,18 +139,15 @@ Central channel & M &  M    & (1   1 1) \\
 Cavity          & M &  M*AR & (1   1 1) \\
 \hline
 \end{tabular}
-\caption{Mesh configuration algorithm (M=50, AR=0.5 for base case)}
+\caption{Mesh configuration algorithm (M=100, AR=0.5 for base case)}
 \label{mesh_generation}
 \end{center}
 \end{table}
 
-\begin{figure}[tbh]
-\begin{center}
-\includegraphics[width=0.5\textwidth]{figure/half_grid.pdf}
-\caption{Closeup on the left half of the mesh generated for the AR=0.5 cases, showing the gradient towards the center}
-\label{grid_figure}
-\end{center}
-\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results Discussion}
+
+The system was considered converged when the flow before and after the cavity both approximated a linear function (see Figure~\ref{velocity_profile}). This accomplished by sampling the flow rate at x = 1 m and x = -1 m and plotting against y. the ``sample'' function.
 
 \begin{figure}[tbh]
 \begin{center}
@@ -161,7 +160,7 @@ Cavity          & M &  M*AR & (1   1 1) \\
 \begin{figure}[tbh]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figure/AR0.5-Re100 streamFunction axis final.pdf}
-\caption{AR=0.5, Re=100}
+\caption{Base case (AR=0.5, Re=100)}
 \label{}
 \end{center}
 \end{figure}
@@ -187,16 +186,16 @@ Cavity          & M &  M*AR & (1   1 1) \\
 \includegraphics[width=0.5\textwidth]{figure/AR2-Re100 streamFunction axis final.pdf}
 \caption{AR=2, Re=100}
 \label{}
+\end{center}
+\end{figure}
 
-% \begin{figure}[tbh]
-% \begin{center}
+\begin{figure}[tbh]
+\begin{center}
 \includegraphics[width=0.5\textwidth]{figure/leftVortex.pdf}
-\includegraphics[width=0.5\textwidth]{figure/rightVortex.pdf}
 \caption{Upstream corner eddy}
+\includegraphics[width=0.5\textwidth]{figure/rightVortex.pdf}
+\caption{Downstream corner eddy}
 \label{velocity_profile}
-% \end{center}
-% \end{figure}
-
 \end{center}
 \end{figure}
 
@@ -207,10 +206,6 @@ Cavity          & M &  M*AR & (1   1 1) \\
 \label{}
 \end{center}
 \end{figure}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Results Discussion}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
