@@ -91,18 +91,26 @@
 
 Forty five years ago, Mehta and Lavan published a paper on the numerical investigation of flow over a rectangular cavity at low Reynolds numbers~\cite{mehta1969flow}. This relatively simple geometry provides tremendous insight into the physics of flow separation, an important flow feature in many applications. A numerical 2D planar model of these incompressible, laminar flows is developed here. In particular, the predicted flow structure (streamline pattern, eddies) and velocity profiles are investigated for a variety of aspect ratios (AR) and Reynolds numbers (Re).
 
+\begin{figure}[b]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{figure/geometry.pdf}
+\caption{Geometry for the AR=0.5 cases}
+\label{geometry_figure}
+\end{center}
+\end{figure}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Solution Approach}
 
-The icoFoam solver from OpenFOAM 2.3.0 was used to model the solution of this problem. icoFoam is a transient solver for incompressible, laminar flow of Newtonian fluid. Five cases were investigated: a base case with AR=0.5 and Reynolds number (Re) of 100, and additional cases of AR=0.5 with Re=1 and 2000 for AR=0.5, and AR=2.0 and 5.0 for Re=100. A Python script was created to generate the initial conditions and geometry for each case.
+The icoFoam solver from OpenFOAM 2.3.0 was used to computationally solve this problem. icoFoam is a transient solver for incompressible, laminar flow of Newtonian fluid. Five cases were investigated: a base case with AR=0.5 and Re=100, and additional cases of AR=0.5 with Re=1 and 2000 for AR=0.5, and AR=2.0 and 5.0 for Re=100. A Python script was created to generate the initial conditions and geometry for each case.
 
-The solver is initialized with the initial conditions described in Table~\ref{initial_conditions}. Additionally, the boundary field for the inlet and outlet boundaries are set to ``zeroGradient'' for all of the initial fields and, the boundary field for frontAndBack is set to ``empty'' for all initial fields, turning this into a 2D problem. The geometry for this problem consists of a channel of width 10 m and height 1 m. A cavity is placed just below the channel and has a width of 1 m and a depth of AR (see Figure~\ref{geometry_figure}).
+The solver is initialized with the initial conditions described in Table~\ref{initial_conditions}. Additionally, the boundary field for the inlet and outlet boundaries are set to ``zeroGradient'' for all of the initial fields and, the boundary field for frontAndBack is set to ``empty'' for all initial fields, turning this into a 2D problem.
 
-The script also generated the nonuniform mesh for this geometry using the blockMesh tool. This mesh was divided into four regions: the left half of the channel, the right half of the channel, the center of the channel, and the cavity. For the base case, both the left and right halves of the channel were split into grids of 50x50 in the x, y direction, and also used ``simpleGrading'' to grade the meshes to make them denser near the center of the domain. The center of the channel was also split into grids of 50x50 in the x, y direction. The cavity for the base case was split into grids of 50x25 in the x, y direction and created a uniform mesh. A generalized version of this mesh is available in Table~\ref{mesh_generation}.
+The geometry for this problem consists of a channel of width 10 m and height 1 m. A cavity is placed just below the center of this channel and has a width of 1 m and a depth of AR (see Figure~\ref{geometry_figure}). The script also generated the nonuniform mesh for this geometry using the blockMesh tool. This mesh was divided into four regions: the left half of the channel, the right half of the channel, the center of the channel, and the cavity. For the base case, both the left and right halves of the channel were split into grids of 50x50 in the x, y direction, and also used ``simpleGrading'' to grade the meshes to make them denser near the center of the domain. The center of the channel was also split into grids of 50x50 in the x, y direction. The cavity for the base case was split into grids of 50x25 in the x, y direction and created a uniform mesh. A generalized version of this mesh is available in Table~\ref{mesh_generation}.
 
-The resultant mesh for the base case can be see in Figure~\ref{grid_figure}. The domain of the problem was then split on to four CPUs using the decomposePar tool, and the icoFoam solver was called with the MPI option. The solver than solved the system to convergence and reconstructed the domain using the reconstructPar tool. The system was considered converged when the flow before and after the cavity both approximated a linear function (see Figure~\ref{velocity_profile}). This accomplished by creating by sampling the flow rate at $x=$1 and $x=$-1 and plotting against y. the ``sample'' function.
+The resultant mesh for the base case can be see in Figure~\ref{grid_figure}. The domain of the problem was then split on to four CPUs using the decomposePar tool, and the icoFoam solver was called with the MPI option. The solver than solved the system to convergence and reconstructed the domain using the reconstructPar tool. The system was considered converged when the flow before and after the cavity both approximated a linear function (see Figure~\ref{velocity_profile}). This accomplished by sampling the flow rate at x = 1 m and x = -1 m and plotting against y. the ``sample'' function.
 
-\begin{table}[bt]
+\begin{table}[b]
 \begin{center}
 \begin{tabular}{| l | l | l | l | }
 \hline
@@ -117,7 +125,7 @@ p~[m$^2$/s$^2$] & 0$^*$       & zeroGradient & zeroGradient \\
 \end{center}
 \end{table}
 
-\begin{table}[bt]
+\begin{table}[b]
 \begin{center}
 \begin{tabular}{| l | r r r | }
 \hline
@@ -134,15 +142,7 @@ Cavity          & M &  M*AR & (1   1 1) \\
 \end{center}
 \end{table}
 
-\begin{figure}[tb]
-\begin{center}
-\includegraphics[width=0.5\textwidth]{figure/geometry.pdf}
-\caption{Geometry for the AR=0.5 cases}
-\label{geometry_figure}
-\end{center}
-\end{figure}
-
-\begin{figure}[tb]
+\begin{figure}[tbh]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figure/half_grid.pdf}
 \caption{Closeup on the left half of the mesh generated for the AR=0.5 cases, showing the gradient towards the center}
@@ -150,7 +150,7 @@ Cavity          & M &  M*AR & (1   1 1) \\
 \end{center}
 \end{figure}
 
-\begin{figure}[tb]
+\begin{figure}[tbh]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figure/Ar0.5-Re100 Ux before and after.pdf}
 \caption{Velocity profile of Ux before ($x = 1 $m) and after ($x = -1 $m) cavity, for base case}
@@ -158,15 +158,7 @@ Cavity          & M &  M*AR & (1   1 1) \\
 \end{center}
 \end{figure}
 
-\begin{figure}[tb]
-\begin{center}
-\includegraphics[width=0.5\textwidth]{figure/LeftCornerLarge.pdf}
-\caption{Upstream corner eddy}
-\label{velocity_profile}
-\end{center}
-\end{figure}
-
-\begin{figure}[tb]
+\begin{figure}[tbh]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figure/AR0.5-Re100 streamFunction axis final.pdf}
 \caption{AR=0.5, Re=100}
@@ -174,7 +166,7 @@ Cavity          & M &  M*AR & (1   1 1) \\
 \end{center}
 \end{figure}
 
-\begin{figure}[tb]
+\begin{figure}[tbh]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figure/AR0.5-Re1 streamFunction axis final.pdf}
 \caption{AR=0.5, Re=1}
@@ -182,7 +174,7 @@ Cavity          & M &  M*AR & (1   1 1) \\
 \end{center}
 \end{figure}
 
-\begin{figure}[tb]
+\begin{figure}[tbh]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figure/AR0.5-Re2000 streamFunction axis final.pdf}
 \caption{AR=0.5, Re=2000}
@@ -190,15 +182,25 @@ Cavity          & M &  M*AR & (1   1 1) \\
 \end{center}
 \end{figure}
 
-\begin{figure}[tb]
+\begin{figure}[tbh]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figure/AR2-Re100 streamFunction axis final.pdf}
 \caption{AR=2, Re=100}
 \label{}
+
+% \begin{figure}[tbh]
+% \begin{center}
+\includegraphics[width=0.5\textwidth]{figure/leftVortex.pdf}
+\includegraphics[width=0.5\textwidth]{figure/rightVortex.pdf}
+\caption{Upstream corner eddy}
+\label{velocity_profile}
+% \end{center}
+% \end{figure}
+
 \end{center}
 \end{figure}
 
-\begin{figure}[tb]
+\begin{figure}[tbh]
 \begin{center}
 \includegraphics[height=1.4\textwidth]{figure/AR5-Re100 streamFunction axis final.pdf}
 \caption{AR=5, Re=100}
