@@ -113,11 +113,7 @@ The icoFoam solver from OpenFOAM 2.3.0 was used to computationally solve the Nav
 The initial velocity field is set to zero throughout the domain. Additionally, the top lid of the channel is set to move to the right at 1 m/s and the velocity at the walls is set to zero. The initial pressure field is also set to zero throughout the domain, and the lid and walls are set to a ``zeroGradient'' condition. The boundary field for the inlet and outlet boundaries are set to ``zeroGradient'' for all of the initial fields, and the boundary field for frontAndBack is set to ``empty'' for all initial fields, turning this into a 2D problem.
 
 \subsection{Geometry and Mesh}
-The script also generated the nonuniform mesh for this geometry using the\lstinline{blockMesh} tool. This mesh was divided into four blocks: the left half of the channel, the right half of the channel, the center of the channel, and the cavity. For the base case, both the left and right halves of the channel were split into 100x100 points in the x, y direction, and also used ``simpleGrading'' in the x-direction to grade the meshes to be denser towards the center of the domain. The center of the channel was also split into 100x100 points in the x, y direction. The cavity for the base case was split into 100x50 points in the x, y direction. A generalized version of this mesh is available in Table~\ref{mesh_generation} (where M is some desired mesh size).
-
-The resulting mesh was then split on to four CPUs using the\lstinline{decomposePar} tool, and the icoFoam solver was called with the MPI option. The solver than solved the system to the specified end time and reconstructed the domain and fields using the\lstinline{reconstructPar} tool. Solving to a solution time of 10 seconds for the base case takes 92.82s on a single core and only 44.01s on four cores, leading to a speedup of 2.1. This speedup could likely be improved by changing the distribution of the mesh onto the processors.
-
-\begin{table}[tb]
+\begin{table}[b]
 \begin{center}
 \begin{tabular}{| l | r r r | }
 \hline
@@ -134,9 +130,21 @@ Cavity          & M &  M*AR & (1   1 1) \\
 \end{center}
 \end{table}
 
+The script also generated the nonuniform mesh for this geometry using the\lstinline{blockMesh} tool. This mesh was divided into four blocks: the left half of the channel, the right half of the channel, the center of the channel, and the cavity. For the base case, both the left and right halves of the channel were split into 100x100 points in the x, y direction, and also used ``simpleGrading'' in the x-direction to grade the meshes to be denser towards the center of the domain. The center of the channel was also split into 100x100 points in the x, y direction. The cavity for the base case was split into 100x50 points in the x, y direction. A generalized version of this mesh is available in Table~\ref{mesh_generation} (where M is some desired mesh size).
+
+The resulting mesh was then split on to four CPUs using the\lstinline{decomposePar} tool, and the icoFoam solver was called with the MPI option. The solver than solved the system to the specified end time and reconstructed the domain and fields using the\lstinline{reconstructPar} tool. Solving to a solution time of 10 seconds for the base case takes 92.82s on a single core and only 44.01s on four cores, leading to a speedup of 2.1. This speedup could likely be improved by changing the distribution of the mesh onto the processors.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
-\subsection{Comparison to Previously Published Results}
+\subsection{Comparison to Published Results}
+Constant streamline contours were plotted and compared to previously published results by Mehta and Lavan~\cite{mehta1969flow}. The streamline contours for AR=0.5 with Reynolds numbers of 1 and 100 are shown in Figures~\ref{AR0.5RE1} and~\ref{AR0.5RE100}. They key characteristic of these cases is the concase nature of the upper streamline in the Re=1 case, and the convex nature of the upper streamline in the Re=100 case. Both of these cases compare well to published results.
+
+The case of AR=2, Re=100 also compares well with the published results. The same convex nature found in the AR=0.5, Re=100 is also present here, as is the additional formation of the lower vortex. Upon closer inspection, two corner eddies are apparent in the upstream and downstream corners (see Figure~\ref{AR2RE100}). The published results suggest the formation of an additional, smaller corner eddy in each corner. This result is not seen here, though a mesh refinement would likely make these apparent.
+
+\subsection{Additional Cases}
+Streamline contours were also found for AR=5, Re=100. This case shows the same top vortex as in the AR=2, Re=100 case, but also shows the the formation of three additional vortices. The upper two of these vortices appear to be the same, while the bottom vortex appears to be very similar to the bottom vortex in the AR=2, Re=100 case. These results can be seen in Figure~\ref{AR5RE100}.
+
+The case of the AR=0.5, Re=100 case was also investigated. This streamline contours for this case are similar to that for the AR=0.5, Re=100 case, but bulge out of the cavity on the right side.
 
 \subsection{Velocity Profile Convergence}
 The system was considered converged when the velocity profile before and after the cavity both approximated a linear function. This is accomplished by sampling the velocity profile at x = 1 m and x = -1 m with the\lstinline{sample} tool and plotting against y. An example of this velocity profile for the base case at $t=30$s can be seen in Figure~\ref{velocity_profile}.
@@ -193,31 +201,31 @@ The results of NRMS of the base case at each time step for the velocity profiles
         \centering
         \begin{subfigure}[b]{0.5\textwidth}
                 \includegraphics[width=\textwidth]{figure/AR2-Re100 streamFunction axis final.pdf}
-                \caption{Cavity eddies}
+                \caption{Cavity vortices}
                 \label{AR2RE100_cavity}
         \end{subfigure}%
         \label{AR2RE100}
 
         \begin{subfigure}[b]{0.22\textwidth}
                 \includegraphics[width=\textwidth]{figure/leftVortex.pdf}
-                \caption{Upstream corner eddy, large ticks are 0.01m (y $\in \{-1.94, -2.00\}$, x $\in \{-.50, -.44\}$)}
+                \caption{Upstream corner eddy, large ticks are 0.01m (y~$\in~\{-1.94,~-2.00\}$, x~$\in~\{-.50,~-.44\}$)}
                 \label{AR2RE100_upstream}
         \end{subfigure}%
         \qquad
         \begin{subfigure}[b]{0.22\textwidth}
                 \includegraphics[width=\textwidth]{figure/rightVortex.pdf}
-                \caption{Downstream corner eddy, large ticks are 0.01m (y $\in \{-1.94, -2.00\}$, x $\in \{.44, .50\}$)}
+                \caption{Downstream corner eddy, large ticks are 0.01m (y~$\in~\{-1.94,~-2.00\}$, x~$\in~\{.44,~.50\}$)}
                 \label{AR2RE100_downstream}
         \end{subfigure}
-        \caption{AR=2, Re=100}\label{AR2RE100}
-
+        \caption{AR=2, Re=100}
+        \label{AR2RE100}
 \end{figure}
 
 \begin{figure}[tbh]
 \begin{center}
 \includegraphics[height=1.4\textwidth]{figure/AR5-Re100 streamFunction axis final.pdf}
 \caption{AR=5, Re=100}
-\label{}
+\label{AR5RE100}
 \end{center}
 \end{figure}
 
