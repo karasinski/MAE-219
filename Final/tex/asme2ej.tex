@@ -134,10 +134,12 @@ The script also generated the nonuniform mesh for this geometry using the\lstinl
 
 The resulting mesh was then split on to four CPUs using the\lstinline{decomposePar} tool, and the icoFoam solver was called with the MPI option. The solver than solved the system to the specified end time and reconstructed the domain and fields using the\lstinline{reconstructPar} tool. Solving to a solution time of 10 seconds for the base case takes 92.82s on a single core and only 44.01s on four cores, leading to a speedup of 2.1. This speedup could likely be improved by changing the distribution of the mesh onto the processors.
 
+Finally, post processing was also automated by the script. The script first calculates the flow components in the x and y directions by calling the\lstinline{foamCalc components U} command, and then samples the flow with the\lstinline{sample} tool.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results Discussion}
 \subsection{Comparison to Published Results}
-Constant streamline contours were plotted and compared to previously published results by Mehta and Lavan~\cite{mehta1969flow}. The streamline contours for AR=0.5 with Reynolds numbers of 1 and 100 are shown in Figures~\ref{AR0.5RE1} and~\ref{AR0.5RE100}. They key characteristic of these cases is the concase nature of the upper streamline in the Re=1 case, and the convex nature of the upper streamline in the Re=100 case. Both of these cases compare well to published results.
+Constant streamline contours were plotted and compared to previously published results by Mehta and Lavan~\cite{mehta1969flow}. While these previous results used a technique to simulate the flow in an infinite channel, the results presented here are for a channel of length 10m. No significant difference is seen due to this difference. The streamline contours for AR=0.5 with Reynolds numbers of 1 and 100 are shown in Figures~\ref{AR0.5RE1} and~\ref{AR0.5RE100}. They key characteristic of these cases is the concase nature of the upper streamline in the Re=1 case, and the convex nature of the upper streamline in the Re=100 case. Both of these cases compare well to published results.
 
 The case of AR=2, Re=100 also compares well with the published results. The same convex nature found in the AR=0.5, Re=100 is also present here, as is the additional formation of the lower vortex. Upon closer inspection, two corner eddies are apparent in the upstream and downstream corners (see Figure~\ref{AR2RE100}). The published results suggest the formation of an additional, smaller corner eddy in each corner. This result is not seen here, though a mesh refinement would likely make these apparent.
 
@@ -190,6 +192,8 @@ The results of NRMS of the base case at each time step for the velocity profiles
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
+
+The predicted flow structure and velocity profiles are investigated for a variety of aspect ratios and Reynolds numbers. openFoam is used to predict the structure of the flow for a rectangular cavity below a wide channel. A Python script was created to generate the initial conditions, geometry, and meshes for each case. The predicted flow structure found from the openFoam simulations were very similar to those found in previous results. This suggests that the use of finite channels did not have any obvious effect on the resultant flow inside the cavity. An investigation of the velocity profile convergence to a linear profile suggests that the flow converges at a logarithmic rate.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \nocite{*}
